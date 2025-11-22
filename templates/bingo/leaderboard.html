@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - Budget Bingo{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Bingo Leaderboard</h1>
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden"
+         hx-get="{% url 'bingo:leaderboard' %}"
+         hx-trigger="every 5s"
+         hx-swap="innerHTML">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Difficulty</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Time</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for card in leaders %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-lg font-bold text-gray-900">#{{ forloop.counter }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="font-medium text-gray-900">{{ card.user.display_name }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-800">{{ card.difficulty|title }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ card.completion_time|date:"M d, Y H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                        No completed cards yet. Be the first!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

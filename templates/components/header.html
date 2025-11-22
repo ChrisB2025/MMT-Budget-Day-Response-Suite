@@ -1,0 +1,32 @@
+{% load static %}
+<header class="bg-indigo-600 text-white shadow-lg">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center space-x-8">
+                <!-- Logo -->
+                <a href="{% url 'core:home' %}" class="flex items-center space-x-2">
+                    <span class="text-2xl font-bold">MMT Budget Suite</span>
+                </a>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex space-x-4">
+                    <a href="{% url 'bingo:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700">Bingo</a>
+                    <a href="{% url 'factcheck:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700">Fact-Check</a>
+                    <a href="{% url 'rebuttal:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700">Rebuttal</a>
+                </div>
+            </div>
+
+            <!-- User Menu -->
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <span class="text-sm">{{ user.display_name }} | Points: {{ user.points }}</span>
+                    <a href="{% url 'core:dashboard' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800">Dashboard</a>
+                    <a href="{% url 'users:logout' %}" class="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700">Logout</a>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800">Login</a>
+                    <a href="{% url 'users:register' %}" class="px-3 py-2 rounded-md bg-green-600 hover:bg-green-700">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header>

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}About - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">About MMT Budget Response Suite</h1>
+
+    <div class="prose prose-lg max-w-none">
+        <p class="lead">
+            The MMT Budget Response Suite is a real-time platform for tracking, fact-checking, and rebutting
+            budget myths from a Modern Monetary Theory perspective.
+        </p>
+
+        <h2>Why This Platform?</h2>
+        <p>
+            Every budget day, the same economic myths are repeated: "taxpayer money," "maxed out credit card,"
+            "balancing the books." This platform provides tools to:
+        </p>
+        <ul>
+            <li>Track these myths in real-time with Budget Bingo</li>
+            <li>Crowdsource and AI-verify fact-checks with MMT analysis</li>
+            <li>Generate comprehensive rebuttals for activists, MPs, and media</li>
+        </ul>
+
+        <h2>How It Works</h2>
+        <h3>Budget Bingo</h3>
+        <p>
+            Generate a 5x5 bingo card with common budget myths. Mark them as you hear them during the
+            Chancellor's speech. Compete with others for fastest completion!
+        </p>
+
+        <h3>Fact-Check Platform</h3>
+        <p>
+            Submit claims you hear during the budget for AI-powered fact-checking. Each response includes:
+        </p>
+        <ul>
+            <li>The Claim: Restated clearly</li>
+            <li>The Problem: Why it's misleading</li>
+            <li>The Reality: What's actually true</li>
+            <li>The Evidence: Citations and data</li>
+            <li>The MMT Perspective: How MMT reframes the issue</li>
+        </ul>
+
+        <h3>Comprehensive Rebuttal</h3>
+        <p>
+            AI-generated comprehensive analysis document including:
+        </p>
+        <ul>
+            <li>Executive Summary</li>
+            <li>Key Myths Debunked</li>
+            <li>Fiscal Analysis</li>
+            <li>Action Points for activists, MPs, and media</li>
+        </ul>
+
+        <h2>Technology</h2>
+        <p>
+            Built with Django, HTMX, and Tailwind CSS. Powered by Claude AI for intelligent fact-checking
+            and rebuttal generation.
+        </p>
+    </div>
+</div>
+{% endblock %}

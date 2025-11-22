@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Fact-Check Platform - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Fact-Check Platform</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Submit a Claim</h2>
+            <p class="text-gray-600 mb-6">
+                Heard a questionable claim in the budget speech? Submit it for AI-powered fact-checking with MMT analysis.
+            </p>
+            <a href="{% url 'factcheck:submit' %}" class="inline-block px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold">
+                Submit Claim
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Browse Queue</h2>
+            <p class="text-gray-600 mb-6">
+                View all submitted claims, upvote important ones, and read AI-generated fact-checks.
+            </p>
+            <a href="{% url 'factcheck:queue' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold">
+                View Queue
+            </a>
+        </div>
+    </div>
+
+    {% if recent_requests %}
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Recently Fact-Checked</h2>
+        <div class="space-y-4">
+            {% for request in recent_requests %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-900">{{ request.claim_text|truncatewords:20 }}</h3>
+                    <span class="px-2 py-1 text-xs rounded {% load htmx_tags %}{{ request.severity|severity_color }}">
+                        Severity: {{ request.severity }}/10
+                    </span>
+                </div>
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-sm text-gray-500">
+                        By {{ request.user.display_name }} • {{ request.created_at|timesince }} ago
+                    </span>
+                    <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm">
+                        View Fact-Check
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

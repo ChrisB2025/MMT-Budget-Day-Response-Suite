@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - {{ user.display_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">Profile</h1>
+
+        <dl class="space-y-4">
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Username</dt>
+                <dd class="text-lg text-gray-900">{{ user.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Display Name</dt>
+                <dd class="text-lg text-gray-900">{{ user.display_name }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                <dd class="text-lg text-gray-900">{{ user.email }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Total Points</dt>
+                <dd class="text-lg text-gray-900">{{ user.points }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Member Since</dt>
+                <dd class="text-lg text-gray-900">{{ user.date_joined|date:"F d, Y" }}</dd>
+            </div>
+        </dl>
+
+        <div class="mt-8">
+            <a href="{% url 'core:dashboard' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
