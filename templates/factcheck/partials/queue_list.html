@@ -1,23 +1,23 @@
 {% load htmx_tags %}
-{% for request in requests %}
+{% for fact_check in requests %}
 <div class="bg-white rounded-lg shadow p-6">
     <div class="flex justify-between items-start mb-4">
         <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ request.claim_text|truncatewords:30 }}</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ fact_check.claim_text|truncatewords:30 }}</h3>
             <div class="flex items-center gap-4 text-sm text-gray-600">
-                <span>By {{ request.user.display_name }}</span>
-                <span>{{ request.created_at|timesince }} ago</span>
-                <span class="px-2 py-1 rounded text-xs {{ request.status|status_color }}">
-                    {{ request.get_status_display }}
+                <span>By {{ fact_check.user.display_name }}</span>
+                <span>{{ fact_check.created_at|timesince }} ago</span>
+                <span class="px-2 py-1 rounded text-xs {{ fact_check.status|status_color }}">
+                    {{ fact_check.get_status_display }}
                 </span>
-                <span class="px-2 py-1 rounded text-xs {{ request.severity|severity_color }}">
-                    Severity: {{ request.severity }}/10
+                <span class="px-2 py-1 rounded text-xs {{ fact_check.severity|severity_color }}">
+                    Severity: {{ fact_check.severity }}/10
                 </span>
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-sm text-gray-500">↑ {{ request.upvotes }}</span>
-            <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            <span class="text-sm text-gray-500">↑ {{ fact_check.upvotes }}</span>
+            <a href="{% url 'factcheck:detail' fact_check.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                 View
             </a>
         </div>

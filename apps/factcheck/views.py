@@ -42,7 +42,7 @@ def submit_factcheck(request):
             # For HTMX requests, return partial
             if request.headers.get('HX-Request'):
                 return render(request, 'factcheck/partials/request_card.html', {
-                    'request': fact_check
+                    'fact_check': fact_check
                 })
 
             return redirect('factcheck:detail', request_id=fact_check.id)
@@ -90,7 +90,7 @@ def factcheck_detail(request, request_id):
         ).exists()
 
     return render(request, 'factcheck/detail.html', {
-        'request': fact_check,
+        'fact_check': fact_check,
         'has_upvoted': has_upvoted
     })
 
@@ -123,7 +123,7 @@ def upvote_factcheck(request, request_id):
 
     # Return updated upvote button for HTMX
     return render(request, 'factcheck/partials/upvote_button.html', {
-        'request': fact_check,
+        'fact_check': fact_check,
         'has_upvoted': has_upvoted
     })
 

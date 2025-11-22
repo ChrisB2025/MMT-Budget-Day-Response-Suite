@@ -32,19 +32,19 @@
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Recently Fact-Checked</h2>
         <div class="space-y-4">
-            {% for request in recent_requests %}
+            {% for fact_check in recent_requests %}
             <div class="border border-gray-200 rounded-lg p-4">
                 <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900">{{ request.claim_text|truncatewords:20 }}</h3>
-                    <span class="px-2 py-1 text-xs rounded {% load htmx_tags %}{{ request.severity|severity_color }}">
-                        Severity: {{ request.severity }}/10
+                    <h3 class="font-semibold text-gray-900">{{ fact_check.claim_text|truncatewords:20 }}</h3>
+                    <span class="px-2 py-1 text-xs rounded {% load htmx_tags %}{{ fact_check.severity|severity_color }}">
+                        Severity: {{ fact_check.severity }}/10
                     </span>
                 </div>
                 <div class="flex justify-between items-center mt-4">
                     <span class="text-sm text-gray-500">
-                        By {{ request.user.display_name }} • {{ request.created_at|timesince }} ago
+                        By {{ fact_check.user.display_name }} • {{ fact_check.created_at|timesince }} ago
                     </span>
-                    <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm">
+                    <a href="{% url 'factcheck:detail' fact_check.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm">
                         View Fact-Check
                     </a>
                 </div>

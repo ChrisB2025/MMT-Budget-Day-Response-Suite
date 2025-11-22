@@ -1,10 +1,10 @@
 <div id="upvote-button">
     <button
-        hx-post="{% url 'factcheck:upvote' request.id %}"
+        hx-post="{% url 'factcheck:upvote' fact_check.id %}"
         hx-swap="outerHTML"
         hx-target="#upvote-button"
         class="px-4 py-2 {% if has_upvoted %}bg-indigo-600{% else %}bg-gray-600{% endif %} text-white rounded-md hover:bg-indigo-700"
     >
-        {% if has_upvoted %}✓ Upvoted{% else %}↑ Upvote{% endif %} ({{ request.upvotes }})
+        {% if has_upvoted %}✓ Upvoted{% else %}↑ Upvote{% endif %} ({{ fact_check.upvotes }})
     </button>
 </div>
