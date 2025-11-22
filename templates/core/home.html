@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="text-5xl font-bold text-gray-900 mb-6">
+        MMT Budget Day Response Suite
+    </h1>
+    <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+        Track budget myths in real-time, crowdsource fact-checks, and generate comprehensive MMT rebuttals for the UK Budget 2025.
+    </p>
+
+    <!-- Feature Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <!-- Bingo -->
+        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div class="text-4xl mb-4">🎯</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Budget Bingo</h2>
+            <p class="text-gray-600 mb-6">Track and mark budget myths in real-time. Compete with others to complete your bingo card first!</p>
+            <a href="{% url 'bingo:home' %}" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Play Bingo
+            </a>
+        </div>
+
+        <!-- Fact-Check -->
+        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div class="text-4xl mb-4">✓</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Fact-Check Platform</h2>
+            <p class="text-gray-600 mb-6">Submit claims for AI-powered fact-checking with MMT perspective and evidence.</p>
+            <a href="{% url 'factcheck:submit' %}" class="inline-block px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
+                Submit Claim
+            </a>
+        </div>
+
+        <!-- Rebuttal -->
+        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div class="text-4xl mb-4">📄</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Comprehensive Rebuttal</h2>
+            <p class="text-gray-600 mb-6">AI-generated comprehensive analysis and rebuttal document ready for download.</p>
+            <a href="{% url 'rebuttal:latest' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                View Rebuttal
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mt-16 bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">Live Stats</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="text-4xl font-bold text-indigo-600">{{ total_bingo_cards }}</div>
+                <div class="text-gray-600 mt-2">Bingo Cards Generated</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-green-600">{{ total_factchecks }}</div>
+                <div class="text-gray-600 mt-2">Claims Fact-Checked</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold text-purple-600">Nov 30</div>
+                <div class="text-gray-600 mt-2">Launch Date</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

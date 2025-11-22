@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Budget Bingo - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Budget Bingo</h1>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">How to Play</h2>
+        <ol class="list-decimal list-inside space-y-2 text-gray-700">
+            <li>Generate a bingo card with common budget myths</li>
+            <li>Watch the budget speech and mark squares when you hear the myths</li>
+            <li>Get 5 in a row (horizontal, vertical, or diagonal) to win!</li>
+            <li>Compete for fastest completion on the leaderboard</li>
+        </ol>
+    </div>
+
+    <div class="flex gap-4 mb-8">
+        <a href="{% url 'bingo:generate' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold">
+            Generate New Card
+        </a>
+        <a href="{% url 'bingo:leaderboard' %}" class="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold">
+            View Leaderboard
+        </a>
+        <a href="{% url 'bingo:stats' %}" class="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold">
+            View Stats
+        </a>
+    </div>
+
+    {% if user_cards %}
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Recent Cards</h2>
+        <div class="space-y-4">
+            {% for card in user_cards %}
+            <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+                <div>
+                    <span class="font-semibold">Card #{{ card.id }}</span>
+                    <span class="text-gray-500 ml-2">{{ card.difficulty|title }}</span>
+                    {% if card.completed %}
+                    <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 text-sm rounded">Completed</span>
+                    {% else %}
+                    <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded">In Progress ({{ card.marked_count }}/25)</span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'bingo:card_detail' card.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    View Card
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

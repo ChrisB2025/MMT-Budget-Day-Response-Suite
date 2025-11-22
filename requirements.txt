@@ -1,0 +1,31 @@
+# Django Core
+Django==5.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+django-environ==0.11.2
+
+# Web Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Real-time / WebSocket
+channels==4.0.0
+channels-redis==4.1.0
+daphne==4.0.0
+
+# Task Queue
+celery==5.3.4
+redis==5.0.1
+
+# AI / API
+anthropic==0.8.1
+
+# Document Generation
+Pillow==10.1.0
+reportlab==4.0.7
+markdown==3.5.1
+weasyprint==60.1
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3

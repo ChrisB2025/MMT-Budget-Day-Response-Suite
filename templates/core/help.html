@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Help - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Help & FAQ</h1>
+
+    <div class="space-y-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Getting Started</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold text-lg">1. Create an Account</h3>
+                    <p class="text-gray-600">Register with your email and create a password to get started.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">2. Choose Your Activity</h3>
+                    <p class="text-gray-600">Generate a bingo card, submit fact-checks, or view the latest rebuttal.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">3. Earn Points</h3>
+                    <p class="text-gray-600">Participate to earn points and unlock achievements!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Budget Bingo</h2>
+            <dl class="space-y-4">
+                <div>
+                    <dt class="font-semibold">How do I generate a card?</dt>
+                    <dd class="text-gray-600 mt-1">Click "Generate Bingo Card" and select your difficulty level.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">How do I mark a square?</dt>
+                    <dd class="text-gray-600 mt-1">Click any square when you hear that myth in the budget speech.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">How do I win?</dt>
+                    <dd class="text-gray-600 mt-1">Complete 5 in a row (horizontal, vertical, or diagonal) to achieve bingo!</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Fact-Checking</h2>
+            <dl class="space-y-4">
+                <div>
+                    <dt class="font-semibold">How do I submit a claim?</dt>
+                    <dd class="text-gray-600 mt-1">Go to Fact-Check → Submit and fill in the claim, context, and severity rating.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">How long does it take?</dt>
+                    <dd class="text-gray-600 mt-1">AI responses are usually generated within 30 seconds.</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">What is severity rating?</dt>
+                    <dd class="text-gray-600 mt-1">Rate 1-10 how misleading you think the claim is (10 = most misleading).</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Rebuttals</h2>
+            <dl class="space-y-4">
+                <div>
+                    <dt class="font-semibold">How do I download a rebuttal?</dt>
+                    <dd class="text-gray-600 mt-1">View the rebuttal and choose Download → format (PDF, Markdown, HTML).</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">Can I share rebuttals?</dt>
+                    <dd class="text-gray-600 mt-1">Yes! All published rebuttals are publicly accessible and shareable.</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

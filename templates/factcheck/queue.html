@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Fact-Check Queue - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Fact-Check Queue</h1>
+
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Filter by Status</h2>
+            </div>
+            <div class="flex gap-2">
+                <a href="?status=all" class="px-4 py-2 {% if status_filter == 'all' %}bg-indigo-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %} rounded-md">All</a>
+                <a href="?status=submitted" class="px-4 py-2 {% if status_filter == 'submitted' %}bg-indigo-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %} rounded-md">Submitted</a>
+                <a href="?status=processing" class="px-4 py-2 {% if status_filter == 'processing' %}bg-indigo-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %} rounded-md">Processing</a>
+                <a href="?status=reviewed" class="px-4 py-2 {% if status_filter == 'reviewed' %}bg-indigo-600 text-white{% else %}bg-gray-200 text-gray-700{% endif %} rounded-md">Reviewed</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        {% for request in requests %}
+        <div class="bg-white rounded-lg shadow p-6">
+            {% load htmx_tags %}
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ request.claim_text|truncatewords:30 }}</h3>
+                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                        <span>By {{ request.user.display_name }}</span>
+                        <span>{{ request.created_at|timesince }} ago</span>
+                        <span class="px-2 py-1 rounded text-xs {{ request.status|status_color }}">
+                            {{ request.get_status_display }}
+                        </span>
+                        <span class="px-2 py-1 rounded text-xs {{ request.severity|severity_color }}">
+                            Severity: {{ request.severity }}/10
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-500">↑ {{ request.upvotes }}</span>
+                    <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                        View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+            No fact-check requests found.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
