@@ -96,9 +96,17 @@
                                             Submitted by {{ request.user.display_name|default:"User" }} • {{ request.created_at|timesince }} ago
                                         </p>
                                     </div>
-                                    <a href="{% url 'factcheck:detail' request.id %}" class="ml-4 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-                                        View
-                                    </a>
+                                    <div class="flex gap-2 ml-4">
+                                        <a href="{% url 'factcheck:detail' request.id %}" class="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                                            View
+                                        </a>
+                                        <form method="post" action="{% url 'factcheck:delete' request.id %}" onsubmit="return confirm('Delete this claim?');" class="inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}

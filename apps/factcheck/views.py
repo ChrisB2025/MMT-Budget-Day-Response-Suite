@@ -621,3 +621,27 @@ def process_stuck_claims(request):
         'stuck_requests': stuck_requests,
         'processed': False
     })
+
+
+@login_required
+def delete_factcheck(request, request_id):
+    """Delete a fact-check request (staff only or own requests)"""
+    fact_check = get_object_or_404(FactCheckRequest, id=request_id)
+
+    # Allow staff or the person who created it to delete
+    if not (request.user.is_staff or fact_check.user == request.user):
+        messages.error(request, 'You do not have permission to delete this request.')
+        return redirect('factcheck:queue')
+
+    if request.method == 'POST':
+        claim_text = fact_check.claim_text[:50]
+        fact_check.delete()
+        messages.success(request, f'Successfully deleted fact-check request: "{claim_text}..."')
+        return redirect('factcheck:queue')
+
+    # If GET request, show confirmation (or just delete if HTMX)
+    if request.headers.get('HX-Request'):
+        fact_check.delete()
+        return HttpResponse(status=200)
+
+    return redirect('factcheck:queue')

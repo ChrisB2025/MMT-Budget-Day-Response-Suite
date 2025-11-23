@@ -133,7 +133,7 @@ def delete_test_submissions(request):
 
 def grant_staff_emergency(request):
     """
-    EMERGENCY: No-login endpoint to grant staff permissions.
+    EMERGENCY: No-login endpoint to grant staff permissions and list all users.
     Requires secret token in URL.
     TODO: REMOVE THIS IMMEDIATELY AFTER USE!
     """
@@ -144,14 +144,34 @@ def grant_staff_emergency(request):
     if token != 'chrisb-staff-grant-2025':
         return HttpResponse('Invalid or missing token', status=403)
 
-    # Get username from URL
-    username = request.GET.get('user', 'ChrisB')
+    # Get username or email from URL
+    username = request.GET.get('user', '')
+    email = request.GET.get('email', '')
+
+    # If no user specified, show all users
+    if not username and not email:
+        all_users = User.objects.all()
+        user_list = '<h1>All Users in Database:</h1><ul>'
+        for u in all_users:
+            user_list += f'<li><strong>Username:</strong> {u.username} | <strong>Email:</strong> {u.email} | <strong>Staff:</strong> {u.is_staff}</li>'
+        user_list += '</ul>'
+        user_list += '<p><strong>To grant staff to a user, add ?token=chrisb-staff-grant-2025&user=USERNAME</strong></p>'
+        return HttpResponse(user_list)
 
     try:
-        user = User.objects.get(username=username)
+        # Try to find by username or email
+        if username:
+            user = User.objects.get(username=username)
+        else:
+            user = User.objects.get(email=email)
 
         if user.is_staff:
-            return HttpResponse(f'✓ User "{username}" already has staff permissions!<br><br><a href="/dashboard/">Go to Dashboard</a>')
+            return HttpResponse(f'''
+                <h1>✓ User "{user.username}" already has staff permissions!</h1>
+                <p>Username: {user.username}</p>
+                <p>Email: {user.email}</p>
+                <p><a href="/dashboard/">Go to Dashboard</a></p>
+            ''')
 
         # Grant staff permissions
         user.is_staff = True
@@ -159,14 +179,17 @@ def grant_staff_emergency(request):
 
         return HttpResponse(f'''
             <h1>✓ Success!</h1>
-            <p>User "{username}" has been granted staff permissions.</p>
+            <p>User <strong>"{user.username}"</strong> has been granted staff permissions.</p>
+            <p>Username: {user.username}</p>
+            <p>Email: {user.email}</p>
+            <p><strong>Use username "{user.username}" to log in at /admin/</strong></p>
             <p><a href="/dashboard/">Go to Dashboard</a></p>
             <p><strong style="color: red;">IMPORTANT: Notify developer to remove this endpoint immediately!</strong></p>
         ''')
 
     except User.DoesNotExist:
-        # List all users to help debug
-        all_users = User.objects.all().values_list('username', flat=True)
-        return HttpResponse(f'User "{username}" not found.<br>Available users: {", ".join(all_users)}')
+        all_users = User.objects.all().values_list('username', 'email', flat=False)
+        user_list = '<br>'.join([f'Username: {u[0]}, Email: {u[1]}' for u in all_users])
+        return HttpResponse(f'User not found.<br><br>Available users:<br>{user_list}')
     except Exception as e:
         return HttpResponse(f'Error: {str(e)}', status=500)
