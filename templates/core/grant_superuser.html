@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Grant Superuser Access - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="text-5xl">🔐</div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Grant Superuser Access</h1>
+                <p class="text-gray-600 mt-2">Upgrade your account to full administrator privileges</p>
+            </div>
+        </div>
+
+        {% if is_superuser %}
+            <!-- Already has superuser -->
+            <div class="bg-green-50 border-2 border-green-500 rounded-lg p-6 mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-green-900">You Already Have Superuser Access!</h2>
+                </div>
+                <p class="text-green-800 mb-4">Your account has full administrator privileges.</p>
+
+                <div class="bg-white rounded-lg p-4 mb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">✅ You can access:</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <a href="/admin/" class="text-blue-600 hover:underline font-medium">Django Admin Panel (/admin/)</a>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>Full database management for all models</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>User management and permissions</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>All admin dashboard features</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="flex gap-4">
+                    <a href="/admin/" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold transition">
+                        Go to Django Admin →
+                    </a>
+                    <a href="{% url 'core:admin_dashboard' %}" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold transition">
+                        Admin Dashboard
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- Does not have superuser yet -->
+            <div class="bg-yellow-50 border-2 border-yellow-500 rounded-lg p-6 mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-yellow-900">Current Access Level: Staff</h2>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-3">Current Permissions:</h3>
+                    <ul class="space-y-2 text-gray-700 mb-4">
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>Access to Admin Dashboard</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-green-600">✓</span>
+                            <span>Staff-only management tools</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-600">✗</span>
+                            <span><strong>Django Admin Panel (/admin/)</strong> - Requires superuser</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="text-red-600">✗</span>
+                            <span>Full database management access</span>
+                        </li>
+                    </ul>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <h4 class="font-semibold text-blue-900 mb-2">📋 What You'll Get:</h4>
+                        <ul class="space-y-1 text-blue-800 text-sm">
+                            <li>• Full access to Django Admin panel at <code class="bg-blue-100 px-2 py-1 rounded">/admin/</code></li>
+                            <li>• Ability to manage all database tables (Users, Bingo, Fact-checks, Complaints, etc.)</li>
+                            <li>• Permission to create, edit, and delete any records</li>
+                            <li>• Access to all Django administrative features</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <form method="POST" class="mb-4">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg transition shadow-lg hover:shadow-xl">
+                        🚀 Grant Me Superuser Access
+                    </button>
+                </form>
+
+                <p class="text-sm text-gray-600 text-center">
+                    This is a secure, staff-only endpoint. Only users with existing staff privileges can access this page.
+                </p>
+            </div>
+        {% endif %}
+
+        <!-- Account Information -->
+        <div class="bg-gray-50 rounded-lg p-6 mt-6">
+            <h3 class="font-semibold text-gray-900 mb-3">📊 Your Account Status</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="flex items-center justify-between p-3 bg-white rounded">
+                    <span class="text-gray-700">Username:</span>
+                    <span class="font-semibold text-gray-900">{{ user.username }}</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-white rounded">
+                    <span class="text-gray-700">Display Name:</span>
+                    <span class="font-semibold text-gray-900">{{ user.display_name }}</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-white rounded">
+                    <span class="text-gray-700">Staff Status:</span>
+                    <span class="font-semibold {% if user.is_staff %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if user.is_staff %}✅ Active{% else %}❌ No{% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-white rounded">
+                    <span class="text-gray-700">Superuser Status:</span>
+                    <span class="font-semibold {% if user.is_superuser %}text-green-600{% else %}text-yellow-600{% endif %}">
+                        {% if user.is_superuser %}✅ Active{% else %}⚠️ No{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex gap-4 mt-6">
+            <a href="{% url 'core:admin_dashboard' %}" class="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold transition text-center">
+                ← Back to Admin Dashboard
+            </a>
+            {% if is_superuser %}
+            <a href="/admin/" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold transition text-center">
+                Open Django Admin →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
