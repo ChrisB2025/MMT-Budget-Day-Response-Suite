@@ -35,8 +35,16 @@ def factcheck_home(request):
     except Exception:
         pass
 
-    # Get live feed
-    live_feed = get_live_feed(limit=10)
+    # Get live feed (gracefully handle if new tables don't exist)
+    live_feed = []
+    try:
+        live_feed = get_live_feed(limit=10)
+    except Exception:
+        # If new tables don't exist, just show recent requests
+        try:
+            live_feed = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+        except Exception:
+            pass
 
     # Get leaderboard (may be empty if profiles don't exist yet)
     leaderboard = []
