@@ -129,18 +129,32 @@ def submit_factcheck(request):
                 if badges_awarded:
                     success_msg += f' 🏆 New badge(s) earned!'
 
-            # Trigger async processing (gracefully handle if Celery is not running)
+            # Trigger processing (try async first, fallback to sync)
+            processing_started = False
             try:
+                # Try Celery async processing
                 process_fact_check.delay(fact_check.id)
+                processing_started = True
                 messages.success(request, success_msg + ' AI is generating a response...')
             except Exception as e:
-                # Fallback to synchronous processing if Celery is not available
+                # Celery not available - process synchronously RIGHT NOW
                 try:
-                    from .tasks import process_fact_check
-                    process_fact_check(fact_check.id)
-                    messages.success(request, success_msg + ' Processing complete!')
+                    from .services import process_fact_check_request
+                    result = process_fact_check_request(fact_check.id)
+
+                    if result['status'] == 'success':
+                        processing_started = True
+                        messages.success(request, success_msg + ' ✅ Fact-check complete!')
+                    else:
+                        messages.warning(
+                            request,
+                            success_msg + f' ⚠️ Processing failed: {result.get("message", "Unknown error")}'
+                        )
                 except Exception as sync_error:
-                    messages.success(request, success_msg + ' Processing will begin shortly.')
+                    messages.error(
+                        request,
+                        success_msg + f' ❌ Error: {str(sync_error)}'
+                    )
 
             # For HTMX requests, return partial with animations
             if request.headers.get('HX-Request'):
