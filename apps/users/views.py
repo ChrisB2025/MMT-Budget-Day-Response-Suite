@@ -94,3 +94,54 @@ def setup_admin_view(request):
             content_type='text/html',
             status=500
         )
+
+
+def make_me_admin_view(request):
+    """
+    Temporary setup view to make current logged-in user a superuser.
+    Access at /make-me-admin/ while logged in to gain admin privileges.
+    This should be disabled or removed in production after initial setup.
+    """
+    if not request.user.is_authenticated:
+        return HttpResponse(
+            '<h1>⚠️ Not logged in</h1>'
+            '<p>You must be logged in to use this feature.</p>'
+            '<p><a href="/users/login/">Click here to login</a></p>',
+            content_type='text/html'
+        )
+
+    user = request.user
+
+    if user.is_superuser and user.is_staff:
+        return HttpResponse(
+            f'<h1>✅ You already have admin access!</h1>'
+            f'<p>User <strong>{user.username}</strong> is already a superuser.</p>'
+            f'<p><a href="/admin/">Click here to access the admin panel</a></p>',
+            content_type='text/html'
+        )
+
+    try:
+        # Make user a superuser and staff
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+
+        return HttpResponse(
+            f'<h1>✅ Admin access granted!</h1>'
+            f'<p>User <strong>{user.username}</strong> is now a superuser.</p>'
+            f'<p><a href="/admin/">Click here to access the admin panel</a></p>'
+            f'<p style="margin-top: 20px;">Now you can load the bingo phrases:</p>'
+            f'<ol>'
+            f'<li>Click the admin link above</li>'
+            f'<li>Go to "Bingo Phrases"</li>'
+            f'<li>Select the action "🎯 Load all Budget Day Bingo phrases"</li>'
+            f'<li>Click "Go"</li>'
+            f'</ol>',
+            content_type='text/html'
+        )
+    except Exception as e:
+        return HttpResponse(
+            f'<h1>❌ Error granting admin access</h1><p>{str(e)}</p>',
+            content_type='text/html',
+            status=500
+        )
