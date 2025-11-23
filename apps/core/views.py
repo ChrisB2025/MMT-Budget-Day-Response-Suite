@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Sum
 from django.http import HttpResponse
 from apps.bingo.models import BingoCard, BingoPhrase
 from apps.factcheck.models import FactCheckRequest, FactCheckResponse
@@ -233,7 +233,7 @@ def reset_test_data(request):
     stats = {
         'bingo_cards': BingoCard.objects.count(),
         'completed_cards': BingoCard.objects.filter(completed=True).count(),
-        'total_user_points': User.objects.aggregate(models.Sum('points'))['points__sum'] or 0,
+        'total_user_points': User.objects.aggregate(Sum('points'))['points__sum'] or 0,
         'users_with_points': User.objects.filter(points__gt=0).count(),
         'user_actions': UserAction.objects.count(),
     }
