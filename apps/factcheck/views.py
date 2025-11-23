@@ -25,20 +25,36 @@ def factcheck_home(request):
         status__in=['reviewed', 'published']
     ).select_related('user', 'response').order_by('-created_at')[:10]
 
-    # Get claim of the day
-    today = timezone.now().date()
-    claim_of_day = ClaimOfTheDay.objects.filter(
-        featured_date=today
-    ).select_related('request__user').first()
+    # Get claim of the day (gracefully handle if table doesn't exist)
+    claim_of_day = None
+    try:
+        today = timezone.now().date()
+        claim_of_day = ClaimOfTheDay.objects.filter(
+            featured_date=today
+        ).select_related('request__user').first()
+    except Exception:
+        pass
 
     # Get live feed
     live_feed = get_live_feed(limit=10)
 
-    # Get leaderboard
-    leaderboard = get_leaderboard('all')
+    # Get leaderboard (may be empty if profiles don't exist yet)
+    leaderboard = []
+    try:
+        leaderboard = get_leaderboard('all')
+    except Exception:
+        pass
 
     # Get stats
     stats = get_claim_stats()
+
+    # Get user profile if authenticated
+    user_profile = None
+    if request.user.is_authenticated:
+        try:
+            user_profile = get_or_create_user_profile(request.user)
+        except Exception:
+            pass
 
     return render(request, 'factcheck/home.html', {
         'recent_requests': recent_requests,
@@ -46,12 +62,21 @@ def factcheck_home(request):
         'live_feed': live_feed,
         'leaderboard': leaderboard,
         'stats': stats,
+        'user_profile': user_profile,
     })
 
 
 @login_required
 def submit_factcheck(request):
     """Submit a new fact-check request"""
+    # Get or create user profile for stats display
+    user_profile = None
+    try:
+        user_profile = get_or_create_user_profile(request.user)
+    except Exception:
+        # Profile tables may not exist yet (migrations not run)
+        pass
+
     if request.method == 'POST':
         form = FactCheckSubmitForm(request.POST)
         if form.is_valid():
@@ -59,21 +84,25 @@ def submit_factcheck(request):
             fact_check.user = request.user
             fact_check.save()
 
-            # Award experience points
-            award_experience_points(request.user, 10)  # 10 XP per submission
-
-            # Update hot streak
-            streak = update_hot_streak(request.user)
-
-            # Check and award badges
-            badges_awarded = check_and_award_badges(request.user)
+            # Try to award experience points and badges (gracefully handle if tables don't exist)
+            streak = 1
+            badges_awarded = []
+            try:
+                award_experience_points(request.user, 10)  # 10 XP per submission
+                streak = update_hot_streak(request.user)
+                badges_awarded = check_and_award_badges(request.user)
+            except Exception:
+                # Tables don't exist yet, skip gamification
+                pass
 
             # Build success message
-            success_msg = 'Fact-check request submitted! +10 XP'
-            if streak > 1:
-                success_msg += f' 🔥 Hot Streak: {streak}!'
-            if badges_awarded:
-                success_msg += f' 🏆 New badge(s) earned!'
+            success_msg = 'Fact-check request submitted!'
+            if user_profile:
+                success_msg += ' +10 XP'
+                if streak > 1:
+                    success_msg += f' 🔥 Hot Streak: {streak}!'
+                if badges_awarded:
+                    success_msg += f' 🏆 New badge(s) earned!'
 
             # Trigger async processing (gracefully handle if Celery is not running)
             try:
@@ -101,7 +130,10 @@ def submit_factcheck(request):
     else:
         form = FactCheckSubmitForm()
 
-    return render(request, 'factcheck/submit.html', {'form': form})
+    return render(request, 'factcheck/submit.html', {
+        'form': form,
+        'user_profile': user_profile
+    })
 
 
 def factcheck_queue(request):
