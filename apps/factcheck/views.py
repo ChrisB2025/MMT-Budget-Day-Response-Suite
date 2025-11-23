@@ -21,9 +21,18 @@ from .services import (
 
 def factcheck_home(request):
     """Fact-check home page with competition features"""
-    recent_requests = FactCheckRequest.objects.filter(
-        status__in=['reviewed', 'published']
-    ).select_related('user', 'response').order_by('-created_at')[:10]
+    # Get basic requests (most likely to work)
+    recent_requests = []
+    try:
+        recent_requests = FactCheckRequest.objects.filter(
+            status__in=['reviewed', 'published']
+        ).select_related('user').order_by('-created_at')[:10]
+    except Exception:
+        # Even more basic fallback
+        try:
+            recent_requests = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+        except Exception:
+            pass
 
     # Get claim of the day (gracefully handle if table doesn't exist)
     claim_of_day = None
@@ -53,8 +62,16 @@ def factcheck_home(request):
     except Exception:
         pass
 
-    # Get stats
-    stats = get_claim_stats()
+    # Get stats (with safe defaults)
+    stats = {'total_claims': 0, 'claims_today': 0, 'high_severity_count': 0}
+    try:
+        stats = get_claim_stats()
+    except Exception:
+        # Try basic count at least
+        try:
+            stats['total_claims'] = FactCheckRequest.objects.count()
+        except Exception:
+            pass
 
     # Get user profile if authenticated
     user_profile = None
