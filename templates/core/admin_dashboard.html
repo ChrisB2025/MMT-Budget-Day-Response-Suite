@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">🛠️ Admin Dashboard</h1>
+        <p class="text-gray-600">Centralized access to all diagnostic tools, management functions, and system information</p>
+    </div>
+
+    <!-- Quick Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium opacity-90 mb-1">Fact-Checks</div>
+            <div class="text-3xl font-bold">{{ stats.factcheck.total }}</div>
+            <div class="text-sm mt-2 opacity-75">
+                {{ stats.factcheck.submitted }} submitted • {{ stats.factcheck.processing }} processing
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium opacity-90 mb-1">Bingo Cards</div>
+            <div class="text-3xl font-bold">{{ stats.bingo.total_cards }}</div>
+            <div class="text-sm mt-2 opacity-75">
+                {{ stats.bingo.completed_cards }} completed • {{ stats.bingo.total_phrases }} phrases
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium opacity-90 mb-1">Rebuttals</div>
+            <div class="text-3xl font-bold">{{ stats.rebuttal.total }}</div>
+            <div class="text-sm mt-2 opacity-75">
+                {{ stats.rebuttal.published }} published
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium opacity-90 mb-1">Users</div>
+            <div class="text-3xl font-bold">{{ stats.users.total }}</div>
+            <div class="text-sm mt-2 opacity-75">
+                {{ stats.users.staff }} staff • {{ stats.users.superusers }} admins
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostic Tools -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            🔧 Diagnostic & Testing Tools
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'factcheck:diagnostics' %}" class="block p-4 border-2 border-blue-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🩺</div>
+                    <div>
+                        <div class="font-bold text-gray-900">System Diagnostics</div>
+                        <div class="text-sm text-gray-600">Check API keys, Redis, Celery, and Claude API connection</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'factcheck:process_stuck' %}" class="block p-4 border-2 border-orange-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">⚙️</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Process Stuck Claims</div>
+                        <div class="text-sm text-gray-600">Manually process fact-checks stuck in submitted/processing state</div>
+                        {% if stats.factcheck.submitted > 0 or stats.factcheck.processing > 0 %}
+                            <div class="text-sm text-orange-600 font-semibold mt-1">
+                                ⚠️ {{ stats.factcheck.submitted|add:stats.factcheck.processing }} claim(s) need processing
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Data Management -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            🗄️ Data Management
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'core:delete_test_submissions' %}" class="block p-4 border-2 border-red-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🗑️</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Delete Test Submissions</div>
+                        <div class="text-sm text-gray-600">Clean up test fact-check submissions from the database</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="/admin/" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">⚡</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Django Admin Panel</div>
+                        <div class="text-sm text-gray-600">Full access to all models and admin functions</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Content Views -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            📊 Content & Statistics
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a href="{% url 'factcheck:queue' %}" class="block p-4 border-2 border-indigo-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">📋</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Fact-Check Queue</div>
+                        <div class="text-sm text-gray-600">View all fact-check submissions</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'factcheck:stats' %}" class="block p-4 border-2 border-teal-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">📈</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Fact-Check Stats</div>
+                        <div class="text-sm text-gray-600">Statistics and analytics</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'factcheck:leaderboard' %}" class="block p-4 border-2 border-yellow-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🏆</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Leaderboard</div>
+                        <div class="text-sm text-gray-600">Top fact-checkers</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'bingo:stats' %}" class="block p-4 border-2 border-pink-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🎯</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Bingo Statistics</div>
+                        <div class="text-sm text-gray-600">Bingo game stats and analytics</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'bingo:leaderboard' %}" class="block p-4 border-2 border-cyan-200 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🥇</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Bingo Leaderboard</div>
+                        <div class="text-sm text-gray-600">Fastest bingo completions</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'rebuttal:list' %}" class="block p-4 border-2 border-purple-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">📄</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Rebuttals List</div>
+                        <div class="text-sm text-gray-600">All published rebuttals</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            👥 User Management
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'users:setup_admin' %}" class="block p-4 border-2 border-emerald-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🔐</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Setup Admin User</div>
+                        <div class="text-sm text-gray-600">Create default admin account</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'users:make_me_admin' %}" class="block p-4 border-2 border-violet-200 rounded-lg hover:border-violet-500 hover:bg-violet-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">⬆️</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Make Me Admin</div>
+                        <div class="text-sm text-gray-600">Grant admin privileges to current user</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4">⚡ Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'factcheck:submit' %}" class="block bg-white bg-opacity-20 hover:bg-opacity-30 transition-all p-4 rounded-lg">
+                <div class="font-bold mb-1">➕ Submit Fact-Check</div>
+                <div class="text-sm opacity-90">Quick submit a new claim</div>
+            </a>
+
+            <a href="{% url 'rebuttal:create' %}" class="block bg-white bg-opacity-20 hover:bg-opacity-30 transition-all p-4 rounded-lg">
+                <div class="font-bold mb-1">📝 Create Rebuttal</div>
+                <div class="text-sm opacity-90">Generate new rebuttal document</div>
+            </a>
+
+            <a href="{% url 'bingo:generate' %}" class="block bg-white bg-opacity-20 hover:bg-opacity-30 transition-all p-4 rounded-lg">
+                <div class="font-bold mb-1">🎲 Generate Bingo Card</div>
+                <div class="text-sm opacity-90">Create new bingo game card</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-8">
+        <a href="{% url 'core:dashboard' %}" class="inline-block px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-semibold">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
