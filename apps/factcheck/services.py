@@ -84,11 +84,18 @@ def generate_fact_check_with_claude(claim, context='', severity=5):
         # Parse JSON response
         fact_check_data = json.loads(cleaned_text)
 
+        # Convert evidence list to formatted text
+        evidence = fact_check_data.get('the_evidence', [])
+        if isinstance(evidence, list):
+            evidence_text = '\n'.join(evidence)
+        else:
+            evidence_text = str(evidence)
+
         return {
             'the_claim': fact_check_data.get('the_claim', ''),
             'the_problem': fact_check_data.get('the_problem', ''),
             'the_reality': fact_check_data.get('the_reality', ''),
-            'the_evidence': fact_check_data.get('the_evidence', ''),
+            'the_evidence': evidence_text,
             'mmt_perspective': fact_check_data.get('mmt_perspective', ''),
             'citations': fact_check_data.get('citations', [])
         }
