@@ -62,22 +62,24 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-6">Submit Claim for Fact-Checking</h1>
 
         <!-- Live Stats Banner -->
+        {% if user_profile %}
         <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-6">
             <div class="grid grid-cols-3 gap-4 text-center">
                 <div>
-                    <div class="text-2xl font-bold">{{ user.factcheck_profile.total_claims_submitted|default:0 }}</div>
+                    <div class="text-2xl font-bold">{{ user_profile.total_claims_submitted|default:0 }}</div>
                     <div class="text-sm opacity-90">Claims Submitted</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold">{{ user.factcheck_profile.experience_points|default:0 }}</div>
+                    <div class="text-2xl font-bold">{{ user_profile.experience_points|default:0 }}</div>
                     <div class="text-sm opacity-90">XP</div>
                 </div>
                 <div>
-                    <div class="text-2xl font-bold">{{ user.factcheck_profile.level|upper|default:'BRONZE' }}</div>
+                    <div class="text-2xl font-bold">{{ user_profile.level|upper|default:'BRONZE' }}</div>
                     <div class="text-sm opacity-90">Level</div>
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <form method="post" id="factcheck-form">
             {% csrf_token %}

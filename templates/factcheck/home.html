@@ -68,16 +68,18 @@
                 Track your progress, view badges, and see your impact on the fact-checking community.
             </p>
             {% if user.is_authenticated %}
+                {% if user_profile %}
                 <div class="mb-6 grid grid-cols-2 gap-4 text-center">
                     <div class="bg-gray-50 rounded p-3">
-                        <div class="text-2xl font-bold text-blue-600">{{ user.factcheck_profile.total_claims_submitted|default:0 }}</div>
+                        <div class="text-2xl font-bold text-blue-600">{{ user_profile.total_claims_submitted|default:0 }}</div>
                         <div class="text-xs text-gray-600">Claims</div>
                     </div>
                     <div class="bg-gray-50 rounded p-3">
-                        <div class="text-2xl font-bold text-purple-600">{{ user.factcheck_profile.experience_points|default:0 }}</div>
+                        <div class="text-2xl font-bold text-purple-600">{{ user_profile.experience_points|default:0 }}</div>
                         <div class="text-xs text-gray-600">XP</div>
                     </div>
                 </div>
+                {% endif %}
                 <a href="{% url 'factcheck:dashboard' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold transition-colors">
                     View Dashboard
                 </a>
