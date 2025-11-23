@@ -224,11 +224,18 @@ def get_live_feed(limit=20):
     """Get live feed of recent claims"""
     from .models import FactCheckRequest
 
-    return FactCheckRequest.objects.select_related(
-        'user'
-    ).prefetch_related(
-        'comments'
-    ).order_by('-created_at')[:limit]
+    # Don't prefetch comments if table doesn't exist yet
+    try:
+        return FactCheckRequest.objects.select_related(
+            'user'
+        ).prefetch_related(
+            'comments'
+        ).order_by('-created_at')[:limit]
+    except Exception:
+        # Fallback without comments if table doesn't exist
+        return FactCheckRequest.objects.select_related(
+            'user'
+        ).order_by('-created_at')[:limit]
 
 
 def get_leaderboard(timeframe='all'):
