@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Test Submissions{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">🗑️ Delete Test Submissions</h1>
+        <p class="text-gray-600">Select fact-check submissions to delete from the database</p>
+    </div>
+
+    <!-- Warning Banner -->
+    <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start gap-3">
+            <div class="text-2xl">⚠️</div>
+            <div>
+                <div class="font-bold text-red-900 mb-1">Warning: Permanent Deletion</div>
+                <div class="text-sm text-red-700">
+                    Deleting submissions will permanently remove them and their associated responses from the database. This action cannot be undone.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-blue-700">{{ submissions|length }}</div>
+            <div class="text-sm text-gray-600">Total Submissions</div>
+        </div>
+        <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-yellow-700">{{ submissions|dictsort:"status"|length }}</div>
+            <div class="text-sm text-gray-600">With Responses</div>
+        </div>
+        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-green-700">
+                {% with reviewed=0 %}
+                {% for sub in submissions %}
+                    {% if sub.status == 'reviewed' or sub.status == 'published' %}
+                        {% with reviewed=reviewed|add:1 %}
+                        {% endwith %}
+                    {% endif %}
+                {% endfor %}
+                {{ reviewed }}
+                {% endwith %}
+            </div>
+            <div class="text-sm text-gray-600">Reviewed/Published</div>
+        </div>
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-4 text-center">
+            <div class="text-2xl font-bold text-purple-700">
+                {% with pending=0 %}
+                {% for sub in submissions %}
+                    {% if sub.status == 'submitted' or sub.status == 'processing' %}
+                        {% with pending=pending|add:1 %}
+                        {% endwith %}
+                    {% endif %}
+                {% endfor %}
+                {{ pending }}
+                {% endwith %}
+            </div>
+            <div class="text-sm text-gray-600">Pending</div>
+        </div>
+    </div>
+
+    <!-- Submissions List -->
+    <form method="POST" id="deleteForm">
+        {% csrf_token %}
+
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+            <!-- Bulk Actions -->
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="selectAll" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                        <span class="font-medium text-gray-700">Select All</span>
+                    </label>
+                    <span id="selectedCount" class="text-sm text-gray-600">0 selected</span>
+                </div>
+                <button type="submit" onclick="return confirm('Are you sure you want to delete the selected submissions? This cannot be undone!');" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed" id="deleteButton" disabled>
+                    Delete Selected
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Select</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claim</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Upvotes</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for submission in submissions %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" name="delete_ids" value="{{ submission.id }}" class="submission-checkbox w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                #{{ submission.id }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900 max-w-md">
+                                <div class="truncate">{{ submission.claim_text|truncatewords:15 }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ submission.user.display_name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if submission.status == 'submitted' %}
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Submitted
+                                    </span>
+                                {% elif submission.status == 'processing' %}
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Processing
+                                    </span>
+                                {% elif submission.status == 'reviewed' %}
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Reviewed
+                                    </span>
+                                {% elif submission.status == 'published' %}
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                        Published
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <span class="{% if submission.severity >= 8 %}text-red-600 font-bold{% elif submission.severity >= 5 %}text-orange-600{% else %}text-gray-600{% endif %}">
+                                    {{ submission.severity }}/10
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ submission.upvotes }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ submission.created_at|date:"Y-m-d H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+                                <div class="text-5xl mb-4">📭</div>
+                                <div class="text-lg">No submissions found</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+
+    <!-- Back Button -->
+    <div class="flex gap-4">
+        <a href="{% url 'core:admin_dashboard' %}" class="inline-block px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-semibold">
+            ← Back to Admin Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+    // Select All functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const submissionCheckboxes = document.querySelectorAll('.submission-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const deleteButton = document.getElementById('deleteButton');
+
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('.submission-checkbox:checked').length;
+        selectedCount.textContent = `${checked} selected`;
+        deleteButton.disabled = checked === 0;
+    }
+
+    selectAllCheckbox.addEventListener('change', function() {
+        submissionCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSelectedCount();
+    });
+
+    submissionCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectedCount();
+
+            // Update "Select All" state
+            const allChecked = Array.from(submissionCheckboxes).every(cb => cb.checked);
+            const noneChecked = Array.from(submissionCheckboxes).every(cb => !cb.checked);
+
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+        });
+    });
+
+    // Initial count update
+    updateSelectedCount();
+</script>
+{% endblock %}

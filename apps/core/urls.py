@@ -9,4 +9,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('about/', views.about, name='about'),
     path('help/', views.help_page, name='help'),
+
+    # Admin tools
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/delete-test-submissions/', views.delete_test_submissions, name='delete_test_submissions'),
 ]
