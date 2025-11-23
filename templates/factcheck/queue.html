@@ -38,11 +38,19 @@
                         </span>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
                     <span class="text-sm text-gray-500">↑ {{ request.upvotes }}</span>
                     <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                         View
                     </a>
+                    {% if user.is_staff or request.user == user %}
+                    <form method="post" action="{% url 'factcheck:delete' request.id %}" onsubmit="return confirm('Are you sure you want to delete this fact-check request?');" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Delete
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </div>
