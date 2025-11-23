@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Fact-Check Diagnostics{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">🔧 Fact-Check Configuration Diagnostics</h1>
+        <p class="text-gray-600">Check your fact-check system configuration and diagnose issues</p>
+    </div>
+
+    <!-- API Key Check -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>1. Anthropic API Key</span>
+            {% if results.api_key.status == 'success' %}
+                <span class="text-2xl">✅</span>
+            {% elif results.api_key.status == 'error' %}
+                <span class="text-2xl">❌</span>
+            {% else %}
+                <span class="text-2xl">❓</span>
+            {% endif %}
+        </h2>
+        <div class="{% if results.api_key.status == 'success' %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %} border-2 rounded-lg p-4">
+            <p class="font-medium mb-2">{{ results.api_key.message }}</p>
+            {% if results.api_key.details %}
+                <p class="text-sm text-gray-600">{{ results.api_key.details }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Redis Connection -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>2. Redis Connection</span>
+            {% if results.redis.status == 'success' %}
+                <span class="text-2xl">✅</span>
+            {% elif results.redis.status == 'error' %}
+                <span class="text-2xl">❌</span>
+            {% else %}
+                <span class="text-2xl">❓</span>
+            {% endif %}
+        </h2>
+        <div class="{% if results.redis.status == 'success' %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %} border-2 rounded-lg p-4">
+            <p class="font-medium mb-2">{{ results.redis.message }}</p>
+            {% if results.redis.details %}
+                <p class="text-sm text-gray-600 font-mono">{{ results.redis.details }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Celery Configuration -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>3. Celery Configuration</span>
+            {% if results.celery.status == 'success' %}
+                <span class="text-2xl">✅</span>
+            {% elif results.celery.status == 'warning' %}
+                <span class="text-2xl">⚠️</span>
+            {% elif results.celery.status == 'error' %}
+                <span class="text-2xl">❌</span>
+            {% else %}
+                <span class="text-2xl">❓</span>
+            {% endif %}
+        </h2>
+        <div class="{% if results.celery.status == 'success' %}bg-green-50 border-green-200{% elif results.celery.status == 'warning' %}bg-yellow-50 border-yellow-200{% else %}bg-red-50 border-red-200{% endif %} border-2 rounded-lg p-4">
+            <p class="font-medium mb-2">{{ results.celery.message }}</p>
+            {% if results.celery.details %}
+                <p class="text-sm text-gray-600 font-mono mb-3">{{ results.celery.details }}</p>
+            {% endif %}
+            {% if results.celery.tasks %}
+                <div class="text-sm">
+                    <p class="font-medium mb-1">Registered tasks:</p>
+                    <ul class="list-disc list-inside text-gray-700">
+                        {% for task in results.celery.tasks %}
+                            <li class="font-mono">{{ task }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pending Claims -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">4. Pending Claims</h2>
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-yellow-700">{{ results.claims.submitted }}</div>
+                <div class="text-sm text-gray-600">Submitted</div>
+            </div>
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-blue-700">{{ results.claims.processing }}</div>
+                <div class="text-sm text-gray-600">Processing</div>
+            </div>
+            <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4 text-center">
+                <div class="text-3xl font-bold text-green-700">{{ results.claims.reviewed }}</div>
+                <div class="text-sm text-gray-600">Reviewed</div>
+            </div>
+        </div>
+        {% if results.claims.submitted > 0 or results.claims.processing > 0 %}
+            <div class="mt-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                <p class="text-orange-800 font-medium">⚠️ {{ results.claims.submitted|add:results.claims.processing }} claim(s) need processing</p>
+                <a href="{% url 'factcheck:process_stuck' %}" class="inline-block mt-2 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 font-semibold">
+                    Process Stuck Claims →
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Claude API Test -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <span>5. Claude API Test</span>
+            {% if results.api_test.status == 'success' %}
+                <span class="text-2xl">✅</span>
+            {% elif results.api_test.status == 'error' %}
+                <span class="text-2xl">❌</span>
+            {% else %}
+                <span class="text-2xl">❓</span>
+            {% endif %}
+        </h2>
+        <div class="{% if results.api_test.status == 'success' %}bg-green-50 border-green-200{% else %}bg-red-50 border-red-200{% endif %} border-2 rounded-lg p-4">
+            <p class="font-medium mb-2">{{ results.api_test.message }}</p>
+            {% if results.api_test.details %}
+                <p class="text-sm text-gray-600">{{ results.api_test.details }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold mb-4">💡 Recommendations</h2>
+        <ul class="space-y-2">
+            {% if results.api_key.status == 'error' %}
+                <li>1. Set ANTHROPIC_API_KEY environment variable in Railway</li>
+            {% endif %}
+            {% if results.redis.status == 'error' %}
+                <li>2. Check REDIS_URL and CELERY_BROKER_URL in Railway settings</li>
+            {% endif %}
+            {% if results.claims.submitted > 0 or results.claims.processing > 0 %}
+                <li>3. <a href="{% url 'factcheck:process_stuck' %}" class="underline font-semibold">Process stuck claims</a></li>
+            {% endif %}
+            <li>4. Check Celery worker logs in Railway for errors</li>
+            <li>5. Verify Celery worker is running on Railway</li>
+        </ul>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-6">
+        <a href="{% url 'factcheck:home' %}" class="inline-block px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-semibold">
+            ← Back to Home
+        </a>
+        <button onclick="location.reload()" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold ml-3">
+            🔄 Refresh Diagnostics
+        </button>
+    </div>
+</div>
+{% endblock %}
