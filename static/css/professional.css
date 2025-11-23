@@ -140,27 +140,30 @@ p {
 
 /* Primary CTA - use sparingly (max 1-2 per view) */
 .btn-primary {
-  background: var(--color-accent);
+  background: #2E2C25;
   color: white;
-  border: none;
+  border: 1px solid #2E2C25;
   padding: 10px 20px;
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
   display: inline-block;
   text-decoration: none;
   text-align: center;
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-hover);
+  background: #2E2C25;
+  border-color: white;
+  color: white;
+  text-decoration: underline;
 }
 
 .btn-primary:focus {
   outline: none;
-  box-shadow: 0 0 0 3px var(--color-accent-light);
+  box-shadow: 0 0 0 3px rgba(46, 44, 37, 0.2);
 }
 
 /* Secondary - most buttons should be this */
@@ -237,7 +240,7 @@ p {
   background: white;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   box-shadow: var(--shadow-md);
   transition: all 0.2s ease;
 }
@@ -248,11 +251,18 @@ p {
 
 .card-interactive {
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .card-interactive:hover {
   background: var(--color-card-hover);
   transform: translateY(-2px);
+}
+
+.card-interactive a.btn-secondary {
+  margin-top: auto;
 }
 
 .card-header {
@@ -570,7 +580,7 @@ tr:hover {
    HERO SECTIONS
    ============================================ */
 .hero-professional {
-  padding: var(--space-xl) 0 var(--space-2xl) 0;
+  padding: var(--space-lg) 0 var(--space-xl) 0;
   text-align: center;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
