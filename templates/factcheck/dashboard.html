@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard - Fact-Check{% endblock %}
+
+{% block extra_head %}
+<style>
+    .progress-bar {
+        transition: width 1s ease-in-out;
+    }
+
+    .badge-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        transition: transform 0.3s ease;
+    }
+
+    .badge-icon:hover {
+        transform: scale(1.2) rotate(10deg);
+    }
+
+    .level-bronze { background: linear-gradient(135deg, #CD7F32, #E8B88A); }
+    .level-silver { background: linear-gradient(135deg, #C0C0C0, #E8E8E8); }
+    .level-gold { background: linear-gradient(135deg, #FFD700, #FFED4E); }
+    .level-platinum { background: linear-gradient(135deg, #E5E4E2, #FFFFFF); }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+    }
+
+    .stat-card {
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">
+        My Fact-Checker Dashboard
+    </h1>
+
+    <!-- Level & XP Progress -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8 level-{{ profile.level }}">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Level: {{ profile.level|upper }}</h2>
+                <p class="text-gray-600">{{ profile.experience_points }} / {{ next_level_xp }} XP</p>
+            </div>
+            <div class="text-6xl">
+                {% if profile.level == 'bronze' %}🥉
+                {% elif profile.level == 'silver' %}🥈
+                {% elif profile.level == 'gold' %}🥇
+                {% elif profile.level == 'platinum' %}💎
+                {% endif %}
+            </div>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+            <div class="progress-bar bg-gradient-to-r from-blue-500 to-purple-600 h-6 rounded-full flex items-center justify-center text-white text-sm font-semibold"
+                 style="width: {{ progress_percentage }}%">
+                {{ progress_percentage|floatformat:0 }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card bg-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium text-gray-600 mb-2">Claims Submitted</div>
+            <div class="text-4xl font-bold text-blue-600">{{ profile.total_claims_submitted }}</div>
+            <div class="mt-2 text-xs text-gray-500">
+                {% if profile.total_claims_submitted >= 100 %}
+                    <span class="text-green-600 font-semibold">🏆 Legendary!</span>
+                {% elif profile.total_claims_submitted >= 50 %}
+                    <span class="text-yellow-600 font-semibold">⭐ Prolific!</span>
+                {% else %}
+                    {{ profile.total_claims_submitted|add:"-50"|abs }} more to Prolific
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="stat-card bg-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium text-gray-600 mb-2">Total Upvotes</div>
+            <div class="text-4xl font-bold text-green-600">{{ profile.total_upvotes_earned }}</div>
+            <div class="mt-2 text-xs text-gray-500">
+                {% if profile.total_upvotes_earned >= 100 %}
+                    <span class="text-green-600 font-semibold">👑 Upvote King!</span>
+                {% else %}
+                    {{ profile.total_upvotes_earned|add:"-100"|abs }} more to Upvote King
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="stat-card bg-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium text-gray-600 mb-2">Success Rate</div>
+            <div class="text-4xl font-bold text-purple-600">{{ success_rate }}%</div>
+            <div class="mt-2 text-xs text-gray-500">{{ profile.claims_fact_checked }} fact-checked</div>
+        </div>
+
+        <div class="stat-card bg-white rounded-lg shadow-lg p-6">
+            <div class="text-sm font-medium text-gray-600 mb-2">Hot Streak</div>
+            <div class="text-4xl font-bold text-orange-600">
+                🔥 {{ profile.hot_streak_count }}
+            </div>
+            <div class="mt-2 text-xs text-gray-500">Max: {{ profile.max_hot_streak }}</div>
+        </div>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">🏆 Badges Earned ({{ badges.count }})</h2>
+        {% if badges %}
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for badge in badges %}
+                    <div class="text-center">
+                        <div class="badge-icon {% if badge.badge_type == 'first_claim' %}bg-blue-100 text-blue-600
+                                    {% elif 'hot_streak' in badge.badge_type %}bg-orange-100 text-orange-600
+                                    {% elif 'upvote' in badge.badge_type %}bg-green-100 text-green-600
+                                    {% elif 'checker' in badge.badge_type %}bg-purple-100 text-purple-600
+                                    {% else %}bg-yellow-100 text-yellow-600{% endif %} mx-auto mb-2">
+                            {% if badge.badge_type == 'first_claim' %}🎯
+                            {% elif 'hot_streak_10' in badge.badge_type %}🔥🔥
+                            {% elif 'hot_streak_5' in badge.badge_type %}🔥
+                            {% elif 'upvote_king' in badge.badge_type %}👑
+                            {% elif 'legendary_checker' in badge.badge_type %}💎
+                            {% elif 'prolific_checker' in badge.badge_type %}⭐
+                            {% elif 'claim_of_day' in badge.badge_type %}☀️
+                            {% elif 'claim_of_minute' in badge.badge_type %}⏱️
+                            {% elif 'severity_master' in badge.badge_type %}🎯
+                            {% else %}🏅{% endif %}
+                        </div>
+                        <div class="text-xs font-medium text-gray-900">{{ badge.get_badge_type_display }}</div>
+                        <div class="text-xs text-gray-500">{{ badge.earned_at|date:"M d, Y" }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No badges earned yet. Keep submitting claims to earn badges!</p>
+        {% endif %}
+    </div>
+
+    <!-- Recent Claims -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Recent Claims</h2>
+        {% if recent_claims %}
+            <div class="space-y-4">
+                {% for claim in recent_claims %}
+                    <div class="border-l-4 {% if claim.severity >= 8 %}border-red-500
+                                {% elif claim.severity >= 5 %}border-yellow-500
+                                {% else %}border-blue-500{% endif %} pl-4 py-2">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="text-gray-900 font-medium">{{ claim.claim_text|truncatewords:20 }}</p>
+                                <div class="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                    <span class="flex items-center gap-1">
+                                        <span class="px-2 py-1 rounded {% if claim.severity >= 8 %}bg-red-100 text-red-800
+                                                     {% elif claim.severity >= 5 %}bg-yellow-100 text-yellow-800
+                                                     {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                            Severity: {{ claim.severity }}
+                                        </span>
+                                    </span>
+                                    <span>👍 {{ claim.upvotes }} upvotes</span>
+                                    <span class="px-2 py-1 rounded {% if claim.status == 'reviewed' %}bg-green-100 text-green-800
+                                                 {% elif claim.status == 'processing' %}bg-blue-100 text-blue-800
+                                                 {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ claim.get_status_display }}
+                                    </span>
+                                    <span>{{ claim.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            <a href="{% url 'factcheck:detail' claim.id %}" class="ml-4 text-blue-600 hover:text-blue-800 font-medium">
+                                View →
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No claims submitted yet. <a href="{% url 'factcheck:submit' %}" class="text-blue-600 hover:underline">Submit your first claim!</a></p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 flex gap-4">
+        <a href="{% url 'factcheck:submit' %}" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-colors">
+            📝 Submit New Claim
+        </a>
+        <a href="{% url 'factcheck:leaderboard' %}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition-colors">
+            🏆 View Leaderboard
+        </a>
+        <a href="{% url 'factcheck:live_feed' %}" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold transition-colors">
+            📡 Live Feed
+        </a>
+    </div>
+</div>
+{% endblock %}
