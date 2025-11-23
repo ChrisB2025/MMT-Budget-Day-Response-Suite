@@ -129,18 +129,32 @@ def submit_factcheck(request):
                 if badges_awarded:
                     success_msg += f' 🏆 New badge(s) earned!'
 
-            # Trigger async processing (gracefully handle if Celery is not running)
+            # Trigger processing (try async first, fallback to sync)
+            processing_started = False
             try:
+                # Try Celery async processing
                 process_fact_check.delay(fact_check.id)
+                processing_started = True
                 messages.success(request, success_msg + ' AI is generating a response...')
             except Exception as e:
-                # Fallback to synchronous processing if Celery is not available
+                # Celery not available - process synchronously RIGHT NOW
                 try:
-                    from .tasks import process_fact_check
-                    process_fact_check(fact_check.id)
-                    messages.success(request, success_msg + ' Processing complete!')
+                    from .services import process_fact_check_request
+                    result = process_fact_check_request(fact_check.id)
+
+                    if result['status'] == 'success':
+                        processing_started = True
+                        messages.success(request, success_msg + ' ✅ Fact-check complete!')
+                    else:
+                        messages.warning(
+                            request,
+                            success_msg + f' ⚠️ Processing failed: {result.get("message", "Unknown error")}'
+                        )
                 except Exception as sync_error:
-                    messages.success(request, success_msg + ' Processing will begin shortly.')
+                    messages.error(
+                        request,
+                        success_msg + f' ❌ Error: {str(sync_error)}'
+                    )
 
             # For HTMX requests, return partial with animations
             if request.headers.get('HX-Request'):
@@ -436,3 +450,172 @@ def share_to_twitter(request, request_id):
     twitter_url = f"https://twitter.com/intent/tweet?text={share_text}&url={claim_url}&hashtags=FactCheck,MMT,BudgetDay"
 
     return JsonResponse({'twitter_url': twitter_url})
+
+
+@login_required
+def diagnostics(request):
+    """Web-accessible diagnostics page for fact-check configuration"""
+    from django.conf import settings
+    from celery import current_app
+    import redis
+
+    # Only allow staff users
+    if not request.user.is_staff:
+        messages.error(request, 'Only staff members can access diagnostics')
+        return redirect('factcheck:home')
+
+    results = {
+        'api_key': {'status': 'unknown', 'message': '', 'details': ''},
+        'redis': {'status': 'unknown', 'message': '', 'details': ''},
+        'celery': {'status': 'unknown', 'message': '', 'details': '', 'tasks': []},
+        'claims': {'submitted': 0, 'processing': 0, 'reviewed': 0},
+        'api_test': {'status': 'unknown', 'message': '', 'details': ''},
+    }
+
+    # 1. Check Anthropic API Key
+    try:
+        if settings.ANTHROPIC_API_KEY:
+            key_preview = settings.ANTHROPIC_API_KEY[:15] + '...' if len(settings.ANTHROPIC_API_KEY) > 15 else settings.ANTHROPIC_API_KEY
+            results['api_key']['status'] = 'success'
+            results['api_key']['message'] = f'API Key configured: {key_preview}'
+        else:
+            results['api_key']['status'] = 'error'
+            results['api_key']['message'] = 'ANTHROPIC_API_KEY is NOT set!'
+            results['api_key']['details'] = 'Set ANTHROPIC_API_KEY in your environment variables'
+    except Exception as e:
+        results['api_key']['status'] = 'error'
+        results['api_key']['message'] = f'Error checking API key: {str(e)}'
+
+    # 2. Check Redis Connection
+    try:
+        results['redis']['details'] = f'Broker URL: {settings.CELERY_BROKER_URL}'
+        r = redis.from_url(settings.CELERY_BROKER_URL)
+        r.ping()
+        results['redis']['status'] = 'success'
+        results['redis']['message'] = 'Redis connection successful'
+    except Exception as e:
+        results['redis']['status'] = 'error'
+        results['redis']['message'] = f'Redis connection failed: {str(e)}'
+        results['redis']['details'] = 'Check REDIS_URL and CELERY_BROKER_URL settings'
+
+    # 3. Check Celery Configuration
+    try:
+        results['celery']['details'] = f'Broker: {current_app.conf.broker_url}, Backend: {current_app.conf.result_backend}'
+
+        # Check if tasks are registered
+        registered_tasks = list(current_app.tasks.keys())
+        fact_check_tasks = [t for t in registered_tasks if 'fact' in t.lower()]
+
+        if fact_check_tasks:
+            results['celery']['status'] = 'success'
+            results['celery']['message'] = f'Found {len(fact_check_tasks)} fact-check task(s)'
+            results['celery']['tasks'] = fact_check_tasks
+        else:
+            results['celery']['status'] = 'warning'
+            results['celery']['message'] = 'No fact-check tasks found in registry'
+    except Exception as e:
+        results['celery']['status'] = 'error'
+        results['celery']['message'] = f'Celery check failed: {str(e)}'
+
+    # 4. Check pending claims
+    try:
+        results['claims']['submitted'] = FactCheckRequest.objects.filter(status='submitted').count()
+        results['claims']['processing'] = FactCheckRequest.objects.filter(status='processing').count()
+        results['claims']['reviewed'] = FactCheckRequest.objects.filter(status='reviewed').count()
+    except Exception as e:
+        results['claims']['error'] = str(e)
+
+    # 5. Try a test API call
+    if settings.ANTHROPIC_API_KEY:
+        try:
+            from anthropic import Anthropic
+            client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=50,
+                messages=[{"role": "user", "content": "Say 'test successful'"}]
+            )
+
+            results['api_test']['status'] = 'success'
+            results['api_test']['message'] = 'Claude API test successful'
+            results['api_test']['details'] = f'Response: {response.content[0].text}'
+        except Exception as e:
+            results['api_test']['status'] = 'error'
+            results['api_test']['message'] = f'Claude API test failed: {str(e)}'
+    else:
+        results['api_test']['status'] = 'error'
+        results['api_test']['message'] = 'Skipped (no API key)'
+
+    return render(request, 'factcheck/diagnostics.html', {
+        'results': results
+    })
+
+
+@login_required
+def process_stuck_claims(request):
+    """Web-accessible page to process stuck fact-check claims"""
+    from .services import process_fact_check_request
+
+    # Only allow staff users
+    if not request.user.is_staff:
+        messages.error(request, 'Only staff members can process stuck claims')
+        return redirect('factcheck:home')
+
+    # Get stuck requests
+    stuck_requests = FactCheckRequest.objects.filter(
+        Q(status='submitted') | Q(status='processing')
+    ).order_by('created_at')
+
+    total = stuck_requests.count()
+
+    # If POST request, process them
+    if request.method == 'POST':
+        limit = request.POST.get('limit', None)
+        if limit:
+            stuck_requests = stuck_requests[:int(limit)]
+
+        success_count = 0
+        error_count = 0
+        results = []
+
+        for req in stuck_requests:
+            result = {
+                'id': req.id,
+                'claim': req.claim_text[:50] + '...' if len(req.claim_text) > 50 else req.claim_text,
+                'status': 'unknown',
+                'message': ''
+            }
+
+            try:
+                process_result = process_fact_check_request(req.id)
+
+                if process_result['status'] == 'success':
+                    success_count += 1
+                    result['status'] = 'success'
+                    result['message'] = f'Success! Response ID: {process_result["response_id"]}'
+                else:
+                    error_count += 1
+                    result['status'] = 'error'
+                    result['message'] = process_result.get('message', 'Unknown error')
+            except Exception as e:
+                error_count += 1
+                result['status'] = 'error'
+                result['message'] = str(e)
+
+            results.append(result)
+
+        messages.success(request, f'Processed {success_count} successfully. Failed: {error_count}')
+
+        return render(request, 'factcheck/process_stuck.html', {
+            'total': total,
+            'results': results,
+            'processed': True
+        })
+
+    # GET request - just show what's stuck
+    return render(request, 'factcheck/process_stuck.html', {
+        'total': total,
+        'stuck_requests': stuck_requests,
+        'processed': False
+    })

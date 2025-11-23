@@ -1,10 +1,13 @@
 """Claude API service for fact-checking"""
 import json
+import logging
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count, Q
 from datetime import timedelta, datetime
 from anthropic import Anthropic
+
+logger = logging.getLogger(__name__)
 
 
 # Prompt template for fact-checking
@@ -90,6 +93,75 @@ def generate_fact_check_with_claude(claim, context='', severity=5):
         }
     except Exception as e:
         raise Exception(f"Error calling Claude API: {str(e)}")
+
+
+def process_fact_check_request(request_id):
+    """
+    Process a fact-check request synchronously.
+    This is the actual processing logic, callable without Celery.
+
+    Args:
+        request_id: FactCheckRequest ID
+
+    Returns:
+        dict with status and response_id or error message
+    """
+    from .models import FactCheckRequest, FactCheckResponse
+
+    try:
+        request = FactCheckRequest.objects.get(id=request_id)
+    except FactCheckRequest.DoesNotExist:
+        logger.error(f"FactCheckRequest {request_id} not found")
+        return {'status': 'error', 'message': 'Request not found'}
+
+    # Update status to processing
+    request.status = 'processing'
+    request.save()
+
+    try:
+        logger.info(f"Starting fact-check processing for request {request_id}")
+
+        # Check if API key is configured
+        if not settings.ANTHROPIC_API_KEY:
+            raise Exception("ANTHROPIC_API_KEY not configured in settings")
+
+        # Generate fact-check with Claude
+        fact_check_data = generate_fact_check_with_claude(
+            claim=request.claim_text,
+            context=request.context,
+            severity=request.severity
+        )
+
+        logger.info(f"Fact-check generated successfully for request {request_id}")
+
+        # Create response
+        response = FactCheckResponse.objects.create(
+            request=request,
+            **fact_check_data
+        )
+
+        # Update request status
+        request.status = 'reviewed'
+        request.save()
+
+        logger.info(f"Fact-check saved successfully for request {request_id}")
+
+        return {
+            'status': 'success',
+            'response_id': response.id
+        }
+
+    except Exception as e:
+        logger.error(f"Error processing fact-check {request_id}: {str(e)}")
+
+        # Revert status on error
+        request.status = 'submitted'
+        request.save()
+
+        return {
+            'status': 'error',
+            'message': str(e)
+        }
 
 
 def get_or_create_user_profile(user):

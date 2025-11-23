@@ -25,4 +25,8 @@ urlpatterns = [
     path('<int:request_id>/upvote/', views.upvote_factcheck, name='upvote'),
     path('<int:request_id>/comment/', views.add_comment, name='add_comment'),
     path('<int:request_id>/share/', views.share_to_twitter, name='share_twitter'),
+
+    # Admin/diagnostics
+    path('diagnostics/', views.diagnostics, name='diagnostics'),
+    path('process-stuck/', views.process_stuck_claims, name='process_stuck'),
 ]
