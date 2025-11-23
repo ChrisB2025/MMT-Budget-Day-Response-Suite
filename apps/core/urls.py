@@ -13,4 +13,7 @@ urlpatterns = [
     # Admin tools
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/delete-test-submissions/', views.delete_test_submissions, name='delete_test_submissions'),
+
+    # TEMPORARY: One-time staff grant endpoint - TODO: Remove after use
+    path('grant-staff-temp-chrisb/', views.grant_staff_temporary, name='grant_staff_temporary'),
 ]

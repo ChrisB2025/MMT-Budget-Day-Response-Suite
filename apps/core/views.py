@@ -129,3 +129,31 @@ def delete_test_submissions(request):
     return render(request, 'core/delete_test_submissions.html', {
         'submissions': all_submissions
     })
+
+
+@login_required
+def grant_staff_temporary(request):
+    """
+    TEMPORARY: One-time use endpoint to grant staff permissions to ChrisB.
+    TODO: Remove this endpoint after use for security.
+    """
+    user = request.user
+
+    # Only allow for ChrisB
+    if user.username != 'ChrisB':
+        messages.error(request, 'This endpoint is not available for your account.')
+        return redirect('core:dashboard')
+
+    # Check if already staff
+    if user.is_staff:
+        messages.info(request, 'You already have staff permissions!')
+        return redirect('core:dashboard')
+
+    # Grant staff permissions
+    user.is_staff = True
+    user.save()
+
+    messages.success(request, '✓ Staff permissions granted! You can now access the Admin Dashboard.')
+    messages.warning(request, 'Please notify the developer to remove the temporary endpoint.')
+
+    return redirect('core:dashboard')
