@@ -3,144 +3,136 @@
 {% block title %}Budget Bingo - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-3 sm:px-4">
-    <!-- Hero Section -->
-    <div class="text-center mb-8 sm:mb-10">
-        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-3 sm:mb-4">
-            🎯 Budget Day Bingo 🎯
+<!-- Hero Section -->
+<div class="hero-professional">
+    <div class="container-narrow">
+        <h1 class="hero-title">
+            🎯 Budget Day Bingo
         </h1>
-        <p class="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-2">
+        <p class="hero-subtitle">
             Turn budget speeches into a fun game! Spot common economic myths and misconceptions in real-time during budget announcements.
         </p>
+        <div class="flex justify-center gap-4 flex-wrap">
+            <a href="{% url 'bingo:generate' %}" class="btn-primary">🎲 Generate Your Bingo Card</a>
+            <a href="{% url 'bingo:leaderboard' %}" class="btn-secondary">🏆 View Leaderboard</a>
+        </div>
     </div>
+</div>
 
-    <!-- Call to Action -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-2xl p-6 sm:p-8 mb-6 sm:mb-8 text-white text-center">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Ready to Play?</h2>
-        <p class="text-base sm:text-lg mb-4 sm:mb-6 opacity-90">Generate your personalized bingo card and start spotting budget myths!</p>
-        <a href="{% url 'bingo:generate' %}" class="inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-indigo-600 rounded-lg hover:bg-gray-100 font-bold text-base sm:text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105 touch-manipulation">
-            🎲 Generate Your Bingo Card
-        </a>
-    </div>
+<div class="container-professional section-spacing">
 
     <!-- How to Play Section -->
-    <div class="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-t-4 border-blue-500">
-            <div class="text-2xl sm:text-3xl mb-2 sm:mb-3">📋</div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">How to Play</h2>
-            <ol class="list-decimal list-inside space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-700">
-                <li class="pl-2"><strong>Generate a card</strong> - Choose your difficulty level (Classic, Advanced, or Technical)</li>
-                <li class="pl-2"><strong>Listen carefully</strong> - During the budget speech, listen for common myths</li>
-                <li class="pl-2"><strong>Click to mark</strong> - When you hear a myth, click that square on your card</li>
-                <li class="pl-2"><strong>Win BINGO!</strong> - Get 5 in a row (any direction) and earn 100 points!</li>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" style="margin-bottom: var(--space-xl);">
+        <div class="card">
+            <div class="text-2xl mb-3">📋</div>
+            <h2 class="card-title">How to Play</h2>
+            <ol class="list-professional" style="list-style: decimal; padding-left: var(--space-lg); margin-top: var(--space-md);">
+                <li style="border: none; padding: var(--space-xs) 0;"><strong>Generate a card</strong> - Choose your difficulty level (Classic, Advanced, or Technical)</li>
+                <li style="border: none; padding: var(--space-xs) 0;"><strong>Listen carefully</strong> - During the budget speech, listen for common myths</li>
+                <li style="border: none; padding: var(--space-xs) 0;"><strong>Click to mark</strong> - When you hear a myth, click that square on your card</li>
+                <li style="border: none; padding: var(--space-xs) 0;"><strong>Win BINGO!</strong> - Get 5 in a row (any direction) and earn 100 points!</li>
             </ol>
         </div>
 
-        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-t-4 border-purple-500">
-            <div class="text-2xl sm:text-3xl mb-2 sm:mb-3">💡</div>
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Game Features</h2>
-            <ul class="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-700">
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span><strong>Free center square</strong> - Start with a head start!</span>
+        <div class="card">
+            <div class="text-2xl mb-3">💡</div>
+            <h2 class="card-title">Game Features</h2>
+            <ul class="list-professional" style="margin-top: var(--space-md);">
+                <li style="border: none; padding: var(--space-xs) 0;">
+                    <span style="color: var(--color-success); margin-right: var(--space-xs);">✓</span>
+                    <strong>Free center square</strong> - Start with a head start!
                 </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span><strong>Hover tooltips</strong> - Learn why each phrase is a myth</span>
+                <li style="border: none; padding: var(--space-xs) 0;">
+                    <span style="color: var(--color-success); margin-right: var(--space-xs);">✓</span>
+                    <strong>Hover tooltips</strong> - Learn why each phrase is a myth
                 </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span><strong>Mobile friendly</strong> - Play on any device</span>
+                <li style="border: none; padding: var(--space-xs) 0;">
+                    <span style="color: var(--color-success); margin-right: var(--space-xs);">✓</span>
+                    <strong>Mobile friendly</strong> - Play on any device
                 </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span><strong>Leaderboard</strong> - Compete for fastest completion</span>
+                <li style="border: none; padding: var(--space-xs) 0;">
+                    <span style="color: var(--color-success); margin-right: var(--space-xs);">✓</span>
+                    <strong>Leaderboard</strong> - Compete for fastest completion
                 </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span><strong>Educational</strong> - Learn MMT principles while playing</span>
+                <li style="border: none; padding: var(--space-xs) 0;">
+                    <span style="color: var(--color-success); margin-right: var(--space-xs);">✓</span>
+                    <strong>Educational</strong> - Learn MMT principles while playing
                 </li>
             </ul>
         </div>
     </div>
 
     <!-- Quick Links -->
-    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center mb-6 sm:mb-8">
-        <a href="{% url 'bingo:leaderboard' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 bg-purple-600 text-white text-sm sm:text-base rounded-lg hover:bg-purple-700 font-semibold shadow-md hover:shadow-lg transition touch-manipulation">
-            🏆 View Leaderboard
-        </a>
-        <a href="{% url 'bingo:stats' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 bg-green-600 text-white text-sm sm:text-base rounded-lg hover:bg-green-700 font-semibold shadow-md hover:shadow-lg transition touch-manipulation">
+    <div class="flex gap-4 flex-wrap justify-center" style="margin-bottom: var(--space-xl);">
+        <a href="{% url 'bingo:stats' %}" class="btn-secondary">
             📊 View Stats
         </a>
     </div>
 
     <!-- Recent Cards Section -->
     {% if user_cards %}
-    <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
-        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <span>📝</span>
-            Your Recent Cards
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">
+            📝 Your Recent Cards
         </h2>
-        <div class="space-y-2 sm:space-y-3">
+        <div class="list-professional">
             {% for card in user_cards %}
-            <div class="border-2 {% if card.completed %}border-green-300 bg-green-50{% else %}border-indigo-300 bg-indigo-50{% endif %} rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:shadow-md transition">
-                <div class="flex-1 w-full sm:w-auto">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-bold text-base sm:text-lg">Card #{{ card.id }}</span>
-                        <span class="px-2 sm:px-3 py-1 bg-white border-2 {% if card.difficulty == 'classic' %}border-green-500 text-green-700{% elif card.difficulty == 'advanced' %}border-blue-500 text-blue-700{% else %}border-purple-500 text-purple-700{% endif %} text-xs sm:text-sm rounded-full font-semibold">
-                            {{ card.difficulty|title }}
-                        </span>
-                        {% if card.completed %}
-                        <span class="px-2 sm:px-3 py-1 bg-green-500 text-white text-xs sm:text-sm rounded-full font-semibold">
-                            ✓ BINGO! 🎉
-                        </span>
-                        {% else %}
-                        <span class="px-2 sm:px-3 py-1 bg-indigo-500 text-white text-xs sm:text-sm rounded-full font-semibold">
-                            In Progress: {{ card.marked_count }}/25
-                        </span>
-                        {% endif %}
+            <li class="card-status {% if card.completed %}status-success{% else %}status-info{% endif %}" style="display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-sm);">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-xs);">
+                            <span style="font-weight: 600; color: var(--color-text-primary);">Card #{{ card.id }}</span>
+                            <span class="badge {% if card.difficulty == 'classic' %}badge-success{% elif card.difficulty == 'advanced' %}badge-info{% else %}badge-warning{% endif %}">
+                                {{ card.difficulty|title }}
+                            </span>
+                            {% if card.completed %}
+                            <span class="badge badge-success">
+                                ✓ BINGO! 🎉
+                            </span>
+                            {% else %}
+                            <span class="badge badge-info">
+                                In Progress: {{ card.marked_count }}/25
+                            </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-small">
+                            Created {{ card.generated_at|timesince }} ago
+                            {% if card.completed %}
+                            • Completed {{ card.completion_time|timesince }} ago
+                            {% endif %}
+                        </p>
                     </div>
-                    <p class="text-xs sm:text-sm text-gray-600 mt-1">
-                        Created {{ card.generated_at|timesince }} ago
+                    <a href="{% url 'bingo:card_detail' card.id %}" class="btn-primary btn-sm">
                         {% if card.completed %}
-                        • Completed {{ card.completion_time|timesince }} ago
+                        View Card →
+                        {% else %}
+                        Continue Playing →
                         {% endif %}
-                    </p>
+                    </a>
                 </div>
-                <a href="{% url 'bingo:card_detail' card.id %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-2 sm:py-2.5 bg-indigo-600 text-white text-sm sm:text-base rounded-lg hover:bg-indigo-700 font-semibold whitespace-nowrap transition shadow hover:shadow-lg touch-manipulation">
-                    {% if card.completed %}
-                    View Card →
-                    {% else %}
-                    Continue Playing →
-                    {% endif %}
-                </a>
-            </div>
+            </li>
             {% endfor %}
         </div>
     </div>
     {% else %}
     <!-- No Cards Yet -->
-    <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 sm:p-12 text-center">
-        <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">🎮</div>
-        <h3 class="text-xl sm:text-2xl font-bold text-gray-700 mb-2">No Cards Yet!</h3>
-        <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">Get started by generating your first bingo card</p>
-        <a href="{% url 'bingo:generate' %}" class="inline-block w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-indigo-600 text-white text-base sm:text-lg rounded-lg hover:bg-indigo-700 font-bold shadow-lg hover:shadow-xl transition touch-manipulation">
+    <div class="card" style="text-align: center; margin-bottom: var(--space-xl); border: 2px dashed var(--color-border);">
+        <div style="font-size: 3rem; margin-bottom: var(--space-md);">🎮</div>
+        <h3 style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">No Cards Yet!</h3>
+        <p class="text-small" style="margin-bottom: var(--space-lg);">Get started by generating your first bingo card</p>
+        <a href="{% url 'bingo:generate' %}" class="btn-primary">
             🎲 Create Your First Card
         </a>
     </div>
     {% endif %}
 
     <!-- Info Box -->
-    <div class="mt-6 sm:mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4 sm:p-6 rounded">
-        <div class="flex items-start">
-            <div class="flex-shrink-0">
-                <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-base sm:text-lg font-bold text-yellow-800 mb-2">What are Budget Myths?</h3>
-                <p class="text-xs sm:text-sm text-yellow-700">
+    <div class="card card-status status-warning" style="margin-top: var(--space-xl);">
+        <div style="display: flex; align-items: start; gap: var(--space-md);">
+            <div style="flex-shrink: 0; font-size: 1.5rem;">💡</div>
+            <div>
+                <h3 style="font-weight: 600; margin-bottom: var(--space-sm); color: var(--color-text-primary);">What are Budget Myths?</h3>
+                <p class="text-small">
                     These are common misconceptions about government budgets, debt, and spending that are often repeated by politicians and media.
                     Modern Monetary Theory (MMT) challenges these myths with evidence-based economics. Playing this game helps you recognize and
                     understand these misconceptions while making budget watching more engaging!

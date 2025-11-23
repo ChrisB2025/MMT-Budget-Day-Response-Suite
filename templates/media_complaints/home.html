@@ -3,130 +3,149 @@
 {% block title %}Media Complaints - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-8">📢 Media Complaints Platform</h1>
+<!-- Hero Section -->
+<div class="hero-professional">
+    <div class="container-narrow">
+        <h1 class="hero-title">
+            📢 Media Complaints Platform
+        </h1>
+        <p class="hero-subtitle">
+            Report economic misinformation and generate AI-powered complaint letters with MMT perspective to hold media outlets accountable.
+        </p>
+        <div class="flex justify-center gap-4 flex-wrap">
+            <a href="{% url 'media_complaints:submit' %}" class="btn-primary">File Complaint</a>
+            <a href="{% url 'media_complaints:my_complaints' %}" class="btn-secondary">View My Complaints</a>
+        </div>
+    </div>
+</div>
 
-    <!-- Live Stats Banner -->
-    <div class="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div>
-                <div class="text-3xl font-bold">{{ total_complaints }}</div>
-                <div class="text-sm opacity-90">Total Complaints Filed</div>
+<!-- Stats Section -->
+<div style="background: var(--color-surface); padding: var(--space-xl) 0;">
+    <div class="container-professional">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_complaints }}</span>
+                <span class="stat-label">Total Complaints Filed</span>
             </div>
-            <div>
-                <div class="text-3xl font-bold">{{ total_sent }}</div>
-                <div class="text-sm opacity-90">Letters Sent</div>
+            <div class="stat-card">
+                <span class="stat-number">{{ total_sent }}</span>
+                <span class="stat-label">Letters Sent</span>
             </div>
-            <div>
-                <div class="text-3xl font-bold text-yellow-200">{{ user_stats.total_complaints_filed }}</div>
-                <div class="text-sm opacity-90">Your Complaints</div>
+            <div class="stat-card">
+                <span class="stat-number" style="color: var(--color-warning);">{{ user_stats.total_complaints_filed }}</span>
+                <span class="stat-label">Your Complaints</span>
             </div>
         </div>
     </div>
+</div>
+
+<div class="container-professional section-spacing">
 
     <!-- Main Actions -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">✍️ File a Complaint</h2>
-            <p class="text-gray-600 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" style="margin-bottom: var(--space-xl);">
+        <div class="card">
+            <h2 class="card-title">✍️ File a Complaint</h2>
+            <p class="text-small" style="margin-bottom: var(--space-md);">
                 Spotted economic misinformation in the media? File a complaint and we'll generate a professional letter using AI with MMT perspective.
             </p>
-            <ul class="mb-6 space-y-2 text-sm text-gray-700">
-                <li>✅ AI-generated letters with variation</li>
-                <li>🎯 Multiple tone options (professional, academic, passionate)</li>
-                <li>📨 Send directly to media outlets</li>
-                <li>🎓 Includes MMT education for journalists</li>
+            <ul class="list-professional" style="margin-bottom: var(--space-md);">
+                <li style="border: none; padding: var(--space-xs) 0;">✅ AI-generated letters with variation</li>
+                <li style="border: none; padding: var(--space-xs) 0;">🎯 Multiple tone options (professional, academic, passionate)</li>
+                <li style="border: none; padding: var(--space-xs) 0;">📨 Send directly to media outlets</li>
+                <li style="border: none; padding: var(--space-xs) 0;">🎓 Includes MMT education for journalists</li>
             </ul>
-            <a href="{% url 'media_complaints:submit' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 font-semibold transition-colors">
+            <a href="{% url 'media_complaints:submit' %}" class="btn-primary">
                 File Complaint
             </a>
         </div>
 
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 Your Stats</h2>
-            <div class="mb-6 grid grid-cols-2 gap-4 text-center">
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="text-2xl font-bold text-red-600">{{ user_stats.total_complaints_filed }}</div>
-                    <div class="text-xs text-gray-600">Complaints Filed</div>
+        <div class="card">
+            <h2 class="card-title">📊 Your Stats</h2>
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom: var(--space-lg); margin-top: var(--space-md);">
+                <div style="background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); text-align: center;">
+                    <div style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-error);">{{ user_stats.total_complaints_filed }}</div>
+                    <div class="text-meta">Complaints Filed</div>
                 </div>
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="text-2xl font-bold text-green-600">{{ user_stats.complaints_sent }}</div>
-                    <div class="text-xs text-gray-600">Letters Sent</div>
+                <div style="background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); text-align: center;">
+                    <div style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-success);">{{ user_stats.complaints_sent }}</div>
+                    <div class="text-meta">Letters Sent</div>
                 </div>
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="text-2xl font-bold text-blue-600">{{ user_stats.responses_received }}</div>
-                    <div class="text-xs text-gray-600">Responses</div>
+                <div style="background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); text-align: center;">
+                    <div style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-info);">{{ user_stats.responses_received }}</div>
+                    <div class="text-meta">Responses</div>
                 </div>
-                <div class="bg-gray-50 rounded p-3">
+                <div style="background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-md); text-align: center;">
                     {% if user_stats.most_active_outlet %}
-                    <div class="text-sm font-bold text-purple-600">{{ user_stats.most_active_outlet.name }}</div>
-                    <div class="text-xs text-gray-600">Top Target</div>
+                    <div style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-warning);">{{ user_stats.most_active_outlet.name }}</div>
+                    <div class="text-meta">Top Target</div>
                     {% else %}
-                    <div class="text-sm font-bold text-gray-400">None yet</div>
-                    <div class="text-xs text-gray-600">Top Target</div>
+                    <div style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-secondary);">None yet</div>
+                    <div class="text-meta">Top Target</div>
                     {% endif %}
                 </div>
             </div>
-            <a href="{% url 'media_complaints:my_complaints' %}" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold transition-colors">
+            <a href="{% url 'media_complaints:my_complaints' %}" class="btn-secondary">
                 View My Complaints
             </a>
         </div>
     </div>
 
     <!-- Recent Community Complaints -->
-    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">🌍 Recent Community Complaints</h2>
-            <a href="{% url 'media_complaints:community' %}" class="text-blue-600 hover:text-blue-700 font-medium">
-                View All →
-            </a>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="card-title">🌍 Recent Community Complaints</h2>
+                <a href="{% url 'media_complaints:community' %}" class="btn-text">
+                    View All →
+                </a>
+            </div>
         </div>
         {% if recent_complaints %}
-        <div class="space-y-4">
+        <div class="list-professional">
             {% for complaint in recent_complaints %}
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+            <li class="card-status status-error" style="border: none; border-left: 3px solid; margin-bottom: var(--space-sm);">
+                <div style="display: flex; align-items: start; justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs); flex-wrap: wrap;">
+                            <span class="badge badge-error">
                                 {{ complaint.outlet.name }}
                             </span>
-                            <span class="text-xs text-gray-500">{{ complaint.incident_date|date:"j M Y" }}</span>
+                            <span class="text-meta">{{ complaint.incident_date|date:"j M Y" }}</span>
                         </div>
-                        <h3 class="font-semibold text-gray-900 mb-1">{{ complaint.programme_name }}</h3>
-                        <p class="text-sm text-gray-600 line-clamp-2">{{ complaint.claim_description|truncatewords:20 }}</p>
-                        <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                        <h3 style="font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">{{ complaint.programme_name }}</h3>
+                        <p class="text-small" style="margin-bottom: var(--space-xs);">{{ complaint.claim_description|truncatewords:20 }}</p>
+                        <div style="display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap;" class="text-meta">
                             <span>By {{ complaint.user.display_name }}</span>
                             <span>•</span>
                             <span>Severity: {{ complaint.severity }}/5</span>
                             {% if complaint.status == 'sent' %}
-                            <span class="text-green-600 font-medium">✓ Sent</span>
+                            <span style="color: var(--color-success); font-weight: 500;">✓ Sent</span>
                             {% endif %}
                         </div>
                     </div>
-                    <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium">
+                    <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="btn-secondary btn-sm">
                         View
                     </a>
                 </div>
-            </div>
+            </li>
             {% endfor %}
         </div>
         {% else %}
-        <p class="text-gray-500 text-center py-8">No complaints filed yet. Be the first!</p>
+        <p class="text-small" style="text-align: center; padding: var(--space-xl) 0; color: var(--color-text-secondary);">No complaints filed yet. Be the first!</p>
         {% endif %}
     </div>
 
     <!-- Most Complained About Outlets -->
     {% if top_outlets %}
-    <div class="bg-white rounded-lg shadow-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">🎯 Most Complained About Outlets</h2>
+    <div class="card">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">🎯 Most Complained About Outlets</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for outlet in top_outlets %}
-            <div class="border border-gray-200 rounded-lg p-4">
-                <h3 class="font-bold text-gray-900 mb-1">{{ outlet.name }}</h3>
-                <p class="text-sm text-gray-600 mb-2">{{ outlet.get_media_type_display }}</p>
-                <div class="text-2xl font-bold text-red-600">{{ outlet.complaint_count }}</div>
-                <div class="text-xs text-gray-500">complaints</div>
+            <div class="card" style="border-color: var(--color-border);">
+                <h3 style="font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">{{ outlet.name }}</h3>
+                <p class="text-small" style="margin-bottom: var(--space-sm);">{{ outlet.get_media_type_display }}</p>
+                <div style="font-size: var(--font-size-2xl); font-weight: 600; color: var(--color-error);">{{ outlet.complaint_count }}</div>
+                <div class="text-meta">complaints</div>
             </div>
             {% endfor %}
         </div>
