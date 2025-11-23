@@ -6,11 +6,11 @@
         MMT Budget Day Response Suite
     </h1>
     <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-        Track budget myths in real-time, crowdsource fact-checks, and generate comprehensive MMT rebuttals for the UK Budget 2025.
+        Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate comprehensive MMT rebuttals for the UK Budget 2025.
     </p>
 
     <!-- Feature Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
         <!-- Bingo -->
         <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
             <div class="text-4xl mb-4">🎯</div>
@@ -38,6 +38,16 @@
             <p class="text-gray-600 mb-6">AI-generated comprehensive analysis and rebuttal document ready for download.</p>
             <a href="{% url 'rebuttal:latest' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700">
                 View Rebuttal
+            </a>
+        </div>
+
+        <!-- Media Complaints -->
+        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
+            <div class="text-4xl mb-4">📢</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Media Complaints</h2>
+            <p class="text-gray-600 mb-6">Report economic misinformation and generate AI-powered complaint letters with MMT perspective.</p>
+            <a href="{% url 'media_complaints:home' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700">
+                File Complaint
             </a>
         </div>
     </div>
