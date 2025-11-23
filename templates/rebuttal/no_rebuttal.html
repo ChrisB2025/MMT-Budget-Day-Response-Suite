@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Comprehensive Rebuttal - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <div class="text-center mb-8">
+            <div class="text-6xl mb-4">📄</div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Comprehensive Budget Rebuttal</h1>
+            <p class="text-xl text-gray-600">AI-generated MMT analysis of the UK Budget Speech</p>
+        </div>
+
+        <div class="border-t border-b border-gray-200 py-6 mb-6">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-bold text-blue-900 mb-2">⏳ Rebuttal Not Yet Published</h2>
+                <p class="text-blue-800">
+                    The comprehensive rebuttal will be available shortly after the budget speech is delivered.
+                    Check back soon!
+                </p>
+            </div>
+        </div>
+
+        <div class="prose prose-lg max-w-none">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">What is the Comprehensive Rebuttal?</h2>
+
+            <p class="text-gray-700 mb-4">
+                The Comprehensive Rebuttal is an AI-powered document that provides an in-depth analysis of
+                the UK budget speech from a Modern Monetary Theory (MMT) perspective. It's designed to help
+                activists, journalists, MPs, and the public understand the economic reality behind budget claims.
+            </p>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-3 mt-6">What's Included?</h3>
+
+            <div class="space-y-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-900 mb-2">📊 Executive Summary</h4>
+                    <p class="text-gray-700">High-level overview of the budget's key claims and MMT analysis</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-900 mb-2">🎭 Key Myths Debunked</h4>
+                    <p class="text-gray-700">Top 5-10 misleading claims with evidence-based rebuttals</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-900 mb-2">💰 Fiscal Analysis</h4>
+                    <p class="text-gray-700">Deep dive into the budget's fiscal policy from an MMT perspective</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-900 mb-2">🔍 What They Didn't Say</h4>
+                    <p class="text-gray-700">Critical omissions and what the Chancellor avoided discussing</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-bold text-gray-900 mb-2">📢 Action Points</h4>
+                    <p class="text-gray-700">Practical guidance for activists, MPs, and media professionals</p>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-3 mt-6">How Does It Work?</h3>
+
+            <ol class="list-decimal list-inside space-y-2 text-gray-700 mb-6">
+                <li>The budget speech is delivered by the Chancellor</li>
+                <li>Our AI system (powered by Claude) analyzes the speech transcript</li>
+                <li>Community-submitted fact-check claims are incorporated</li>
+                <li>A comprehensive rebuttal document is generated automatically</li>
+                <li>The document is published here for public access</li>
+            </ol>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-3 mt-6">What Can I Do Now?</h3>
+
+            <p class="text-gray-700 mb-4">
+                While you wait for the rebuttal to be published, you can participate in real-time:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <a href="{% url 'bingo:home' %}" class="block bg-indigo-50 border border-indigo-200 rounded-lg p-4 hover:bg-indigo-100 transition">
+                    <div class="text-2xl mb-2">🎯</div>
+                    <h4 class="font-bold text-indigo-900 mb-1">Play Budget Bingo</h4>
+                    <p class="text-sm text-indigo-700">Track and mark budget myths in real-time during the speech</p>
+                </a>
+
+                <a href="{% url 'factcheck:submit' %}" class="block bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition">
+                    <div class="text-2xl mb-2">✓</div>
+                    <h4 class="font-bold text-green-900 mb-1">Submit Claims</h4>
+                    <p class="text-sm text-green-700">Flag misleading claims for AI fact-checking and inclusion in the rebuttal</p>
+                </a>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-3 mt-6">Available Formats</h3>
+
+            <p class="text-gray-700 mb-4">
+                Once published, the rebuttal will be available in multiple formats for easy sharing:
+            </p>
+
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                <li><strong>PDF</strong> - Professional document ready for printing and distribution</li>
+                <li><strong>Markdown</strong> - Plain text format for easy editing and version control</li>
+                <li><strong>HTML</strong> - Web-ready format for embedding in websites and blogs</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="text-center mt-8">
+        <a href="{% url 'core:home' %}" class="inline-block px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+            Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

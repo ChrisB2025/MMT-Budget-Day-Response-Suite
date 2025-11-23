@@ -65,7 +65,12 @@ def create_rebuttal(request):
         )
         return redirect('rebuttal:detail', rebuttal_id=rebuttal.id)
 
-    return render(request, 'rebuttal/create.html')
+    # GET request - show form with recent rebuttals
+    recent_rebuttals = Rebuttal.objects.all().order_by('-created_at')[:5]
+
+    return render(request, 'rebuttal/create.html', {
+        'recent_rebuttals': recent_rebuttals
+    })
 
 
 @login_required
