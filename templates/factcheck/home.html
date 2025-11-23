@@ -3,88 +3,85 @@
 {% block title %}Fact-Check Platform - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-8">🔍 Fact-Check Platform</h1>
+<div class="container-professional section-spacing">
+    <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-lg);">Fact-Check Platform</h1>
 
     <!-- Live Stats Banner -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div>
-                <div class="text-3xl font-bold">{{ stats.total_claims }}</div>
-                <div class="text-sm opacity-90">Total Claims Submitted</div>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="stat-card" style="border: none; box-shadow: none;">
+                <span class="stat-number">{{ stats.total_claims }}</span>
+                <span class="stat-label">Total Claims Submitted</span>
             </div>
-            <div>
-                <div class="text-3xl font-bold">{{ stats.claims_today }}</div>
-                <div class="text-sm opacity-90">Claims Today</div>
+            <div class="stat-card" style="border: none; box-shadow: none;">
+                <span class="stat-number">{{ stats.claims_today }}</span>
+                <span class="stat-label">Claims Today</span>
             </div>
-            <div>
-                <div class="text-3xl font-bold text-red-200">{{ stats.high_severity_count }}</div>
-                <div class="text-sm opacity-90">High Severity (8-10)</div>
+            <div class="stat-card" style="border: none; box-shadow: none;">
+                <span class="stat-number" style="color: var(--color-error);">{{ stats.high_severity_count }}</span>
+                <span class="stat-label">High Severity (8-10)</span>
             </div>
         </div>
     </div>
 
     <!-- Claim of the Day -->
     {% if claim_of_day %}
-    <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg shadow-lg p-6 mb-8">
-        <div class="flex items-center gap-3 mb-4">
-            <span class="text-4xl">☀️</span>
-            <h2 class="text-2xl font-bold text-gray-900">Claim of the Day</h2>
+    <div class="card card-status status-warning" style="margin-bottom: var(--space-xl);">
+        <div class="card-header">
+            <h2 class="card-title">Featured Claim</h2>
         </div>
-        <div class="bg-white rounded-lg p-6">
-            <p class="text-gray-900 font-medium mb-4">{{ claim_of_day.request.claim_text }}</p>
-            <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-600">
-                    By {{ claim_of_day.request.user.display_name|default:"User" }} • 👍 {{ claim_of_day.request.upvotes }} upvotes
-                </span>
-                <a href="{% url 'factcheck:detail' claim_of_day.request.id %}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    View Details →
-                </a>
-            </div>
+        <p style="font-weight: 500; margin-bottom: var(--space-md);">{{ claim_of_day.request.claim_text }}</p>
+        <div class="card-footer">
+            <span class="text-small">
+                By {{ claim_of_day.request.user.display_name|default:"User" }} • {{ claim_of_day.request.upvotes }} upvotes
+            </span>
+            <a href="{% url 'factcheck:detail' claim_of_day.request.id %}" class="btn-primary btn-sm">
+                View Details →
+            </a>
         </div>
     </div>
     {% endif %}
 
     <!-- Main Actions -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">📝 Submit a Claim</h2>
-            <p class="text-gray-600 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" style="margin-bottom: var(--space-xl);">
+        <div class="card">
+            <h2 class="card-title">Submit a Claim</h2>
+            <p class="text-small" style="margin-bottom: var(--space-md);">
                 Heard a questionable claim in the budget speech? Submit it for AI-powered fact-checking with MMT analysis.
             </p>
-            <ul class="mb-6 space-y-2 text-sm text-gray-700">
-                <li>✅ Earn 10 XP per submission</li>
-                <li>🔥 Build your hot streak</li>
-                <li>🏆 Unlock badges and rewards</li>
+            <ul class="list-professional" style="margin-bottom: var(--space-md); list-style: disc; padding-left: var(--space-lg);">
+                <li style="border: none; padding: var(--space-xs) 0;">Earn 10 XP per submission</li>
+                <li style="border: none; padding: var(--space-xs) 0;">Build your hot streak</li>
+                <li style="border: none; padding: var(--space-xs) 0;">Unlock badges and rewards</li>
             </ul>
-            <a href="{% url 'factcheck:submit' %}" class="inline-block px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-semibold transition-colors">
+            <a href="{% url 'factcheck:submit' %}" class="btn-primary">
                 Submit Claim
             </a>
         </div>
 
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 My Dashboard</h2>
-            <p class="text-gray-600 mb-6">
+        <div class="card">
+            <h2 class="card-title">My Dashboard</h2>
+            <p class="text-small" style="margin-bottom: var(--space-md);">
                 Track your progress, view badges, and see your impact on the fact-checking community.
             </p>
             {% if user.is_authenticated %}
                 {% if user_profile %}
-                <div class="mb-6 grid grid-cols-2 gap-4 text-center">
-                    <div class="bg-gray-50 rounded p-3">
-                        <div class="text-2xl font-bold text-blue-600">{{ user_profile.total_claims_submitted|default:0 }}</div>
-                        <div class="text-xs text-gray-600">Claims</div>
+                <div class="grid grid-cols-2 gap-4" style="margin-bottom: var(--space-md);">
+                    <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                        <span class="stat-number" style="font-size: var(--font-size-2xl);">{{ user_profile.total_claims_submitted|default:0 }}</span>
+                        <span class="stat-label">Claims</span>
                     </div>
-                    <div class="bg-gray-50 rounded p-3">
-                        <div class="text-2xl font-bold text-purple-600">{{ user_profile.experience_points|default:0 }}</div>
-                        <div class="text-xs text-gray-600">XP</div>
+                    <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                        <span class="stat-number" style="font-size: var(--font-size-2xl);">{{ user_profile.experience_points|default:0 }}</span>
+                        <span class="stat-label">XP</span>
                     </div>
                 </div>
                 {% endif %}
-                <a href="{% url 'factcheck:dashboard' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold transition-colors">
+                <a href="{% url 'factcheck:dashboard' %}" class="btn-secondary">
                     View Dashboard
                 </a>
             {% else %}
-                <a href="{% url 'users:login' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold transition-colors">
+                <a href="{% url 'users:login' %}" class="btn-secondary">
                     Login to Track Progress
                 </a>
             {% endif %}
@@ -93,23 +90,25 @@
 
     <!-- Leaderboard Preview -->
     {% if leaderboard %}
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold text-gray-900">🏆 Top Fact-Checkers</h2>
-            <a href="{% url 'factcheck:leaderboard' %}" class="text-blue-600 hover:text-blue-800 font-medium">View All →</a>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="card-title">Top Fact-Checkers</h2>
+                <a href="{% url 'factcheck:leaderboard' %}" class="btn-text">View All →</a>
+            </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             {% for profile in leaderboard|slice:":5" %}
-                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-center p-4" style="background: var(--color-surface); border-radius: var(--radius-lg);">
                     <div class="text-2xl mb-2">
                         {% if forloop.counter == 1 %}🥇
                         {% elif forloop.counter == 2 %}🥈
                         {% elif forloop.counter == 3 %}🥉
                         {% else %}{{ forloop.counter }}{% endif %}
                     </div>
-                    <div class="font-semibold text-gray-900">{{ profile.user.display_name|default:"User" }}</div>
-                    <div class="text-sm text-gray-600">{{ profile.experience_points }} XP</div>
-                    <div class="text-xs text-gray-500 mt-1">{{ profile.total_claims_submitted }} claims</div>
+                    <div class="font-semibold" style="color: var(--color-text-primary);">{{ profile.user.display_name|default:"User" }}</div>
+                    <div class="text-small">{{ profile.experience_points }} XP</div>
+                    <div class="text-meta" style="margin-top: var(--space-xs);">{{ profile.total_claims_submitted }} claims</div>
                 </div>
             {% endfor %}
         </div>
@@ -118,31 +117,33 @@
 
     <!-- Live Feed -->
     {% if live_feed %}
-    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold text-gray-900">📡 Live Feed</h2>
-            <a href="{% url 'factcheck:live_feed' %}" class="text-blue-600 hover:text-blue-800 font-medium">View All →</a>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="card-header">
+            <div class="flex items-center justify-between">
+                <h2 class="card-title">Live Feed</h2>
+                <a href="{% url 'factcheck:live_feed' %}" class="btn-text">View All →</a>
+            </div>
         </div>
-        <div class="space-y-3">
+        <div class="list-professional">
             {% for claim in live_feed|slice:":5" %}
-            <div class="border-l-4 {% if claim.severity >= 8 %}border-red-500{% elif claim.severity >= 5 %}border-yellow-500{% else %}border-blue-500{% endif %} pl-4 py-2 hover:bg-gray-50 transition-colors">
+            <li class="card-status {% if claim.severity >= 8 %}status-error{% elif claim.severity >= 5 %}status-warning{% else %}status-success{% endif %}" style="border: none; border-left: 3px solid;">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
-                        <p class="text-gray-900 font-medium text-sm">{{ claim.claim_text|truncatewords:15 }}</p>
-                        <div class="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                        <p class="font-medium text-sm" style="color: var(--color-text-primary); margin-bottom: var(--space-xs);">{{ claim.claim_text|truncatewords:15 }}</p>
+                        <div class="flex items-center gap-3 text-meta">
                             <span>{{ claim.user.display_name|default:"User" }}</span>
-                            <span>👍 {{ claim.upvotes }}</span>
-                            <span class="px-2 py-0.5 rounded {% if claim.severity >= 8 %}bg-red-100 text-red-800{% elif claim.severity >= 5 %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-                                Sev: {{ claim.severity }}
+                            <span>{{ claim.upvotes }} upvotes</span>
+                            <span class="badge {% if claim.severity >= 8 %}badge-error{% elif claim.severity >= 5 %}badge-warning{% else %}badge-info{% endif %}">
+                                Severity {{ claim.severity }}
                             </span>
                             <span>{{ claim.created_at|timesince }} ago</span>
                         </div>
                     </div>
-                    <a href="{% url 'factcheck:detail' claim.id %}" class="ml-4 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <a href="{% url 'factcheck:detail' claim.id %}" class="ml-4 btn-text">
                         →
                     </a>
                 </div>
-            </div>
+            </li>
             {% endfor %}
         </div>
     </div>
@@ -150,22 +151,22 @@
 
     <!-- Recently Fact-Checked -->
     {% if recent_requests %}
-    <div class="bg-white rounded-lg shadow-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">✅ Recently Fact-Checked</h2>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Recently Fact-Checked</h2>
         <div class="space-y-4">
             {% for request in recent_requests %}
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900">{{ request.claim_text|truncatewords:20 }}</h3>
-                    <span class="px-3 py-1 text-xs rounded font-semibold {% if request.severity >= 8 %}bg-red-100 text-red-800{% elif request.severity >= 5 %}bg-yellow-100 text-yellow-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            <div class="card" style="border-color: var(--color-border);">
+                <div class="flex justify-between items-start" style="margin-bottom: var(--space-sm);">
+                    <h3 class="font-semibold" style="color: var(--color-text-primary);">{{ request.claim_text|truncatewords:20 }}</h3>
+                    <span class="badge {% if request.severity >= 8 %}badge-error{% elif request.severity >= 5 %}badge-warning{% else %}badge-info{% endif %}">
                         Severity: {{ request.severity }}/10
                     </span>
                 </div>
-                <div class="flex justify-between items-center mt-4">
-                    <span class="text-sm text-gray-500">
-                        By {{ request.user.display_name|default:"User" }} • 👍 {{ request.upvotes }} upvotes • {{ request.created_at|timesince }} ago
+                <div class="flex justify-between items-center" style="margin-top: var(--space-md);">
+                    <span class="text-small">
+                        By {{ request.user.display_name|default:"User" }} • {{ request.upvotes }} upvotes • {{ request.created_at|timesince }} ago
                     </span>
-                    <a href="{% url 'factcheck:detail' request.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm transition-colors">
+                    <a href="{% url 'factcheck:detail' request.id %}" class="btn-secondary btn-sm">
                         View Fact-Check
                     </a>
                 </div>
@@ -176,12 +177,12 @@
     {% endif %}
 
     <!-- Quick Links -->
-    <div class="mt-8 flex flex-wrap gap-4">
-        <a href="{% url 'factcheck:queue' %}" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-semibold transition-colors">
-            📋 Browse Queue
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'factcheck:queue' %}" class="btn-secondary">
+            Browse Queue
         </a>
-        <a href="{% url 'factcheck:stats' %}" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 font-semibold transition-colors">
-            📊 Statistics
+        <a href="{% url 'factcheck:stats' %}" class="btn-secondary">
+            Statistics
         </a>
     </div>
 </div>

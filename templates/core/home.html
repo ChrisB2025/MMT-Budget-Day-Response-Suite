@@ -1,72 +1,77 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="text-center">
-    <h1 class="text-5xl font-bold text-gray-900 mb-6">
-        MMT Budget Day Response Suite
-    </h1>
-    <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-        Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate comprehensive MMT rebuttals for the UK Budget 2025.
-    </p>
-
-    <!-- Feature Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
-        <!-- Bingo -->
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
-            <div class="text-4xl mb-4">🎯</div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Budget Bingo</h2>
-            <p class="text-gray-600 mb-6">Track and mark budget myths in real-time. Compete with others to complete your bingo card first!</p>
-            <a href="{% url 'bingo:home' %}" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                Play Bingo
-            </a>
-        </div>
-
-        <!-- Fact-Check -->
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
-            <div class="text-4xl mb-4">✓</div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Fact-Check Platform</h2>
-            <p class="text-gray-600 mb-6">Submit claims for AI-powered fact-checking with MMT perspective and evidence.</p>
-            <a href="{% url 'factcheck:submit' %}" class="inline-block px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
-                Submit Claim
-            </a>
-        </div>
-
-        <!-- Rebuttal -->
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
-            <div class="text-4xl mb-4">📄</div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Comprehensive Rebuttal</h2>
-            <p class="text-gray-600 mb-6">AI-generated comprehensive analysis and rebuttal document ready for download.</p>
-            <a href="{% url 'rebuttal:latest' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                View Rebuttal
-            </a>
-        </div>
-
-        <!-- Media Complaints -->
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition">
-            <div class="text-4xl mb-4">📢</div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Media Complaints</h2>
-            <p class="text-gray-600 mb-6">Report economic misinformation and generate AI-powered complaint letters with MMT perspective.</p>
-            <a href="{% url 'media_complaints:home' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700">
-                File Complaint
-            </a>
+<!-- Hero Section -->
+<div class="hero-professional">
+    <div class="container-narrow">
+        <h1 class="hero-title">
+            MMT Budget Day Response Suite
+        </h1>
+        <p class="hero-subtitle">
+            Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate comprehensive MMT rebuttals for the UK Budget 2025.
+        </p>
+        <div class="flex justify-center gap-4 flex-wrap">
+            <a href="{% url 'factcheck:submit' %}" class="btn-primary">Submit Fact-Check</a>
+            <a href="{% url 'rebuttal:latest' %}" class="btn-secondary">View Latest Rebuttal</a>
         </div>
     </div>
+</div>
 
-    <!-- Stats -->
-    <div class="mt-16 bg-white rounded-lg shadow-lg p-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8">Live Stats</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-                <div class="text-4xl font-bold text-indigo-600">{{ total_bingo_cards }}</div>
-                <div class="text-gray-600 mt-2">Bingo Cards Generated</div>
+<!-- Feature Cards -->
+<div class="section-spacing">
+    <div class="container-professional">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Bingo -->
+            <div class="card card-interactive">
+                <div class="text-3xl mb-4">🎯</div>
+                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Budget Bingo</h3>
+                <p class="text-small mb-6">Track and mark budget myths in real-time. Compete with others to complete your bingo card first!</p>
+                <a href="{% url 'bingo:home' %}" class="btn-secondary">Play Bingo</a>
             </div>
-            <div>
-                <div class="text-4xl font-bold text-green-600">{{ total_factchecks }}</div>
-                <div class="text-gray-600 mt-2">Claims Fact-Checked</div>
+
+            <!-- Fact-Check -->
+            <div class="card card-interactive">
+                <div class="text-3xl mb-4">✓</div>
+                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Fact-Check Platform</h3>
+                <p class="text-small mb-6">Submit claims for AI-powered fact-checking with MMT perspective and evidence.</p>
+                <a href="{% url 'factcheck:submit' %}" class="btn-secondary">Submit Claim</a>
             </div>
-            <div>
-                <div class="text-4xl font-bold text-purple-600">Nov 30</div>
-                <div class="text-gray-600 mt-2">Launch Date</div>
+
+            <!-- Rebuttal -->
+            <div class="card card-interactive">
+                <div class="text-3xl mb-4">📄</div>
+                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Comprehensive Rebuttal</h3>
+                <p class="text-small mb-6">AI-generated comprehensive analysis and rebuttal document ready for download.</p>
+                <a href="{% url 'rebuttal:latest' %}" class="btn-secondary">View Rebuttal</a>
+            </div>
+
+            <!-- Media Complaints -->
+            <div class="card card-interactive">
+                <div class="text-3xl mb-4">📢</div>
+                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Media Complaints</h3>
+                <p class="text-small mb-6">Report economic misinformation and generate AI-powered complaint letters.</p>
+                <a href="{% url 'media_complaints:home' %}" class="btn-secondary">File Complaint</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div style="background: var(--color-surface); padding: var(--space-3xl) 0;">
+    <div class="container-professional">
+        <h2 class="text-center mb-8" style="font-size: var(--font-size-3xl); color: var(--color-text-primary);">Live Statistics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_bingo_cards }}</span>
+                <span class="stat-label">Bingo Cards Generated</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ total_factchecks }}</span>
+                <span class="stat-label">Claims Fact-Checked</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">Nov 30</span>
+                <span class="stat-label">Launch Date</span>
             </div>
         </div>
     </div>

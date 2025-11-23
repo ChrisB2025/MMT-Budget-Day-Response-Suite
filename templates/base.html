@@ -10,6 +10,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Professional Design System -->
+    <link rel="stylesheet" href="{% static 'css/professional.css' %}">
+
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
@@ -30,14 +33,14 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full bg-gray-50">
+<body class="h-full" style="background-color: var(--color-background);">
     {% include 'components/header.html' %}
 
     {% if messages %}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div class="container-professional pt-4">
         {% for message in messages %}
-        <div class="rounded-md p-4 mb-4 {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-blue-50 text-blue-800{% endif %}">
-            <p>{{ message }}</p>
+        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-info{% endif %}">
+            {{ message }}
         </div>
         {% endfor %}
     </div>

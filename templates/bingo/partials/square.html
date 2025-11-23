@@ -1,6 +1,6 @@
 <div
     id="square-{{ square.id }}"
-    class="group aspect-square border-2 relative {% if square.marked %}bg-green-100 border-green-500{% else %}bg-white border-gray-400 hover:bg-blue-50 hover:border-blue-500 cursor-pointer active:scale-95 touch-manipulation{% endif %} rounded-md md:rounded-lg p-1.5 sm:p-2 md:p-3 flex flex-col items-center justify-center text-center transition-all duration-200 shadow-sm hover:shadow-md min-h-[60px] sm:min-h-[70px]"
+    class="bingo-square group aspect-square relative {% if square.marked %}marked{% elif square.position == 12 %}free{% endif %} min-h-[60px] sm:min-h-[70px]"
     {% if not square.marked and not card.completed %}
     hx-post="{% url 'bingo:mark_square' square.id %}"
     hx-trigger="click"
@@ -20,20 +20,20 @@
     {% endif %}
 >
     {% if square.position == 12 %}
-        <p class="text-[10px] xs:text-xs sm:text-sm md:text-base font-bold text-purple-600">FREE SPACE</p>
-        <p class="text-[8px] xs:text-xs text-gray-500 mt-0.5 sm:mt-1">Auto-marked! 🎉</p>
+        <p class="text-[10px] xs:text-xs sm:text-sm md:text-base font-bold">FREE SPACE</p>
+        <p class="text-[8px] xs:text-xs mt-0.5 sm:mt-1" style="opacity: 0.9;">Auto-marked! 🎉</p>
     {% else %}
-        <p class="text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-medium leading-tight break-words {% if not square.marked %}group-hover:text-blue-700{% endif %}">
+        <p class="text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-medium leading-tight break-words">
             {{ square.phrase.phrase_text }}
         </p>
     {% endif %}
 
     {% if square.marked %}
-        <span class="text-2xl sm:text-3xl md:text-4xl mt-0.5 sm:mt-1 text-green-600 font-bold animate-bounce">✓</span>
+        <span class="text-2xl sm:text-3xl md:text-4xl mt-0.5 sm:mt-1 font-bold animate-bounce">✓</span>
     {% else %}
         {% if not card.completed %}
-            <span id="loading-{{ square.id }}" class="htmx-indicator absolute inset-0 flex items-center justify-center bg-blue-100 bg-opacity-75 rounded-lg">
-                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <span id="loading-{{ square.id }}" class="htmx-indicator absolute inset-0 flex items-center justify-center rounded-lg" style="background: var(--color-playful-light);">
+                <svg class="animate-spin h-8 w-8" style="color: var(--color-playful);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -46,13 +46,13 @@
         <div
             x-show="showTooltip"
             x-transition
-            class="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg max-w-xs pointer-events-none"
-            style="display: none;"
+            class="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 rounded-lg shadow-lg max-w-xs pointer-events-none text-xs"
+            style="display: none; background: var(--color-text-primary); color: white;"
         >
             <p class="font-semibold mb-1">{{ square.phrase.phrase_text }}</p>
-            <p class="text-gray-300">{{ square.phrase.description|truncatewords:20 }}</p>
+            <p style="color: #e5e7eb;">{{ square.phrase.description|truncatewords:20 }}</p>
             <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                <div class="border-4 border-transparent border-t-gray-900"></div>
+                <div class="border-4 border-transparent" style="border-top-color: var(--color-text-primary);"></div>
             </div>
         </div>
     {% endif %}

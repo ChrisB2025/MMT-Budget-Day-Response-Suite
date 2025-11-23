@@ -1,31 +1,31 @@
 {% load static %}
-<header class="bg-indigo-600 text-white shadow-lg" x-data="{ mobileMenuOpen: false }">
+<header class="header-professional" x-data="{ mobileMenuOpen: false }">
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center space-x-8">
                 <!-- Logo -->
-                <a href="{% url 'core:home' %}" class="flex items-center space-x-2">
-                    <span class="text-xl sm:text-2xl font-bold">MMT Budget Suite</span>
+                <a href="{% url 'core:home' %}" class="nav-logo">
+                    MMT Budget Suite
                 </a>
 
                 <!-- Desktop Navigation Links -->
-                <div class="hidden md:flex space-x-4">
-                    <a href="{% url 'bingo:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition">Bingo</a>
-                    <a href="{% url 'factcheck:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition">Fact-Check</a>
-                    <a href="{% url 'rebuttal:latest' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition">Rebuttal</a>
-                    <a href="{% url 'media_complaints:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition">Complaints</a>
+                <div class="hidden md:flex nav-professional">
+                    <a href="{% url 'bingo:home' %}">Bingo</a>
+                    <a href="{% url 'factcheck:home' %}">Fact-Check</a>
+                    <a href="{% url 'rebuttal:latest' %}">Rebuttal</a>
+                    <a href="{% url 'media_complaints:home' %}">Complaints</a>
                 </div>
             </div>
 
             <!-- Desktop User Menu -->
             <div class="hidden md:flex items-center space-x-4">
                 {% if user.is_authenticated %}
-                    <span class="text-sm">{{ user.display_name }} | Points: {{ user.points }}</span>
-                    <a href="{% url 'core:dashboard' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800 transition">Dashboard</a>
-                    <a href="{% url 'users:logout' %}" class="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 transition">Logout</a>
+                    <span class="text-small" style="color: var(--color-text-secondary);">{{ user.display_name }} | <strong>{{ user.points }}</strong> pts</span>
+                    <a href="{% url 'core:dashboard' %}" class="btn-secondary btn-sm">Dashboard</a>
+                    <a href="{% url 'users:logout' %}" class="btn-text">Logout</a>
                 {% else %}
-                    <a href="{% url 'users:login' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800 transition">Login</a>
-                    <a href="{% url 'users:register' %}" class="px-3 py-2 rounded-md bg-green-600 hover:bg-green-700 transition">Register</a>
+                    <a href="{% url 'users:login' %}" class="btn-secondary btn-sm">Login</a>
+                    <a href="{% url 'users:register' %}" class="btn-primary btn-sm">Register</a>
                 {% endif %}
             </div>
 
@@ -33,7 +33,8 @@
             <div class="md:hidden flex items-center">
                 <button
                     @click="mobileMenuOpen = !mobileMenuOpen"
-                    class="inline-flex items-center justify-center p-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white transition touch-manipulation"
+                    class="inline-flex items-center justify-center p-2 rounded-md hover:bg-gray-100 transition touch-manipulation"
+                    style="color: var(--color-text-primary);"
                     aria-expanded="false"
                 >
                     <span class="sr-only">Open main menu</span>
@@ -50,27 +51,27 @@
         </div>
 
         <!-- Mobile Menu -->
-        <div x-show="mobileMenuOpen" x-transition class="md:hidden pb-4">
-            <div class="flex flex-col space-y-2">
+        <div x-show="mobileMenuOpen" x-transition class="md:hidden pb-4 border-t" style="border-color: var(--color-border);">
+            <div class="flex flex-col space-y-1 pt-4">
                 <!-- Main Navigation -->
-                <a href="{% url 'bingo:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition touch-manipulation">🎯 Bingo</a>
-                <a href="{% url 'factcheck:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition touch-manipulation">✓ Fact-Check</a>
-                <a href="{% url 'rebuttal:latest' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition touch-manipulation">📄 Rebuttal</a>
-                <a href="{% url 'media_complaints:home' %}" class="px-3 py-2 rounded-md hover:bg-indigo-700 transition touch-manipulation">📢 Complaints</a>
+                <a href="{% url 'bingo:home' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Bingo</a>
+                <a href="{% url 'factcheck:home' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Fact-Check</a>
+                <a href="{% url 'rebuttal:latest' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Rebuttal</a>
+                <a href="{% url 'media_complaints:home' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Complaints</a>
 
                 <!-- Divider -->
-                <div class="border-t border-indigo-500 my-2"></div>
+                <div class="divider"></div>
 
                 <!-- User Menu -->
                 {% if user.is_authenticated %}
-                    <div class="px-3 py-2 text-sm text-indigo-200">
-                        {{ user.display_name }} | Points: {{ user.points }}
+                    <div class="px-3 py-2 text-sm" style="color: var(--color-text-tertiary);">
+                        {{ user.display_name }} | <strong>{{ user.points }}</strong> pts
                     </div>
-                    <a href="{% url 'core:dashboard' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800 transition touch-manipulation">Dashboard</a>
-                    <a href="{% url 'users:logout' %}" class="px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 transition touch-manipulation">Logout</a>
+                    <a href="{% url 'core:dashboard' %}" class="btn-secondary btn-sm mx-3">Dashboard</a>
+                    <a href="{% url 'users:logout' %}" class="btn-text mx-3">Logout</a>
                 {% else %}
-                    <a href="{% url 'users:login' %}" class="px-3 py-2 rounded-md bg-indigo-700 hover:bg-indigo-800 transition touch-manipulation">Login</a>
-                    <a href="{% url 'users:register' %}" class="px-3 py-2 rounded-md bg-green-600 hover:bg-green-700 transition touch-manipulation">Register</a>
+                    <a href="{% url 'users:login' %}" class="btn-secondary btn-sm mx-3">Login</a>
+                    <a href="{% url 'users:register' %}" class="btn-primary btn-sm mx-3">Register</a>
                 {% endif %}
             </div>
         </div>
