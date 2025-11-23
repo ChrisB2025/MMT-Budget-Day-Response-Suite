@@ -21,74 +21,86 @@ from .services import (
 
 def factcheck_home(request):
     """Fact-check home page with competition features"""
-    # Get basic requests (most likely to work)
-    recent_requests = []
+    import traceback
+
     try:
-        recent_requests = FactCheckRequest.objects.filter(
-            status__in=['reviewed', 'published']
-        ).select_related('user').order_by('-created_at')[:10]
-    except Exception:
-        # Even more basic fallback
+        # Get basic requests (most likely to work)
+        recent_requests = []
         try:
-            recent_requests = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+            recent_requests = FactCheckRequest.objects.filter(
+                status__in=['reviewed', 'published']
+            ).select_related('user').order_by('-created_at')[:10]
+        except Exception as e:
+            # Even more basic fallback
+            try:
+                recent_requests = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+            except Exception as e2:
+                pass
+
+        # Get claim of the day (gracefully handle if table doesn't exist)
+        claim_of_day = None
+        try:
+            today = timezone.now().date()
+            claim_of_day = ClaimOfTheDay.objects.filter(
+                featured_date=today
+            ).select_related('request__user').first()
         except Exception:
             pass
 
-    # Get claim of the day (gracefully handle if table doesn't exist)
-    claim_of_day = None
-    try:
-        today = timezone.now().date()
-        claim_of_day = ClaimOfTheDay.objects.filter(
-            featured_date=today
-        ).select_related('request__user').first()
-    except Exception:
-        pass
-
-    # Get live feed (gracefully handle if new tables don't exist)
-    live_feed = []
-    try:
-        live_feed = get_live_feed(limit=10)
-    except Exception:
-        # If new tables don't exist, just show recent requests
+        # Get live feed (gracefully handle if new tables don't exist)
+        live_feed = []
         try:
-            live_feed = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+            live_feed = get_live_feed(limit=10)
+        except Exception:
+            # If new tables don't exist, just show recent requests
+            try:
+                live_feed = FactCheckRequest.objects.select_related('user').order_by('-created_at')[:10]
+            except Exception:
+                pass
+
+        # Get leaderboard (may be empty if profiles don't exist yet)
+        leaderboard = []
+        try:
+            leaderboard = get_leaderboard('all')
         except Exception:
             pass
 
-    # Get leaderboard (may be empty if profiles don't exist yet)
-    leaderboard = []
-    try:
-        leaderboard = get_leaderboard('all')
-    except Exception:
-        pass
-
-    # Get stats (with safe defaults)
-    stats = {'total_claims': 0, 'claims_today': 0, 'high_severity_count': 0}
-    try:
-        stats = get_claim_stats()
-    except Exception:
-        # Try basic count at least
+        # Get stats (with safe defaults)
+        stats = {'total_claims': 0, 'claims_today': 0, 'high_severity_count': 0}
         try:
-            stats['total_claims'] = FactCheckRequest.objects.count()
+            stats = get_claim_stats()
         except Exception:
-            pass
+            # Try basic count at least
+            try:
+                stats['total_claims'] = FactCheckRequest.objects.count()
+            except Exception:
+                pass
 
-    # Get user profile if authenticated
-    user_profile = None
-    if request.user.is_authenticated:
-        try:
-            user_profile = get_or_create_user_profile(request.user)
-        except Exception:
-            pass
+        # Get user profile if authenticated
+        user_profile = None
+        if request.user.is_authenticated:
+            try:
+                user_profile = get_or_create_user_profile(request.user)
+            except Exception:
+                pass
 
-    return render(request, 'factcheck/home.html', {
-        'recent_requests': recent_requests,
-        'claim_of_day': claim_of_day,
-        'live_feed': live_feed,
-        'leaderboard': leaderboard,
-        'stats': stats,
-        'user_profile': user_profile,
-    })
+        return render(request, 'factcheck/home.html', {
+            'recent_requests': recent_requests,
+            'claim_of_day': claim_of_day,
+            'live_feed': live_feed,
+            'leaderboard': leaderboard,
+            'stats': stats,
+            'user_profile': user_profile,
+        })
+    except Exception as e:
+        # Last resort - show the actual error
+        return HttpResponse(f"""
+            <h1>Fact-Check Home - Debug Mode</h1>
+            <p><strong>Error:</strong> {str(e)}</p>
+            <pre>{traceback.format_exc()}</pre>
+            <p><a href="/factcheck/submit/">Go to Submit page instead</a></p>
+            <p><a href="/factcheck/diagnostics/">View Diagnostics</a></p>
+        """, status=500)
 
 
 @login_required
