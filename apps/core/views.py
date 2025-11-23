@@ -131,29 +131,42 @@ def delete_test_submissions(request):
     })
 
 
-@login_required
-def grant_staff_temporary(request):
+def grant_staff_emergency(request):
     """
-    TEMPORARY: One-time use endpoint to grant staff permissions to ChrisB.
-    TODO: Remove this endpoint after use for security.
+    EMERGENCY: No-login endpoint to grant staff permissions.
+    Requires secret token in URL.
+    TODO: REMOVE THIS IMMEDIATELY AFTER USE!
     """
-    user = request.user
+    from apps.users.models import User
 
-    # Only allow for ChrisB
-    if user.username != 'ChrisB':
-        messages.error(request, 'This endpoint is not available for your account.')
-        return redirect('core:dashboard')
+    # Check for secret token
+    token = request.GET.get('token', '')
+    if token != 'chrisb-staff-grant-2025':
+        return HttpResponse('Invalid or missing token', status=403)
 
-    # Check if already staff
-    if user.is_staff:
-        messages.info(request, 'You already have staff permissions!')
-        return redirect('core:dashboard')
+    # Get username from URL
+    username = request.GET.get('user', 'ChrisB')
 
-    # Grant staff permissions
-    user.is_staff = True
-    user.save()
+    try:
+        user = User.objects.get(username=username)
 
-    messages.success(request, '✓ Staff permissions granted! You can now access the Admin Dashboard.')
-    messages.warning(request, 'Please notify the developer to remove the temporary endpoint.')
+        if user.is_staff:
+            return HttpResponse(f'✓ User "{username}" already has staff permissions!<br><br><a href="/dashboard/">Go to Dashboard</a>')
 
-    return redirect('core:dashboard')
+        # Grant staff permissions
+        user.is_staff = True
+        user.save()
+
+        return HttpResponse(f'''
+            <h1>✓ Success!</h1>
+            <p>User "{username}" has been granted staff permissions.</p>
+            <p><a href="/dashboard/">Go to Dashboard</a></p>
+            <p><strong style="color: red;">IMPORTANT: Notify developer to remove this endpoint immediately!</strong></p>
+        ''')
+
+    except User.DoesNotExist:
+        # List all users to help debug
+        all_users = User.objects.all().values_list('username', flat=True)
+        return HttpResponse(f'User "{username}" not found.<br>Available users: {", ".join(all_users)}')
+    except Exception as e:
+        return HttpResponse(f'Error: {str(e)}', status=500)
