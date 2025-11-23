@@ -12,8 +12,8 @@ urlpatterns = [
 
     # Admin tools
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/delete-test-submissions/', views.delete_test_submissions, name='delete_test_submissions'),
-    path('admin/reset-test-data/', views.reset_test_data, name='reset_test_data'),
+    path('delete-test-submissions/', views.delete_test_submissions, name='delete_test_submissions'),
+    path('reset-test-data/', views.reset_test_data, name='reset_test_data'),
 
     # EMERGENCY: No-login staff grant endpoint - TODO: REMOVE IMMEDIATELY AFTER USE!
     path('emergency-grant-staff/', views.grant_staff_emergency, name='grant_staff_emergency'),
