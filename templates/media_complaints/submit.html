@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}File a Complaint - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-2">File a Media Complaint</h1>
+        <p class="text-gray-600">
+            Report economic misinformation and we'll generate a professional complaint letter with MMT perspective.
+        </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <!-- Media Outlet -->
+            <div>
+                <label for="{{ form.outlet.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Media Outlet *
+                </label>
+                {{ form.outlet }}
+                {% if form.outlet.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.outlet.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.outlet.help_text }}</p>
+            </div>
+
+            <!-- Incident Date -->
+            <div>
+                <label for="{{ form.incident_date.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Incident Date *
+                </label>
+                {{ form.incident_date }}
+                {% if form.incident_date.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.incident_date.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.incident_date.help_text }}</p>
+            </div>
+
+            <!-- Programme Name -->
+            <div>
+                <label for="{{ form.programme_name.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Programme/Show/Article Name *
+                </label>
+                {{ form.programme_name }}
+                {% if form.programme_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.programme_name.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.programme_name.help_text }}</p>
+            </div>
+
+            <!-- Presenter/Journalist -->
+            <div>
+                <label for="{{ form.presenter_journalist.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Presenter/Journalist
+                </label>
+                {{ form.presenter_journalist }}
+                {% if form.presenter_journalist.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.presenter_journalist.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.presenter_journalist.help_text }}</p>
+            </div>
+
+            <!-- Timestamp -->
+            <div>
+                <label for="{{ form.timestamp.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Timestamp
+                </label>
+                {{ form.timestamp }}
+                {% if form.timestamp.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.timestamp.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.timestamp.help_text }}</p>
+            </div>
+
+            <!-- Claim Description -->
+            <div>
+                <label for="{{ form.claim_description.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Describe the Misinformation *
+                </label>
+                {{ form.claim_description }}
+                {% if form.claim_description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.claim_description.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.claim_description.help_text }}</p>
+            </div>
+
+            <!-- Context -->
+            <div>
+                <label for="{{ form.context.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Additional Context
+                </label>
+                {{ form.context }}
+                {% if form.context.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.context.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.context.help_text }}</p>
+            </div>
+
+            <!-- Severity -->
+            <div>
+                <label for="{{ form.severity.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Severity *
+                </label>
+                {{ form.severity }}
+                {% if form.severity.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.severity.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.severity.help_text }}</p>
+            </div>
+
+            <!-- Preferred Tone -->
+            <div>
+                <label for="{{ form.preferred_tone.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2">
+                    Letter Tone *
+                </label>
+                {{ form.preferred_tone }}
+                {% if form.preferred_tone.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.preferred_tone.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.preferred_tone.help_text }}</p>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                <a href="{% url 'media_complaints:home' %}" class="text-gray-600 hover:text-gray-900">
+                    ← Back
+                </a>
+                <button type="submit" class="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition-colors">
+                    Submit & Generate Letter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Box -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="font-bold text-blue-900 mb-2">💡 What happens next?</h3>
+        <ul class="space-y-2 text-sm text-blue-800">
+            <li>✓ Your complaint will be saved</li>
+            <li>✓ AI will generate a professional letter with MMT perspective</li>
+            <li>✓ The letter will be varied to avoid detection as a form letter</li>
+            <li>✓ You can review and edit before sending</li>
+            <li>✓ Send directly to the media outlet with one click</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

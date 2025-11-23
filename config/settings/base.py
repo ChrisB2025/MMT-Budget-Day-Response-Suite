@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.bingo',
     'apps.factcheck',
     'apps.rebuttal',
+    'apps.media_complaints',
 ]
 
 MIDDLEWARE = [

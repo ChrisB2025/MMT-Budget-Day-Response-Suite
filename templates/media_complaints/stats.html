@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaint Statistics - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">Complaint Statistics</h1>
+
+    <!-- Overall Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-red-600 mb-2">{{ total_complaints }}</div>
+            <div class="text-gray-600">Total Complaints</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-green-600 mb-2">{{ total_sent }}</div>
+            <div class="text-gray-600">Letters Sent</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="text-3xl font-bold text-blue-600 mb-2">{{ total_responses }}</div>
+            <div class="text-gray-600">Responses Received</div>
+        </div>
+    </div>
+
+    <!-- By Outlet -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Complaints by Outlet</h2>
+        <div class="space-y-3">
+            {% for outlet in outlet_stats %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div>
+                    <div class="font-semibold text-gray-900">{{ outlet.name }}</div>
+                    <div class="text-sm text-gray-600">{{ outlet.get_media_type_display }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-bold text-red-600">{{ outlet.total_complaints }}</div>
+                    <div class="text-xs text-gray-600">{{ outlet.sent_complaints }} sent</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- By Severity -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Complaints by Severity</h2>
+        <div class="grid grid-cols-5 gap-4">
+            {% for stat in severity_stats %}
+            <div class="text-center p-4 bg-gray-50 rounded">
+                <div class="text-2xl font-bold text-red-600">{{ stat.count }}</div>
+                <div class="text-sm text-gray-600">Level {{ stat.severity }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Contributors -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Top Contributors</h2>
+        <div class="space-y-3">
+            {% for user in top_users %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div class="font-semibold text-gray-900">{{ user.display_name }}</div>
+                <div class="text-xl font-bold text-purple-600">{{ user.complaint_count }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

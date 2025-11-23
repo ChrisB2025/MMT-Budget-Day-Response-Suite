@@ -13,6 +13,7 @@ urlpatterns = [
     path('bingo/', include('apps.bingo.urls')),
     path('factcheck/', include('apps.factcheck.urls')),
     path('rebuttal/', include('apps.rebuttal.urls')),
+    path('complaints/', include('apps.media_complaints.urls')),
 ]
 
 # Serve media files in development

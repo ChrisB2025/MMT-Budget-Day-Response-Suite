@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Media Complaints - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">📢 Media Complaints Platform</h1>
+
+    <!-- Live Stats Banner -->
+    <div class="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div>
+                <div class="text-3xl font-bold">{{ total_complaints }}</div>
+                <div class="text-sm opacity-90">Total Complaints Filed</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold">{{ total_sent }}</div>
+                <div class="text-sm opacity-90">Letters Sent</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-yellow-200">{{ user_stats.total_complaints_filed }}</div>
+                <div class="text-sm opacity-90">Your Complaints</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">✍️ File a Complaint</h2>
+            <p class="text-gray-600 mb-6">
+                Spotted economic misinformation in the media? File a complaint and we'll generate a professional letter using AI with MMT perspective.
+            </p>
+            <ul class="mb-6 space-y-2 text-sm text-gray-700">
+                <li>✅ AI-generated letters with variation</li>
+                <li>🎯 Multiple tone options (professional, academic, passionate)</li>
+                <li>📨 Send directly to media outlets</li>
+                <li>🎓 Includes MMT education for journalists</li>
+            </ul>
+            <a href="{% url 'media_complaints:submit' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 font-semibold transition-colors">
+                File Complaint
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">📊 Your Stats</h2>
+            <div class="mb-6 grid grid-cols-2 gap-4 text-center">
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="text-2xl font-bold text-red-600">{{ user_stats.total_complaints_filed }}</div>
+                    <div class="text-xs text-gray-600">Complaints Filed</div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="text-2xl font-bold text-green-600">{{ user_stats.complaints_sent }}</div>
+                    <div class="text-xs text-gray-600">Letters Sent</div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="text-2xl font-bold text-blue-600">{{ user_stats.responses_received }}</div>
+                    <div class="text-xs text-gray-600">Responses</div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    {% if user_stats.most_active_outlet %}
+                    <div class="text-sm font-bold text-purple-600">{{ user_stats.most_active_outlet.name }}</div>
+                    <div class="text-xs text-gray-600">Top Target</div>
+                    {% else %}
+                    <div class="text-sm font-bold text-gray-400">None yet</div>
+                    <div class="text-xs text-gray-600">Top Target</div>
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{% url 'media_complaints:my_complaints' %}" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold transition-colors">
+                View My Complaints
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Community Complaints -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">🌍 Recent Community Complaints</h2>
+            <a href="{% url 'media_complaints:community' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+                View All →
+            </a>
+        </div>
+        {% if recent_complaints %}
+        <div class="space-y-4">
+            {% for complaint in recent_complaints %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                                {{ complaint.outlet.name }}
+                            </span>
+                            <span class="text-xs text-gray-500">{{ complaint.incident_date|date:"j M Y" }}</span>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-1">{{ complaint.programme_name }}</h3>
+                        <p class="text-sm text-gray-600 line-clamp-2">{{ complaint.claim_description|truncatewords:20 }}</p>
+                        <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                            <span>By {{ complaint.user.display_name }}</span>
+                            <span>•</span>
+                            <span>Severity: {{ complaint.severity }}/5</span>
+                            {% if complaint.status == 'sent' %}
+                            <span class="text-green-600 font-medium">✓ Sent</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-medium">
+                        View
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No complaints filed yet. Be the first!</p>
+        {% endif %}
+    </div>
+
+    <!-- Most Complained About Outlets -->
+    {% if top_outlets %}
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">🎯 Most Complained About Outlets</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for outlet in top_outlets %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h3 class="font-bold text-gray-900 mb-1">{{ outlet.name }}</h3>
+                <p class="text-sm text-gray-600 mb-2">{{ outlet.get_media_type_display }}</p>
+                <div class="text-2xl font-bold text-red-600">{{ outlet.complaint_count }}</div>
+                <div class="text-xs text-gray-500">complaints</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
