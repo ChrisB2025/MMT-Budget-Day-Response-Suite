@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}All Rebuttals - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Budget Rebuttals</h1>
+                <p class="text-gray-600">Browse all published MMT budget analyses</p>
+            </div>
+            {% if user.is_staff %}
+            <a href="{% url 'rebuttal:create' %}" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                + Create New
+            </a>
+            {% endif %}
+        </div>
+
+        {% if rebuttals %}
+        <div class="space-y-6">
+            {% for rebuttal in rebuttals %}
+            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ rebuttal.title }}</h2>
+                        <div class="flex gap-4 text-sm text-gray-600">
+                            <span>Version {{ rebuttal.version }}</span>
+                            <span>•</span>
+                            <span>Published {{ rebuttal.published_at|date:"F d, Y" }}</span>
+                            <span>•</span>
+                            <span>{{ rebuttal.sections.count }} section{{ rebuttal.sections.count|pluralize }}</span>
+                        </div>
+                    </div>
+                    {% if rebuttal == rebuttals.0 %}
+                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
+                        Latest
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">Sections:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {% for section in rebuttal.sections.all %}
+                        <div class="text-sm text-gray-600 flex items-start">
+                            <span class="mr-2">•</span>
+                            <span>{{ section.title }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-gray-200">
+                    <a href="{% url 'rebuttal:detail' rebuttal.id %}" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-semibold">
+                        Read Full Rebuttal
+                    </a>
+                    <a href="{% url 'rebuttal:download' rebuttal.id 'pdf' %}" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm">
+                        📄 PDF
+                    </a>
+                    <a href="{% url 'rebuttal:download' rebuttal.id 'markdown' %}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">
+                        📝 Markdown
+                    </a>
+                    <a href="{% url 'rebuttal:download' rebuttal.id 'html' %}" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                        🌐 HTML
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+            <div class="text-4xl mb-4">📄</div>
+            <h3 class="text-xl font-semibold text-yellow-900 mb-2">No Rebuttals Published Yet</h3>
+            <p class="text-yellow-800 mb-4">
+                Comprehensive rebuttals will be published here after budget speeches are analyzed.
+            </p>
+            {% if user.is_staff %}
+            <a href="{% url 'rebuttal:create' %}" class="inline-block px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold">
+                Create First Rebuttal
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'core:home' %}" class="inline-block px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+            Back to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

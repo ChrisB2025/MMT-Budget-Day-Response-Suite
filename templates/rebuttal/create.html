@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Rebuttal - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Create Comprehensive Rebuttal</h1>
+            <p class="text-gray-600">Generate an AI-powered budget analysis and rebuttal document</p>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <h2 class="text-lg font-bold text-blue-900 mb-2">📝 How This Works</h2>
+            <ul class="space-y-2 text-sm text-blue-800">
+                <li>✓ <strong>AI-Powered:</strong> Claude will analyze the budget speech and generate a comprehensive rebuttal</li>
+                <li>✓ <strong>Structured Sections:</strong> Executive Summary, Key Myths, Fiscal Analysis, Omissions, and Action Points</li>
+                <li>✓ <strong>Automatic Publishing:</strong> Once generated, the rebuttal will be automatically published</li>
+                <li>✓ <strong>Multiple Formats:</strong> Available for download as PDF, HTML, and Markdown</li>
+            </ul>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                    Rebuttal Title *
+                </label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="e.g., UK Budget 2025 - MMT Rebuttal"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p class="mt-1 text-sm text-gray-500">💡 Include the year and event type for easy reference</p>
+            </div>
+
+            <div>
+                <label for="version" class="block text-sm font-medium text-gray-700 mb-2">
+                    Version
+                </label>
+                <input
+                    type="text"
+                    id="version"
+                    name="version"
+                    value="1.0"
+                    placeholder="e.g., 1.0"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p class="mt-1 text-sm text-gray-500">Optional: Version number for tracking revisions (defaults to 1.0)</p>
+            </div>
+
+            <div>
+                <label for="transcript" class="block text-sm font-medium text-gray-700 mb-2">
+                    Budget Speech Transcript (Optional)
+                </label>
+                <textarea
+                    id="transcript"
+                    name="transcript"
+                    rows="10"
+                    placeholder="Paste the full budget speech transcript here (optional)...
+
+If you don't have the transcript, the AI will generate a general MMT analysis based on typical budget speech themes."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+                ></textarea>
+                <p class="mt-1 text-sm text-gray-500">
+                    💡 Tip: Include the transcript for more accurate and specific rebuttals
+                </p>
+            </div>
+
+            <!-- Info about community claims -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 class="text-sm font-bold text-yellow-900 mb-2">🔍 Community Fact-Check Claims</h3>
+                <p class="text-sm text-yellow-800 mb-2">
+                    The AI will automatically consider high-severity claims submitted by the community through the fact-check platform.
+                    Claims with severity ratings of 8-10 will be prioritized in the analysis.
+                </p>
+                <a href="{% url 'factcheck:home' %}" class="text-sm text-yellow-900 underline hover:text-yellow-700">
+                    View submitted claims →
+                </a>
+            </div>
+
+            <!-- Generation Info -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 class="text-sm font-bold text-purple-900 mb-2">⚙️ Generation Process</h3>
+                <p class="text-sm text-purple-800">
+                    After you click "Generate Rebuttal", the AI will work in the background to create the comprehensive analysis.
+                    This typically takes 1-2 minutes. You'll be redirected to the rebuttal page, where you can monitor the progress.
+                </p>
+            </div>
+
+            <div class="flex gap-4">
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    class="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-semibold transition-all duration-200 transform hover:scale-105 flex items-center gap-2">
+                    <span>🤖</span>
+                    <span>Generate Rebuttal</span>
+                </button>
+                <a
+                    href="{% url 'core:admin_dashboard' %}"
+                    class="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+
+        <!-- Warning -->
+        <div class="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 class="text-sm font-bold text-red-900 mb-2">⚠️ Important Notes</h3>
+            <ul class="space-y-1 text-sm text-red-800">
+                <li>• The rebuttal will be <strong>automatically published</strong> once generated</li>
+                <li>• This will replace any "latest" rebuttal on the public homepage</li>
+                <li>• Make sure the title and version are correct before submitting</li>
+                <li>• The process cannot be cancelled once started</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Recent Rebuttals -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Rebuttals</h2>
+        {% load static %}
+        <div class="space-y-2 text-sm">
+            {% for rebuttal in recent_rebuttals %}
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                <div>
+                    <span class="font-semibold text-gray-900">{{ rebuttal.title }}</span>
+                    <span class="text-gray-500 ml-2">v{{ rebuttal.version }}</span>
+                </div>
+                <div class="flex gap-2 items-center">
+                    {% if rebuttal.published %}
+                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Published</span>
+                    {% else %}
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Draft</span>
+                    {% endif %}
+                    <a href="{% url 'rebuttal:detail' rebuttal.id %}" class="text-purple-600 hover:text-purple-800">View →</a>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 italic">No rebuttals created yet</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('submit-btn').addEventListener('click', function(e) {
+    const form = this.closest('form');
+    const title = document.getElementById('title').value.trim();
+
+    if (!title) {
+        e.preventDefault();
+        alert('Please enter a title for the rebuttal.');
+        return;
+    }
+
+    const confirmed = confirm(
+        'Are you ready to generate the rebuttal?\n\n' +
+        'This will:\n' +
+        '• Use AI to analyze the budget speech\n' +
+        '• Generate comprehensive sections\n' +
+        '• Automatically publish the result\n\n' +
+        'This process takes 1-2 minutes and cannot be cancelled.'
+    );
+
+    if (!confirmed) {
+        e.preventDefault();
+        return;
+    }
+
+    // Disable button and show loading state
+    this.disabled = true;
+    this.innerHTML = '<span>⏳</span> <span>Generating Rebuttal...</span>';
+    this.classList.add('opacity-75', 'cursor-not-allowed');
+});
+</script>
+{% endblock %}
