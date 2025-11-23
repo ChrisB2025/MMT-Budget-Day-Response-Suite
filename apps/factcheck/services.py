@@ -69,8 +69,20 @@ def generate_fact_check_with_claude(claim, context='', severity=5):
         # Extract text from response
         response_text = message.content[0].text if message.content else ''
 
+        # Clean up response - remove markdown code blocks if present
+        cleaned_text = response_text.strip()
+        if cleaned_text.startswith('```json'):
+            cleaned_text = cleaned_text[7:]  # Remove ```json
+        elif cleaned_text.startswith('```'):
+            cleaned_text = cleaned_text[3:]  # Remove ```
+
+        if cleaned_text.endswith('```'):
+            cleaned_text = cleaned_text[:-3]  # Remove trailing ```
+
+        cleaned_text = cleaned_text.strip()
+
         # Parse JSON response
-        fact_check_data = json.loads(response_text)
+        fact_check_data = json.loads(cleaned_text)
 
         return {
             'the_claim': fact_check_data.get('the_claim', ''),
