@@ -179,3 +179,32 @@ def reset_test_data(request):
     return render(request, 'core/reset_test_data.html', {
         'stats': stats
     })
+
+
+@staff_member_required
+def grant_superuser_access(request):
+    """
+    Web-accessible endpoint for staff to grant themselves superuser access.
+    Requires existing staff status to access.
+    """
+    from apps.users.models import User
+
+    if request.method == 'POST':
+        # Grant superuser to current user
+        user = request.user
+
+        if user.is_superuser:
+            messages.info(request, f'You already have superuser access!')
+        else:
+            user.is_superuser = True
+            user.save()
+            messages.success(request, f'✅ Successfully granted superuser access! You now have full admin access.')
+            messages.success(request, '🔓 You can now access the Django Admin panel at /admin/')
+
+        return redirect('core:admin_dashboard')
+
+    # GET request - show confirmation page
+    return render(request, 'core/grant_superuser.html', {
+        'user': request.user,
+        'is_superuser': request.user.is_superuser,
+    })

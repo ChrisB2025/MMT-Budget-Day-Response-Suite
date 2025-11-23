@@ -189,10 +189,26 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             👥 User Management
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="{% url 'users:setup_admin' %}" class="block p-4 border-2 border-emerald-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'core:grant_superuser' %}" class="block p-4 border-2 {% if user.is_superuser %}border-green-200 hover:border-green-500 hover:bg-green-50{% else %}border-orange-200 hover:border-orange-500 hover:bg-orange-50{% endif %} transition-all">
                 <div class="flex items-center gap-3">
                     <div class="text-3xl">🔐</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Grant Superuser Access</div>
+                        <div class="text-sm text-gray-600">
+                            {% if user.is_superuser %}
+                                ✅ You have full admin access
+                            {% else %}
+                                ⚠️ Upgrade to Django Admin access
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'users:setup_admin' %}" class="block p-4 border-2 border-emerald-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">👤</div>
                     <div>
                         <div class="font-bold text-gray-900">Setup Admin User</div>
                         <div class="text-sm text-gray-600">Create default admin account</div>
