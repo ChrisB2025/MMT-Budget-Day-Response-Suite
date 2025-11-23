@@ -96,10 +96,16 @@ def mark_square_view(request, square_id):
             )
 
     # Return updated square HTML for HTMX swap
-    return render(request, 'bingo/partials/square.html', {
+    response = render(request, 'bingo/partials/square.html', {
         'square': square,
         'card': square.card
     })
+
+    # Add custom header if BINGO was just achieved
+    if result['completed']:
+        response['HX-Trigger'] = 'bingoAchieved'
+
+    return response
 
 
 def leaderboard_view(request):

@@ -1,6 +1,6 @@
 <div
     id="square-{{ square.id }}"
-    class="group aspect-square border-2 relative {% if square.marked %}bg-green-100 border-green-500{% else %}bg-white border-gray-400 hover:bg-blue-50 hover:border-blue-500 cursor-pointer active:scale-95{% endif %} rounded-lg p-2 md:p-3 flex flex-col items-center justify-center text-center transition-all duration-200 shadow-sm hover:shadow-md"
+    class="group aspect-square border-2 relative {% if square.marked %}bg-green-100 border-green-500{% else %}bg-white border-gray-400 hover:bg-blue-50 hover:border-blue-500 cursor-pointer active:scale-95 touch-manipulation{% endif %} rounded-md md:rounded-lg p-1.5 sm:p-2 md:p-3 flex flex-col items-center justify-center text-center transition-all duration-200 shadow-sm hover:shadow-md min-h-[60px] sm:min-h-[70px]"
     {% if not square.marked and not card.completed %}
     hx-post="{% url 'bingo:mark_square' square.id %}"
     hx-trigger="click"
@@ -20,16 +20,16 @@
     {% endif %}
 >
     {% if square.position == 12 %}
-        <p class="text-xs md:text-base font-bold text-purple-600">FREE SPACE</p>
-        <p class="text-xs text-gray-500 mt-1">Auto-marked! 🎉</p>
+        <p class="text-[10px] xs:text-xs sm:text-sm md:text-base font-bold text-purple-600">FREE SPACE</p>
+        <p class="text-[8px] xs:text-xs text-gray-500 mt-0.5 sm:mt-1">Auto-marked! 🎉</p>
     {% else %}
-        <p class="text-xs md:text-sm font-medium leading-tight {% if not square.marked %}group-hover:text-blue-700{% endif %}">
+        <p class="text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-medium leading-tight break-words {% if not square.marked %}group-hover:text-blue-700{% endif %}">
             {{ square.phrase.phrase_text }}
         </p>
     {% endif %}
 
     {% if square.marked %}
-        <span class="text-3xl md:text-4xl mt-1 text-green-600 font-bold animate-bounce">✓</span>
+        <span class="text-2xl sm:text-3xl md:text-4xl mt-0.5 sm:mt-1 text-green-600 font-bold animate-bounce">✓</span>
     {% else %}
         {% if not card.completed %}
             <span id="loading-{{ square.id }}" class="htmx-indicator absolute inset-0 flex items-center justify-center bg-blue-100 bg-opacity-75 rounded-lg">

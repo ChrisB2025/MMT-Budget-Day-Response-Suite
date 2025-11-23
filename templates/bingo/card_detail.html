@@ -4,19 +4,16 @@
 {% block title %}Bingo Card #{{ card.id }} - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto" x-data="{ showInstructions: !{{ card.completed|yesno:'true,false' }} }">
+<div class="max-w-6xl mx-auto px-2 sm:px-4" x-data="{ showInstructions: !{{ card.completed|yesno:'true,false' }}, bingoCompleted: {{ card.completed|yesno:'true,false' }}, markedCount: {{ card.marked_count }} }" id="bingo-game-container">
     <!-- Header Section -->
     <div class="mb-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
-                    {% if card.completed %}
-                        🎉 BINGO! You Win! 🎉
-                    {% else %}
-                        Budget Day Bingo
-                    {% endif %}
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                    <span x-show="bingoCompleted">🎉 BINGO! You Win! 🎉</span>
+                    <span x-show="!bingoCompleted">Budget Day Bingo</span>
                 </h1>
-                <p class="text-gray-600 mt-2">
+                <p class="text-sm sm:text-base text-gray-600 mt-2">
                     Card #{{ card.id }} • Difficulty:
                     <span class="font-semibold {% if card.difficulty == 'classic' %}text-green-600{% elif card.difficulty == 'advanced' %}text-blue-600{% else %}text-purple-600{% endif %}">
                         {{ card.difficulty|title }}
@@ -24,16 +21,15 @@
                 </p>
             </div>
             <div class="flex flex-col items-end gap-2">
-                {% if card.completed %}
-                    <div class="text-3xl md:text-4xl font-bold text-green-600 animate-bounce">WINNER!</div>
-                    <p class="text-sm text-gray-600">Completed {{ card.completion_time|timesince }} ago</p>
-                    <p class="text-sm text-green-600 font-semibold">+100 points earned! 🎊</p>
-                {% else %}
-                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-4 rounded-lg shadow-lg text-center">
-                        <div class="text-4xl font-bold">{{ card.marked_count }}/25</div>
-                        <p class="text-sm mt-1 opacity-90">Squares Marked</p>
-                    </div>
-                {% endif %}
+                <div x-show="bingoCompleted" x-transition class="text-center md:text-right">
+                    <div class="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 animate-bounce">WINNER!</div>
+                    <p class="text-xs sm:text-sm text-gray-600">Just completed! 🎊</p>
+                    <p class="text-xs sm:text-sm text-green-600 font-semibold">+100 points earned!</p>
+                </div>
+                <div x-show="!bingoCompleted" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 md:px-6 py-3 md:py-4 rounded-lg shadow-lg text-center">
+                    <div class="text-3xl md:text-4xl font-bold" x-text="markedCount + '/25'">{{ card.marked_count }}/25</div>
+                    <p class="text-xs md:text-sm mt-1 opacity-90">Squares Marked</p>
+                </div>
             </div>
         </div>
 
@@ -54,10 +50,10 @@
         <div
             x-show="showInstructions"
             x-transition
-            class="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-6"
+            class="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 md:p-6"
         >
-            <h2 class="text-xl font-bold text-blue-900 mb-3">📋 How to Play Budget Day Bingo</h2>
-            <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+            <h2 class="text-lg sm:text-xl font-bold text-blue-900 mb-3">📋 How to Play Budget Day Bingo</h2>
+            <div class="grid sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700">
                 <div>
                     <h3 class="font-semibold text-blue-800 mb-2">🎯 Objective</h3>
                     <p>Mark 5 squares in a row (horizontal, vertical, or diagonal) to win BINGO!</p>
@@ -87,16 +83,14 @@
     </div>
 
     <!-- Bingo Grid -->
-    <div class="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-2xl p-4 md:p-8 border-4 {% if card.completed %}border-green-500{% else %}border-indigo-500{% endif %}">
-        {% if not card.completed %}
-        <div class="mb-4 text-center">
-            <p class="text-sm md:text-base text-gray-600 font-medium">
+    <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg sm:rounded-xl shadow-2xl p-2 sm:p-4 md:p-8 border-2 sm:border-4 transition-colors duration-500" :class="bingoCompleted ? 'border-green-500' : 'border-indigo-500'">
+        <div x-show="!bingoCompleted" class="mb-2 sm:mb-3 md:mb-4 text-center">
+            <p class="text-xs sm:text-sm md:text-base text-gray-600 font-medium">
                 👆 <span class="text-blue-600 font-bold">Click or tap</span> any white square to mark it when you hear that budget myth!
             </p>
         </div>
-        {% endif %}
 
-        <div class="grid grid-cols-5 gap-1 md:gap-2" id="bingo-grid">
+        <div class="grid grid-cols-5 gap-0.5 sm:gap-1 md:gap-2" id="bingo-grid">
             {% for row in grid %}
                 {% for square in row %}
                     {% include 'bingo/partials/square.html' with square=square card=card %}
@@ -104,31 +98,28 @@
             {% endfor %}
         </div>
 
-        {% if card.completed %}
-        <div class="mt-6 text-center bg-green-50 border-2 border-green-500 rounded-lg p-6">
-            <p class="text-2xl font-bold text-green-700 mb-2">🏆 Congratulations! 🏆</p>
-            <p class="text-gray-700">You've successfully spotted 5 budget myths in a row!</p>
-            <p class="text-sm text-gray-600 mt-2">Check the <a href="{% url 'bingo:leaderboard' %}" class="text-blue-600 hover:underline font-semibold">leaderboard</a> to see how you rank!</p>
+        <div x-show="bingoCompleted" x-transition class="mt-6 text-center bg-green-50 border-2 border-green-500 rounded-lg p-4 md:p-6">
+            <p class="text-xl md:text-2xl font-bold text-green-700 mb-2">🏆 Congratulations! 🏆</p>
+            <p class="text-sm md:text-base text-gray-700">You've successfully spotted 5 budget myths in a row!</p>
+            <p class="text-xs md:text-sm text-gray-600 mt-2">Check the <a href="{% url 'bingo:leaderboard' %}" class="text-blue-600 hover:underline font-semibold">leaderboard</a> to see how you rank!</p>
         </div>
-        {% endif %}
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-8 flex flex-wrap gap-4 justify-center">
-        <a href="{% url 'bingo:home' %}" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition shadow-md hover:shadow-lg">
+    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
+        <a href="{% url 'bingo:home' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition shadow-md hover:shadow-lg touch-manipulation">
             ← Back to My Cards
         </a>
-        <a href="{% url 'bingo:generate' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md hover:shadow-lg">
+        <a href="{% url 'bingo:generate' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-indigo-600 text-white text-sm sm:text-base rounded-lg hover:bg-indigo-700 transition shadow-md hover:shadow-lg touch-manipulation">
             🎲 New Card
         </a>
-        <a href="{% url 'bingo:leaderboard' %}" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg">
+        <a href="{% url 'bingo:leaderboard' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-purple-600 text-white text-sm sm:text-base rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg touch-manipulation">
             🏆 Leaderboard
         </a>
     </div>
 
     <!-- Helpful Hints -->
-    {% if not card.completed %}
-    <div class="mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+    <div x-show="!bingoCompleted" class="mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
         <div class="flex">
             <div class="flex-shrink-0">
                 <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -142,32 +133,88 @@
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
-{% if card.completed %}
 <script>
-    // Celebration animation when page loads with completed card
-    document.addEventListener('DOMContentLoaded', function() {
-        // You could add confetti or other celebration effects here
-        console.log('🎉 BINGO! Card completed!');
-    });
-</script>
-{% endif %}
+    // Confetti celebration function
+    function celebrateBingo() {
+        // Create confetti burst
+        const duration = 5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
-<script>
-    // Add visual feedback when HTMX completes a request
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+
+            // Multiple confetti bursts from different positions
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            }));
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            }));
+        }, 250);
+    }
+
+    // Listen for BINGO achievement
+    document.body.addEventListener('bingoAchieved', function(evt) {
+        console.log('🎉 BINGO ACHIEVED!');
+
+        // Get Alpine.js component and update state
+        const container = document.getElementById('bingo-game-container');
+        if (container && container._x_dataStack) {
+            const alpineData = container._x_dataStack[0];
+            alpineData.bingoCompleted = true;
+            alpineData.showInstructions = false;
+        }
+
+        // Trigger confetti celebration
+        celebrateBingo();
+
+        // Show browser notification if supported
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('🎉 BINGO!', {
+                body: 'Congratulations! You completed your bingo card!',
+                icon: '/static/images/bingo-icon.png'
+            });
+        }
+    });
+
+    // Update marked count after each square is marked
     document.body.addEventListener('htmx:afterSwap', function(evt) {
-        // Scroll to show the updated square if needed
         if (evt.detail.target.id && evt.detail.target.id.startsWith('square-')) {
-            // Optional: Add a flash effect or sound
+            // Add flash effect
             evt.detail.target.classList.add('ring-4', 'ring-green-400');
             setTimeout(() => {
                 evt.detail.target.classList.remove('ring-4', 'ring-green-400');
             }, 1000);
+
+            // Count marked squares and update Alpine.js state
+            setTimeout(() => {
+                const markedSquares = document.querySelectorAll('[id^="square-"]').length;
+                const markedCount = document.querySelectorAll('.bg-green-100').length;
+
+                const container = document.getElementById('bingo-game-container');
+                if (container && container._x_dataStack) {
+                    const alpineData = container._x_dataStack[0];
+                    alpineData.markedCount = markedCount;
+                }
+            }, 100);
         }
     });
 
@@ -175,6 +222,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         const grid = document.getElementById('bingo-grid');
         if (!grid) return;
+
+        // Request notification permission on page load
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
 
         grid.addEventListener('keydown', function(e) {
             if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
