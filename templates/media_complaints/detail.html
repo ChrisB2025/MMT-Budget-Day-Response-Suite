@@ -86,10 +86,18 @@
                 {% if is_owner %}
                 <div class="mt-6 pt-6 border-t border-gray-200 space-y-3">
                     {% if letter and complaint.status != 'sent' %}
+                    <!-- mailto: link to open user's email client -->
+                    <a href="mailto:{{ complaint.outlet.complaints_dept_email|default:complaint.outlet.contact_email }}?subject={{ letter.subject|urlencode }}&body={{ letter.body|urlencode }}"
+                       class="block w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-center"
+                       target="_blank">
+                        📧 Open in Email Client
+                    </a>
+
+                    <!-- Mark as sent button -->
                     <form method="post" action="{% url 'media_complaints:send_letter' complaint.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
-                            📨 Send Letter
+                        <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                            ✓ Mark as Sent
                         </button>
                     </form>
                     {% endif %}

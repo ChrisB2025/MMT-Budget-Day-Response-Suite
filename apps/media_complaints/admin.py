@@ -1,6 +1,7 @@
 """Admin configuration for media complaints"""
 from django.contrib import admin
-from .models import MediaOutlet, Complaint, ComplaintLetter, ComplaintStats
+from django.utils import timezone
+from .models import MediaOutlet, Complaint, ComplaintLetter, ComplaintStats, OutletSuggestion
 
 
 @admin.register(MediaOutlet)
@@ -131,3 +132,79 @@ class ComplaintStatsAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('user', 'most_active_outlet')
+
+
+@admin.register(OutletSuggestion)
+class OutletSuggestionAdmin(admin.ModelAdmin):
+    """Admin for outlet suggestions"""
+    list_display = [
+        'id',
+        'name',
+        'media_type',
+        'user',
+        'status',
+        'created_at'
+    ]
+    list_filter = ['status', 'media_type', 'created_at']
+    search_fields = ['name', 'description', 'user__display_name']
+    readonly_fields = ['created_at', 'reviewed_at', 'research_notes']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Suggestion Details', {
+            'fields': ('user', 'name', 'media_type', 'website', 'description', 'status')
+        }),
+        ('AI Research Results', {
+            'fields': (
+                'suggested_contact_email',
+                'suggested_complaints_email',
+                'suggested_regulator',
+                'research_notes'
+            )
+        }),
+        ('Admin Review', {
+            'fields': ('admin_notes', 'reviewed_by', 'reviewed_at')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = ['approve_suggestions', 'reject_suggestions', 'create_outlets_from_suggestions']
+
+    def approve_suggestions(self, request, queryset):
+        """Approve selected suggestions"""
+        queryset.update(status='approved', reviewed_by=request.user, reviewed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} suggestions approved.")
+    approve_suggestions.short_description = "Approve selected suggestions"
+
+    def reject_suggestions(self, request, queryset):
+        """Reject selected suggestions"""
+        queryset.update(status='rejected', reviewed_by=request.user, reviewed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} suggestions rejected.")
+    reject_suggestions.short_description = "Reject selected suggestions"
+
+    def create_outlets_from_suggestions(self, request, queryset):
+        """Create media outlets from approved suggestions"""
+        created_count = 0
+        for suggestion in queryset.filter(status='approved'):
+            MediaOutlet.objects.create(
+                name=suggestion.name,
+                media_type=suggestion.media_type,
+                contact_email=suggestion.suggested_contact_email or '',
+                complaints_dept_email=suggestion.suggested_complaints_email or '',
+                website=suggestion.website,
+                regulator=suggestion.suggested_regulator,
+                description=suggestion.description,
+                is_active=True
+            )
+            suggestion.status = 'created'
+            suggestion.save()
+            created_count += 1
+
+        self.message_user(request, f"{created_count} outlets created from suggestions.")
+    create_outlets_from_suggestions.short_description = "Create outlets from approved suggestions"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'reviewed_by')
