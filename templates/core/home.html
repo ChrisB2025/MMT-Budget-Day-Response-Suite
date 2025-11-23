@@ -18,38 +18,38 @@
 </div>
 
 <!-- Feature Cards -->
-<div class="section-spacing">
+<div style="padding: var(--space-xl) 0;">
     <div class="container-professional">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Bingo -->
             <div class="card card-interactive">
-                <div class="text-3xl mb-4">🎯</div>
-                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Budget Bingo</h3>
-                <p class="text-small mb-6">Track and mark budget myths in real-time. Compete with others to complete your bingo card first!</p>
+                <div class="text-2xl mb-3">🎯</div>
+                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Budget Bingo</h3>
+                <p class="text-small mb-4" style="line-height: 1.4;">Track and mark budget myths in real-time. Compete with others!</p>
                 <a href="{% url 'bingo:home' %}" class="btn-secondary">Play Bingo</a>
             </div>
 
             <!-- Fact-Check -->
             <div class="card card-interactive">
-                <div class="text-3xl mb-4">✓</div>
-                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Fact-Check Platform</h3>
-                <p class="text-small mb-6">Submit claims for AI-powered fact-checking with MMT perspective and evidence.</p>
+                <div class="text-2xl mb-3">✓</div>
+                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Fact-Check Platform</h3>
+                <p class="text-small mb-4" style="line-height: 1.4;">Submit claims for AI-powered fact-checking with MMT perspective.</p>
                 <a href="{% url 'factcheck:submit' %}" class="btn-secondary">Submit Claim</a>
             </div>
 
             <!-- Rebuttal -->
             <div class="card card-interactive">
-                <div class="text-3xl mb-4">📄</div>
-                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Comprehensive Rebuttal</h3>
-                <p class="text-small mb-6">AI-generated comprehensive analysis and rebuttal document ready for download.</p>
+                <div class="text-2xl mb-3">📄</div>
+                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Comprehensive Rebuttal</h3>
+                <p class="text-small mb-4" style="line-height: 1.4;">AI-generated comprehensive analysis and rebuttal document.</p>
                 <a href="{% url 'rebuttal:latest' %}" class="btn-secondary">View Rebuttal</a>
             </div>
 
             <!-- Media Complaints -->
             <div class="card card-interactive">
-                <div class="text-3xl mb-4">📢</div>
-                <h3 class="text-xl font-semibold mb-3" style="color: var(--color-text-primary);">Media Complaints</h3>
-                <p class="text-small mb-6">Report economic misinformation and generate AI-powered complaint letters.</p>
+                <div class="text-2xl mb-3">📢</div>
+                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Media Complaints</h3>
+                <p class="text-small mb-4" style="line-height: 1.4;">Report misinformation and generate AI-powered complaint letters.</p>
                 <a href="{% url 'media_complaints:home' %}" class="btn-secondary">File Complaint</a>
             </div>
         </div>
@@ -57,10 +57,10 @@
 </div>
 
 <!-- Stats -->
-<div style="background: var(--color-surface); padding: var(--space-3xl) 0;">
+<div style="background: var(--color-surface); padding: var(--space-xl) 0 var(--space-2xl) 0;">
     <div class="container-professional">
-        <h2 class="text-center mb-8" style="font-size: var(--font-size-3xl); color: var(--color-text-primary);">Live Statistics</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 class="text-center mb-6" style="font-size: var(--font-size-2xl); color: var(--color-text-primary);">Live Statistics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="stat-card">
                 <span class="stat-number">{{ total_bingo_cards }}</span>
                 <span class="stat-label">Bingo Cards Generated</span>
