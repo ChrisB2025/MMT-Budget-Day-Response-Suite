@@ -1,6 +1,9 @@
 """Claude API service for fact-checking"""
 import json
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import Count, Q
+from datetime import timedelta, datetime
 from anthropic import Anthropic
 
 
@@ -87,3 +90,179 @@ def generate_fact_check_with_claude(claim, context='', severity=5):
         }
     except Exception as e:
         raise Exception(f"Error calling Claude API: {str(e)}")
+
+
+def get_or_create_user_profile(user):
+    """Get or create user profile for fact-checker"""
+    from .models import UserProfile
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    return profile
+
+
+def award_badge(user, badge_type):
+    """Award a badge to a user if they don't already have it"""
+    from .models import UserBadge
+    badge, created = UserBadge.objects.get_or_create(
+        user=user,
+        badge_type=badge_type
+    )
+    return created  # Returns True if new badge was awarded
+
+
+def check_and_award_badges(user):
+    """Check user stats and award appropriate badges"""
+    from .models import UserProfile, FactCheckRequest
+
+    profile = get_or_create_user_profile(user)
+    profile.update_stats()
+
+    badges_awarded = []
+
+    # First claim
+    if profile.total_claims_submitted >= 1:
+        if award_badge(user, 'first_claim'):
+            badges_awarded.append('first_claim')
+
+    # Prolific checker badges
+    if profile.total_claims_submitted >= 50:
+        if award_badge(user, 'prolific_checker'):
+            badges_awarded.append('prolific_checker')
+
+    if profile.total_claims_submitted >= 100:
+        if award_badge(user, 'legendary_checker'):
+            badges_awarded.append('legendary_checker')
+
+    # Upvote badges
+    if profile.total_upvotes_earned >= 100:
+        if award_badge(user, 'upvote_king'):
+            badges_awarded.append('upvote_king')
+
+    # Hot streak badges
+    if profile.max_hot_streak >= 5:
+        if award_badge(user, 'hot_streak_5'):
+            badges_awarded.append('hot_streak_5')
+
+    if profile.max_hot_streak >= 10:
+        if award_badge(user, 'hot_streak_10'):
+            badges_awarded.append('hot_streak_10')
+
+    # Severity accuracy badge
+    if profile.severity_accuracy_score >= 90:
+        if award_badge(user, 'severity_master'):
+            badges_awarded.append('severity_master')
+
+    return badges_awarded
+
+
+def update_hot_streak(user):
+    """Update user's hot streak based on recent submissions"""
+    from .models import UserProfile, FactCheckRequest
+
+    profile = get_or_create_user_profile(user)
+
+    # Get user's recent requests in descending order
+    recent_requests = FactCheckRequest.objects.filter(
+        user=user
+    ).order_by('-created_at')[:20]
+
+    if not recent_requests:
+        return 0
+
+    # Check for consecutive submissions within 5 minutes
+    streak = 1
+    for i in range(len(recent_requests) - 1):
+        time_diff = recent_requests[i].created_at - recent_requests[i + 1].created_at
+        if time_diff <= timedelta(minutes=5):
+            streak += 1
+        else:
+            break
+
+    profile.hot_streak_count = streak
+    if streak > profile.max_hot_streak:
+        profile.max_hot_streak = streak
+    profile.save()
+
+    return streak
+
+
+def award_experience_points(user, points):
+    """Award experience points to a user"""
+    from .models import UserProfile
+
+    profile = get_or_create_user_profile(user)
+    profile.experience_points += points
+    profile.level = profile.calculate_level()
+    profile.save()
+
+    return profile.experience_points
+
+
+def update_claim_of_the_minute():
+    """Update claim of the minute tracking"""
+    from .models import FactCheckRequest, ClaimOfTheMinute
+
+    # Get current minute timestamp
+    now = timezone.now()
+    current_minute = now.replace(second=0, microsecond=0)
+
+    # Get claims from the last minute
+    one_minute_ago = current_minute - timedelta(minutes=1)
+    recent_claims = FactCheckRequest.objects.filter(
+        created_at__gte=one_minute_ago,
+        created_at__lt=current_minute
+    ).order_by('-upvotes').first()
+
+    if recent_claims and recent_claims.upvotes > 0:
+        ClaimOfTheMinute.objects.get_or_create(
+            request=recent_claims,
+            minute_timestamp=current_minute,
+            defaults={'upvotes_at_time': recent_claims.upvotes}
+        )
+
+
+def get_live_feed(limit=20):
+    """Get live feed of recent claims"""
+    from .models import FactCheckRequest
+
+    return FactCheckRequest.objects.select_related(
+        'user'
+    ).prefetch_related(
+        'comments'
+    ).order_by('-created_at')[:limit]
+
+
+def get_leaderboard(timeframe='all'):
+    """Get leaderboard of top fact-checkers"""
+    from .models import UserProfile
+
+    profiles = UserProfile.objects.select_related('user')
+
+    if timeframe == 'week':
+        # Top contributors this week
+        profiles = profiles.order_by('-total_claims_submitted')[:10]
+    elif timeframe == 'month':
+        # Top by upvotes this month
+        profiles = profiles.order_by('-total_upvotes_earned')[:10]
+    else:
+        # All-time leaderboard by XP
+        profiles = profiles.order_by('-experience_points')[:10]
+
+    return profiles
+
+
+def get_claim_stats():
+    """Get overall claim statistics"""
+    from .models import FactCheckRequest
+
+    total_claims = FactCheckRequest.objects.count()
+    claims_today = FactCheckRequest.objects.filter(
+        created_at__gte=timezone.now().replace(hour=0, minute=0, second=0)
+    ).count()
+
+    high_severity = FactCheckRequest.objects.filter(severity__gte=8).count()
+
+    return {
+        'total_claims': total_claims,
+        'claims_today': claims_today,
+        'high_severity_count': high_severity,
+    }

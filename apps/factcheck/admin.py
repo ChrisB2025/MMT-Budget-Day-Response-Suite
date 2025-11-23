@@ -1,6 +1,10 @@
 """Admin configuration for fact-check app"""
 from django.contrib import admin
-from .models import FactCheckRequest, FactCheckResponse, FactCheckUpvote
+from .models import (
+    FactCheckRequest, FactCheckResponse, FactCheckUpvote,
+    UserProfile, UserBadge, UserFollow, ClaimComment,
+    ClaimOfTheDay, ClaimOfTheMinute
+)
 
 
 class FactCheckResponseInline(admin.StackedInline):
@@ -39,3 +43,55 @@ class FactCheckUpvoteAdmin(admin.ModelAdmin):
     list_display = ['user', 'request', 'created_at']
     list_filter = ['created_at']
     search_fields = ['user__username', 'request__claim_text']
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    """User profile admin"""
+    list_display = ['user', 'level', 'total_claims_submitted', 'total_upvotes_earned', 'experience_points']
+    list_filter = ['level', 'created_at']
+    search_fields = ['user__username', 'user__display_name']
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(admin.ModelAdmin):
+    """User badge admin"""
+    list_display = ['user', 'badge_type', 'earned_at']
+    list_filter = ['badge_type', 'earned_at']
+    search_fields = ['user__username']
+
+
+@admin.register(UserFollow)
+class UserFollowAdmin(admin.ModelAdmin):
+    """User follow admin"""
+    list_display = ['follower', 'following', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['follower__username', 'following__username']
+
+
+@admin.register(ClaimComment)
+class ClaimCommentAdmin(admin.ModelAdmin):
+    """Claim comment admin"""
+    list_display = ['user', 'request', 'text_preview', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'text']
+
+    def text_preview(self, obj):
+        return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
+
+
+@admin.register(ClaimOfTheDay)
+class ClaimOfTheDayAdmin(admin.ModelAdmin):
+    """Claim of the day admin"""
+    list_display = ['request', 'featured_date', 'created_at']
+    list_filter = ['featured_date']
+    search_fields = ['request__claim_text']
+
+
+@admin.register(ClaimOfTheMinute)
+class ClaimOfTheMinuteAdmin(admin.ModelAdmin):
+    """Claim of the minute admin"""
+    list_display = ['request', 'minute_timestamp', 'upvotes_at_time']
+    list_filter = ['minute_timestamp']
+    search_fields = ['request__claim_text']

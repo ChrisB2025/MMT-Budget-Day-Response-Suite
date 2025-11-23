@@ -2,22 +2,50 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db import models
 from django.db.models import Q
-from .models import FactCheckRequest, FactCheckUpvote
+from django.utils import timezone
+from .models import (
+    FactCheckRequest, FactCheckUpvote, UserProfile, UserBadge,
+    UserFollow, ClaimComment, ClaimOfTheDay
+)
 from .forms import FactCheckSubmitForm
 from .tasks import process_fact_check
+from .services import (
+    get_or_create_user_profile, check_and_award_badges,
+    update_hot_streak, award_experience_points, get_live_feed,
+    get_leaderboard, get_claim_stats
+)
 
 
 def factcheck_home(request):
-    """Fact-check home page"""
+    """Fact-check home page with competition features"""
     recent_requests = FactCheckRequest.objects.filter(
         status__in=['reviewed', 'published']
     ).select_related('user', 'response').order_by('-created_at')[:10]
 
+    # Get claim of the day
+    today = timezone.now().date()
+    claim_of_day = ClaimOfTheDay.objects.filter(
+        featured_date=today
+    ).select_related('request__user').first()
+
+    # Get live feed
+    live_feed = get_live_feed(limit=10)
+
+    # Get leaderboard
+    leaderboard = get_leaderboard('all')
+
+    # Get stats
+    stats = get_claim_stats()
+
     return render(request, 'factcheck/home.html', {
-        'recent_requests': recent_requests
+        'recent_requests': recent_requests,
+        'claim_of_day': claim_of_day,
+        'live_feed': live_feed,
+        'leaderboard': leaderboard,
+        'stats': stats,
     })
 
 
@@ -31,18 +59,42 @@ def submit_factcheck(request):
             fact_check.user = request.user
             fact_check.save()
 
-            # Trigger async processing
-            process_fact_check.delay(fact_check.id)
+            # Award experience points
+            award_experience_points(request.user, 10)  # 10 XP per submission
 
-            messages.success(
-                request,
-                'Fact-check request submitted! AI is generating a response...'
-            )
+            # Update hot streak
+            streak = update_hot_streak(request.user)
 
-            # For HTMX requests, return partial
+            # Check and award badges
+            badges_awarded = check_and_award_badges(request.user)
+
+            # Build success message
+            success_msg = 'Fact-check request submitted! +10 XP'
+            if streak > 1:
+                success_msg += f' 🔥 Hot Streak: {streak}!'
+            if badges_awarded:
+                success_msg += f' 🏆 New badge(s) earned!'
+
+            # Trigger async processing (gracefully handle if Celery is not running)
+            try:
+                process_fact_check.delay(fact_check.id)
+                messages.success(request, success_msg + ' AI is generating a response...')
+            except Exception as e:
+                # Fallback to synchronous processing if Celery is not available
+                try:
+                    from .tasks import process_fact_check
+                    process_fact_check(fact_check.id)
+                    messages.success(request, success_msg + ' Processing complete!')
+                except Exception as sync_error:
+                    messages.success(request, success_msg + ' Processing will begin shortly.')
+
+            # For HTMX requests, return partial with animations
             if request.headers.get('HX-Request'):
                 return render(request, 'factcheck/partials/request_card.html', {
-                    'request': fact_check
+                    'request': fact_check,
+                    'new_submission': True,
+                    'badges_awarded': badges_awarded,
+                    'streak': streak,
                 })
 
             return redirect('factcheck:detail', request_id=fact_check.id)
@@ -151,3 +203,179 @@ def factcheck_stats(request):
         'avg_severity': round(avg_severity, 1),
         'top_contributors': top_contributors
     })
+
+
+@login_required
+def user_dashboard(request):
+    """Personal dashboard for fact-checkers"""
+    profile = get_or_create_user_profile(request.user)
+    profile.update_stats()
+
+    # Get user's recent claims
+    recent_claims = FactCheckRequest.objects.filter(
+        user=request.user
+    ).select_related('response').order_by('-created_at')[:10]
+
+    # Get user's badges
+    badges = UserBadge.objects.filter(user=request.user).order_by('-earned_at')
+
+    # Calculate success rate
+    total_claims = profile.total_claims_submitted
+    fact_checked_claims = profile.claims_fact_checked
+    success_rate = (fact_checked_claims / total_claims * 100) if total_claims > 0 else 0
+
+    # Progress to next level
+    current_xp = profile.experience_points
+    if profile.level == 'bronze':
+        next_level_xp = 200
+    elif profile.level == 'silver':
+        next_level_xp = 500
+    elif profile.level == 'gold':
+        next_level_xp = 1000
+    else:
+        next_level_xp = current_xp  # Already at max level
+
+    progress_percentage = (current_xp / next_level_xp * 100) if next_level_xp > 0 else 100
+
+    return render(request, 'factcheck/dashboard.html', {
+        'profile': profile,
+        'recent_claims': recent_claims,
+        'badges': badges,
+        'success_rate': round(success_rate, 1),
+        'progress_percentage': min(progress_percentage, 100),
+        'next_level_xp': next_level_xp,
+    })
+
+
+@login_required
+def user_profile(request, user_id):
+    """View another user's profile"""
+    from apps.users.models import User
+    profile_user = get_object_or_404(User, id=user_id)
+    profile = get_or_create_user_profile(profile_user)
+
+    # Check if current user is following this user
+    is_following = False
+    if request.user.is_authenticated:
+        is_following = UserFollow.objects.filter(
+            follower=request.user,
+            following=profile_user
+        ).exists()
+
+    # Get user's recent claims
+    recent_claims = FactCheckRequest.objects.filter(
+        user=profile_user
+    ).order_by('-created_at')[:10]
+
+    # Get badges
+    badges = UserBadge.objects.filter(user=profile_user).order_by('-earned_at')
+
+    return render(request, 'factcheck/user_profile.html', {
+        'profile_user': profile_user,
+        'profile': profile,
+        'recent_claims': recent_claims,
+        'badges': badges,
+        'is_following': is_following,
+    })
+
+
+@login_required
+def follow_user(request, user_id):
+    """Follow/unfollow a user"""
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    from apps.users.models import User
+    user_to_follow = get_object_or_404(User, id=user_id)
+
+    if user_to_follow == request.user:
+        return JsonResponse({'error': 'Cannot follow yourself'}, status=400)
+
+    # Toggle follow
+    follow, created = UserFollow.objects.get_or_create(
+        follower=request.user,
+        following=user_to_follow
+    )
+
+    if not created:
+        # Already following, unfollow
+        follow.delete()
+        is_following = False
+    else:
+        is_following = True
+
+    return JsonResponse({
+        'is_following': is_following,
+        'follower_count': user_to_follow.factcheck_followers.count()
+    })
+
+
+@login_required
+def add_comment(request, request_id):
+    """Add a comment to a claim"""
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    fact_check = get_object_or_404(FactCheckRequest, id=request_id)
+    comment_text = request.POST.get('comment_text', '').strip()
+
+    if not comment_text:
+        return JsonResponse({'error': 'Comment cannot be empty'}, status=400)
+
+    comment = ClaimComment.objects.create(
+        request=fact_check,
+        user=request.user,
+        text=comment_text
+    )
+
+    # For HTMX requests, return the comment partial
+    if request.headers.get('HX-Request'):
+        return render(request, 'factcheck/partials/comment.html', {
+            'comment': comment
+        })
+
+    return JsonResponse({
+        'id': comment.id,
+        'user': comment.user.display_name,
+        'text': comment.text,
+        'created_at': comment.created_at.isoformat()
+    })
+
+
+def leaderboard(request):
+    """View leaderboard"""
+    timeframe = request.GET.get('timeframe', 'all')
+    top_users = get_leaderboard(timeframe)
+
+    return render(request, 'factcheck/leaderboard.html', {
+        'top_users': top_users,
+        'timeframe': timeframe,
+    })
+
+
+def live_feed_view(request):
+    """Live feed of recent claims"""
+    feed = get_live_feed(limit=30)
+
+    return render(request, 'factcheck/live_feed.html', {
+        'feed': feed,
+    })
+
+
+@login_required
+def share_to_twitter(request, request_id):
+    """Generate Twitter share link for a claim"""
+    fact_check = get_object_or_404(FactCheckRequest, id=request_id)
+
+    # Build share text
+    share_text = f"🔍 Fact-check needed: {fact_check.claim_text[:100]}..."
+    if fact_check.severity >= 8:
+        share_text = f"🚨 HIGH PRIORITY " + share_text
+
+    # Build full URL
+    claim_url = request.build_absolute_uri(f'/factcheck/{fact_check.id}/')
+
+    # Twitter share URL
+    twitter_url = f"https://twitter.com/intent/tweet?text={share_text}&url={claim_url}&hashtags=FactCheck,MMT,BudgetDay"
+
+    return JsonResponse({'twitter_url': twitter_url})
