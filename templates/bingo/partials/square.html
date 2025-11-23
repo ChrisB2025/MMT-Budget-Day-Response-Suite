@@ -1,15 +1,59 @@
 <div
     id="square-{{ square.id }}"
-    class="aspect-square border-2 {% if square.marked %}bg-green-100 border-green-500{% else %}bg-gray-50 border-gray-300 hover:bg-gray-100 cursor-pointer{% endif %} rounded-lg p-2 flex flex-col items-center justify-center text-center transition"
+    class="group aspect-square border-2 relative {% if square.marked %}bg-green-100 border-green-500{% else %}bg-white border-gray-400 hover:bg-blue-50 hover:border-blue-500 cursor-pointer active:scale-95{% endif %} rounded-lg p-2 md:p-3 flex flex-col items-center justify-center text-center transition-all duration-200 shadow-sm hover:shadow-md"
     {% if not square.marked and not card.completed %}
     hx-post="{% url 'bingo:mark_square' square.id %}"
     hx-trigger="click"
     hx-swap="outerHTML"
     hx-target="#square-{{ square.id }}"
+    hx-indicator="#loading-{{ square.id }}"
+    {% endif %}
+    x-data="{ showTooltip: false }"
+    @mouseenter="showTooltip = true"
+    @mouseleave="showTooltip = false"
+    role="button"
+    aria-pressed="{% if square.marked %}true{% else %}false{% endif %}"
+    tabindex="0"
+    {% if not square.marked and not card.completed %}
+    @keydown.enter="$el.click()"
+    @keydown.space.prevent="$el.click()"
     {% endif %}
 >
-    <p class="text-xs md:text-sm font-medium">{{ square.phrase.phrase_text }}</p>
+    {% if square.position == 12 %}
+        <p class="text-xs md:text-base font-bold text-purple-600">FREE SPACE</p>
+        <p class="text-xs text-gray-500 mt-1">Auto-marked! 🎉</p>
+    {% else %}
+        <p class="text-xs md:text-sm font-medium leading-tight {% if not square.marked %}group-hover:text-blue-700{% endif %}">
+            {{ square.phrase.phrase_text }}
+        </p>
+    {% endif %}
+
     {% if square.marked %}
-    <span class="text-2xl mt-2">✓</span>
+        <span class="text-3xl md:text-4xl mt-1 text-green-600 font-bold animate-bounce">✓</span>
+    {% else %}
+        {% if not card.completed %}
+            <span id="loading-{{ square.id }}" class="htmx-indicator absolute inset-0 flex items-center justify-center bg-blue-100 bg-opacity-75 rounded-lg">
+                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </span>
+        {% endif %}
+    {% endif %}
+
+    {% if square.phrase.description and square.position != 12 %}
+        <!-- Tooltip -->
+        <div
+            x-show="showTooltip"
+            x-transition
+            class="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg max-w-xs pointer-events-none"
+            style="display: none;"
+        >
+            <p class="font-semibold mb-1">{{ square.phrase.phrase_text }}</p>
+            <p class="text-gray-300">{{ square.phrase.description|truncatewords:20 }}</p>
+            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                <div class="border-4 border-transparent border-t-gray-900"></div>
+            </div>
+        </div>
     {% endif %}
 </div>
