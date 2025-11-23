@@ -32,11 +32,18 @@ def generate_bingo_card(user, difficulty='classic'):
 
     # Create squares
     for position, phrase in enumerate(selected_phrases):
-        BingoSquare.objects.create(
+        square = BingoSquare.objects.create(
             card=card,
             phrase=phrase,
             position=position
         )
+
+        # Mark center square (position 12) as free space
+        if position == 12:
+            square.marked = True
+            square.marked_at = timezone.now()
+            square.auto_detected = True
+            square.save()
 
     return card
 
