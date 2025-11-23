@@ -1,7 +1,19 @@
 """Admin configuration for bingo app"""
 from django.contrib import admin
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.urls import path
+from django import forms
+import csv
+import io
 from .models import BingoPhrase, BingoCard, BingoSquare
+
+
+class CSVImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label='CSV File',
+        help_text='Upload a CSV file with columns: phrase_text, category, difficulty_level, description'
+    )
 
 
 @admin.register(BingoPhrase)
@@ -652,6 +664,137 @@ class BingoPhraseAdmin(admin.ModelAdmin):
         )
 
     load_all_budget_phrases.short_description = "🎯 Load all Budget Day Bingo phrases (replaces existing)"
+
+    def get_urls(self):
+        """Add custom URL for CSV import"""
+        urls = super().get_urls()
+        custom_urls = [
+            path('import-csv/', self.admin_site.admin_view(self.import_csv), name='bingo_bingophrase_import_csv'),
+        ]
+        return custom_urls + urls
+
+    def import_csv(self, request):
+        """Handle CSV import"""
+        if request.method == 'POST':
+            form = CSVImportForm(request.POST, request.FILES)
+            if form.is_valid():
+                csv_file = request.FILES['csv_file']
+
+                # Validate file type
+                if not csv_file.name.endswith('.csv'):
+                    messages.error(request, 'File must be a CSV file (.csv extension)')
+                    return redirect('..')
+
+                try:
+                    # Read and decode CSV
+                    decoded_file = csv_file.read().decode('utf-8-sig')  # utf-8-sig handles BOM
+                    io_string = io.StringIO(decoded_file)
+                    reader = csv.DictReader(io_string)
+
+                    created_count = 0
+                    updated_count = 0
+                    error_rows = []
+
+                    # Validate CSV headers
+                    required_headers = ['phrase', 'category', 'difficulty', 'explanation']
+                    if not all(header in reader.fieldnames for header in required_headers):
+                        messages.error(
+                            request,
+                            f'CSV must contain headers: {", ".join(required_headers)}. '
+                            f'Found: {", ".join(reader.fieldnames)}'
+                        )
+                        return redirect('..')
+
+                    # Valid categories and difficulties
+                    valid_categories = ['Debt', 'Deficit', 'Spending', 'Borrowing',
+                                       'Taxation', 'Intergenerational', 'Austerity', 'Inflation']
+                    valid_difficulties = ['classic', 'advanced', 'technical']
+
+                    # Process each row
+                    for row_num, row in enumerate(reader, start=2):  # start=2 accounts for header
+                        try:
+                            # Extract and validate data
+                            phrase_text = row['phrase'].strip()
+                            category = row.get('category', '').strip()
+                            difficulty = row['difficulty'].strip().lower()
+                            explanation = row['explanation'].strip()
+
+                            # Validation
+                            errors = []
+                            if not phrase_text:
+                                errors.append('phrase is empty')
+                            if len(phrase_text) > 200:
+                                errors.append(f'phrase too long ({len(phrase_text)} chars, max 200)')
+                            if category and category not in valid_categories:
+                                errors.append(f'invalid category "{category}"')
+                            if difficulty not in valid_difficulties:
+                                errors.append(f'invalid difficulty "{difficulty}"')
+                            if not explanation:
+                                errors.append('explanation is empty')
+
+                            if errors:
+                                error_rows.append(f'Row {row_num}: {", ".join(errors)}')
+                                continue
+
+                            # Check if phrase already exists (by exact phrase text match)
+                            existing = BingoPhrase.objects.filter(phrase_text=phrase_text).first()
+
+                            if existing:
+                                # Update existing phrase
+                                existing.category = category
+                                existing.difficulty_level = difficulty
+                                existing.description = explanation
+                                existing.save()
+                                updated_count += 1
+                            else:
+                                # Create new phrase
+                                BingoPhrase.objects.create(
+                                    phrase_text=phrase_text,
+                                    category=category,
+                                    difficulty_level=difficulty,
+                                    description=explanation
+                                )
+                                created_count += 1
+
+                        except Exception as e:
+                            error_rows.append(f'Row {row_num}: {str(e)}')
+
+                    # Report results
+                    if created_count > 0 or updated_count > 0:
+                        messages.success(
+                            request,
+                            f'CSV import complete! Created: {created_count}, Updated: {updated_count}'
+                        )
+
+                    if error_rows:
+                        error_message = 'Errors in the following rows:\n' + '\n'.join(error_rows[:10])
+                        if len(error_rows) > 10:
+                            error_message += f'\n... and {len(error_rows) - 10} more errors'
+                        messages.warning(request, error_message)
+
+                    return redirect('..')
+
+                except Exception as e:
+                    messages.error(request, f'Error processing CSV: {str(e)}')
+                    return redirect('..')
+        else:
+            form = CSVImportForm()
+
+        context = {
+            'form': form,
+            'title': 'Import Bingo Phrases from CSV',
+            'valid_categories': ['Debt', 'Deficit', 'Spending', 'Borrowing',
+                                'Taxation', 'Intergenerational', 'Austerity', 'Inflation'],
+            'valid_difficulties': ['classic', 'advanced', 'technical'],
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/bingo/bingophrase/import_csv.html', context)
+
+    def changelist_view(self, request, extra_context=None):
+        """Add CSV import button to changelist"""
+        extra_context = extra_context or {}
+        extra_context['show_csv_import'] = True
+        return super().changelist_view(request, extra_context)
 
 
 class BingoSquareInline(admin.TabularInline):
