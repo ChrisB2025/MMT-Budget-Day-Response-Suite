@@ -3,7 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
 from .forms import RegisterForm, LoginForm
+from .models import User
 
 
 def register_view(request):
@@ -54,3 +56,41 @@ def logout_view(request):
 def profile_view(request):
     """User profile"""
     return render(request, 'users/profile.html')
+
+
+def setup_admin_view(request):
+    """
+    Temporary setup view to create admin superuser.
+    Access at /setup-admin/ to create admin user with username 'admin' and password 'password'.
+    This should be disabled or removed in production after initial setup.
+    """
+    # Check if admin user already exists
+    if User.objects.filter(username='admin').exists():
+        return HttpResponse(
+            '<h1>Admin user already exists!</h1>'
+            '<p>You can now <a href="/admin/">login to the admin panel</a>.</p>'
+            '<p>Username: admin<br>Password: password</p>',
+            content_type='text/html'
+        )
+
+    # Create admin superuser
+    try:
+        admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='password',
+            display_name='Admin'
+        )
+        return HttpResponse(
+            '<h1>✅ Admin user created successfully!</h1>'
+            '<p><a href="/admin/">Click here to login to the admin panel</a></p>'
+            '<p>Username: <strong>admin</strong><br>Password: <strong>password</strong></p>'
+            '<p style="color: orange;"><strong>⚠️ Important:</strong> Change this password after logging in!</p>',
+            content_type='text/html'
+        )
+    except Exception as e:
+        return HttpResponse(
+            f'<h1>❌ Error creating admin user</h1><p>{str(e)}</p>',
+            content_type='text/html',
+            status=500
+        )
