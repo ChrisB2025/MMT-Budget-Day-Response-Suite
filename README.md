@@ -22,6 +22,15 @@ A Django + HTMX web application for tracking budget myths, crowdsourcing fact-ch
 - Includes debunked myths, fiscal analysis, and action points
 - Ready for activists, MPs, and media
 
+### 📢 Media Complaints Platform
+- Report economic misinformation in UK media outlets
+- AI-generated complaint letters with MMT perspective
+- Letter variation to avoid detection as form letters
+- Direct email sending to media outlets
+- Community tracking and response monitoring
+- Pre-seeded with 19 UK media outlets (BBC, ITV, Guardian, etc.)
+- See [MEDIA_COMPLAINTS_SETUP.md](MEDIA_COMPLAINTS_SETUP.md) for details
+
 ## Tech Stack
 
 - **Backend**: Django 5.0 + Python 3.11

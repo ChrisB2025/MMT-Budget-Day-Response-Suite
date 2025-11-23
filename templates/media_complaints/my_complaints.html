@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}My Complaints - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">My Complaints</h1>
+
+    <!-- Stats Summary -->
+    <div class="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg p-6 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+                <div class="text-3xl font-bold">{{ user_stats.total_complaints_filed }}</div>
+                <div class="text-sm opacity-90">Total Filed</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold">{{ user_stats.complaints_sent }}</div>
+                <div class="text-sm opacity-90">Sent</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold">{{ user_stats.responses_received }}</div>
+                <div class="text-sm opacity-90">Responses</div>
+            </div>
+            <div>
+                {% if user_stats.most_active_outlet %}
+                <div class="text-lg font-bold">{{ user_stats.most_active_outlet.name }}</div>
+                <div class="text-sm opacity-90">Top Target</div>
+                {% else %}
+                <div class="text-lg font-bold">-</div>
+                <div class="text-sm opacity-90">Top Target</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Complaints List -->
+    {% if complaints %}
+    <div class="space-y-4">
+        {% for complaint in complaints %}
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                            {{ complaint.outlet.name }}
+                        </span>
+                        <span class="px-2 py-1 text-xs font-medium rounded
+                            {% if complaint.status == 'sent' %}bg-green-100 text-green-800
+                            {% elif complaint.status == 'generated' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800
+                            {% endif %}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                        <span class="text-xs text-gray-500">{{ complaint.incident_date|date:"j M Y" }}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">{{ complaint.programme_name }}</h3>
+                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">{{ complaint.claim_description|truncatewords:30 }}</p>
+                    <div class="text-xs text-gray-500">
+                        Filed {{ complaint.created_at|date:"j M Y, H:i" }}
+                    </div>
+                </div>
+                <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow p-12 text-center">
+        <div class="text-6xl mb-4">📢</div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">No complaints yet</h2>
+        <p class="text-gray-600 mb-6">Start holding media outlets accountable for economic misinformation</p>
+        <a href="{% url 'media_complaints:submit' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold">
+            File Your First Complaint
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

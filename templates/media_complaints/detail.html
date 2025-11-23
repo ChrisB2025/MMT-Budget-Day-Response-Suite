@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+
+{% block title %}Complaint Details - MMT Budget Response Suite{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-4xl font-bold text-gray-900">Complaint Details</h1>
+            <div class="flex items-center gap-2">
+                <span class="px-3 py-1 rounded-full text-sm font-medium
+                    {% if complaint.status == 'sent' %}bg-green-100 text-green-800
+                    {% elif complaint.status == 'generated' %}bg-blue-100 text-blue-800
+                    {% elif complaint.status == 'pending' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-gray-100 text-gray-800
+                    {% endif %}">
+                    {{ complaint.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <a href="{% url 'media_complaints:home' %}" class="text-blue-600 hover:text-blue-700">
+            ← Back to Home
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Complaint Details -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6 sticky top-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Complaint Information</h2>
+
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <div class="font-semibold text-gray-700">Media Outlet</div>
+                        <div class="text-gray-900">{{ complaint.outlet.name }}</div>
+                        <div class="text-gray-500 text-xs">{{ complaint.outlet.get_media_type_display }}</div>
+                    </div>
+
+                    <div>
+                        <div class="font-semibold text-gray-700">Incident Date</div>
+                        <div class="text-gray-900">{{ complaint.incident_date|date:"d F Y" }}</div>
+                    </div>
+
+                    <div>
+                        <div class="font-semibold text-gray-700">Programme/Article</div>
+                        <div class="text-gray-900">{{ complaint.programme_name }}</div>
+                    </div>
+
+                    {% if complaint.presenter_journalist %}
+                    <div>
+                        <div class="font-semibold text-gray-700">Presenter/Journalist</div>
+                        <div class="text-gray-900">{{ complaint.presenter_journalist }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if complaint.timestamp %}
+                    <div>
+                        <div class="font-semibold text-gray-700">Timestamp</div>
+                        <div class="text-gray-900">{{ complaint.timestamp }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <div class="font-semibold text-gray-700">Severity</div>
+                        <div class="flex items-center gap-1">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= complaint.severity %}
+                                <span class="text-red-500">●</span>
+                                {% else %}
+                                <span class="text-gray-300">●</span>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="ml-2 text-gray-600">({{ complaint.severity }}/5)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="font-semibold text-gray-700">Submitted By</div>
+                        <div class="text-gray-900">{{ complaint.user.display_name }}</div>
+                        <div class="text-gray-500 text-xs">{{ complaint.created_at|date:"d M Y, H:i" }}</div>
+                    </div>
+                </div>
+
+                <!-- Actions (if owner) -->
+                {% if is_owner %}
+                <div class="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                    {% if letter and complaint.status != 'sent' %}
+                    <form method="post" action="{% url 'media_complaints:send_letter' complaint.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                            📨 Send Letter
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if letter %}
+                    <form method="post" action="{% url 'media_complaints:regenerate_letter' complaint.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                            🔄 Regenerate Letter
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'media_complaints:delete_complaint' complaint.id %}" onsubmit="return confirm('Are you sure you want to delete this complaint?');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-semibold">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Misinformation & Letter -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- The Misinformation -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">The Misinformation</h2>
+                <div class="prose max-w-none">
+                    <p class="text-gray-800 leading-relaxed">{{ complaint.claim_description }}</p>
+                </div>
+
+                {% if complaint.context %}
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm font-semibold text-gray-700 mb-2">Additional Context</div>
+                    <p class="text-sm text-gray-600">{{ complaint.context }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Generated Letter -->
+            {% if letter %}
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Generated Complaint Letter</h2>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded">
+                            Strategy: {{ letter.get_variation_strategy_display }}
+                        </span>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                            Tone: {{ letter.tone_used|title }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Letter Subject -->
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="text-sm font-semibold text-gray-700 mb-1">Subject:</div>
+                    <div class="font-medium text-gray-900">{{ letter.subject }}</div>
+                </div>
+
+                <!-- Letter Body -->
+                <div class="prose max-w-none">
+                    <div class="whitespace-pre-wrap font-serif text-gray-800 leading-relaxed">{{ letter.body }}</div>
+                </div>
+
+                <!-- MMT Points Included -->
+                {% if letter.mmt_points_included %}
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <div class="text-sm font-semibold text-blue-900 mb-2">💡 MMT Points Addressed:</div>
+                    <ul class="text-sm text-blue-800 space-y-1">
+                        {% for point in letter.mmt_points_included %}
+                        <li>• {{ point }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Sending Info -->
+                {% if letter.sent_at %}
+                <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                    <div class="flex items-center gap-2 text-green-800">
+                        <span class="text-xl">✓</span>
+                        <div>
+                            <div class="font-semibold">Letter Sent</div>
+                            <div class="text-sm">Sent to {{ letter.sent_to_email }} on {{ letter.sent_at|date:"d F Y, H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Response Tracking -->
+                {% if letter.response_received %}
+                <div class="mt-4 p-4 bg-yellow-50 rounded-lg">
+                    <div class="font-semibold text-yellow-900 mb-2">📬 Response Received</div>
+                    <div class="text-sm text-yellow-800">{{ letter.response_date|date:"d F Y" }}</div>
+                    {% if letter.response_summary %}
+                    <p class="mt-2 text-sm text-yellow-800">{{ letter.response_summary }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Copy Button -->
+                <div class="mt-6 flex justify-end">
+                    <button onclick="copyLetter()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
+                        📋 Copy Letter Text
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <!-- No Letter Yet -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                <div class="text-4xl mb-4">⏳</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Letter Generation Pending</h3>
+                <p class="text-gray-600 mb-4">
+                    Your complaint letter is being generated. This usually takes a few seconds.
+                </p>
+                {% if is_owner %}
+                <button onclick="location.reload()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Refresh Page
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function copyLetter() {
+    const letterText = `Subject: {{ letter.subject|escapejs }}
+
+{{ letter.body|escapejs }}`;
+
+    navigator.clipboard.writeText(letterText).then(() => {
+        alert('Letter copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+</script>
+{% endblock %}
