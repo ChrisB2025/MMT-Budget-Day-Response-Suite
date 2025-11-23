@@ -3,68 +3,68 @@
 {% block title %}Register - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">Register</h1>
+<div class="container-professional section-spacing" style="max-width: 500px;">
+    <div class="card">
+        <h1 class="card-title" style="margin-bottom: var(--space-lg); text-align: center;">Register</h1>
 
         <form method="post">
             {% csrf_token %}
 
-            <div class="mb-4">
-                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            <div style="margin-bottom: var(--space-md);">
+                <label for="{{ form.username.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
                     Username
                 </label>
                 {{ form.username }}
                 {% if form.username.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.username.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <div class="mb-4">
-                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            <div style="margin-bottom: var(--space-md);">
+                <label for="{{ form.email.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
                     Email
                 </label>
                 {{ form.email }}
                 {% if form.email.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.email.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <div class="mb-4">
-                <label for="{{ form.display_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            <div style="margin-bottom: var(--space-md);">
+                <label for="{{ form.display_name.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
                     Display Name (optional)
                 </label>
                 {{ form.display_name }}
             </div>
 
-            <div class="mb-4">
-                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            <div style="margin-bottom: var(--space-md);">
+                <label for="{{ form.password1.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
                     Password
                 </label>
                 {{ form.password1 }}
                 {% if form.password1.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.password1.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <div class="mb-6">
-                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+            <div style="margin-bottom: var(--space-lg);">
+                <label for="{{ form.password2.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
                     Confirm Password
                 </label>
                 {{ form.password2 }}
                 {% if form.password2.errors %}
-                <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.password2.errors.0 }}</p>
                 {% endif %}
             </div>
 
-            <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            <button type="submit" class="btn-primary" style="width: 100%;">
                 Register
             </button>
         </form>
 
-        <p class="mt-4 text-center text-sm text-gray-600">
+        <p class="text-small" style="margin-top: var(--space-md); text-align: center; color: var(--color-text-secondary);">
             Already have an account?
-            <a href="{% url 'users:login' %}" class="text-indigo-600 hover:text-indigo-700">Login here</a>
+            <a href="{% url 'users:login' %}" class="btn-text" style="display: inline;">Login here</a>
         </p>
     </div>
 </div>
