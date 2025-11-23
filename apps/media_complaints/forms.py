@@ -1,6 +1,6 @@
 """Forms for media complaint submission"""
 from django import forms
-from .models import Complaint, MediaOutlet
+from .models import Complaint, MediaOutlet, OutletSuggestion
 
 
 class ComplaintForm(forms.ModelForm):
@@ -97,3 +97,46 @@ class MediaOutletForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class OutletSuggestionForm(forms.ModelForm):
+    """Form for users to suggest new media outlets"""
+
+    class Meta:
+        model = OutletSuggestion
+        fields = [
+            'name',
+            'media_type',
+            'website',
+            'description',
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+                'placeholder': 'e.g., Talk TV, GB News, etc.'
+            }),
+            'media_type': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent'
+            }),
+            'website': forms.URLInput(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+                'placeholder': 'https://example.com'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent',
+                'placeholder': 'Why should this outlet be added? What kind of coverage do they have?'
+            }),
+        }
+        help_texts = {
+            'name': 'Name of the media outlet',
+            'media_type': 'Type of media outlet',
+            'website': 'Official website (optional)',
+            'description': 'Why should we add this outlet?'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Website is optional
+        self.fields['website'].required = False
+        self.fields['description'].required = False

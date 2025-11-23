@@ -7,9 +7,9 @@ from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from .models import Complaint, ComplaintLetter, MediaOutlet, ComplaintStats
-from .forms import ComplaintForm
-from .services import process_complaint_letter, send_complaint_email, get_or_create_complaint_stats
+from .models import Complaint, ComplaintLetter, MediaOutlet, ComplaintStats, OutletSuggestion
+from .forms import ComplaintForm, OutletSuggestionForm
+from .services import process_complaint_letter, send_complaint_email, get_or_create_complaint_stats, research_media_outlet
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,7 @@ def regenerate_letter(request, complaint_id):
 
 @login_required
 def send_letter(request, complaint_id):
-    """Send a complaint letter via email"""
+    """Mark letter as sent (user sends via their own email client)"""
     complaint = get_object_or_404(Complaint, id=complaint_id, user=request.user)
 
     if not hasattr(complaint, 'letter'):
@@ -154,19 +154,23 @@ def send_letter(request, complaint_id):
         return redirect('media_complaints:view_complaint', complaint_id=complaint_id)
 
     if request.method == 'POST':
-        try:
-            result = send_complaint_email(complaint.letter.id)
-            if result['status'] == 'success':
-                messages.success(request, f'Letter sent to {result["sent_to"]}!')
+        # Just mark as sent - user will send via their email client
+        letter = complaint.letter
+        letter.sent_at = timezone.now()
+        letter.sent_to_email = complaint.outlet.complaints_dept_email or complaint.outlet.contact_email
+        letter.save()
 
-                # Award gamification points (integrate with factcheck system if needed)
-                # Could add: award_experience_points(request.user, 15, 'complaint_sent')
+        complaint.status = 'sent'
+        complaint.save()
 
-            else:
-                messages.error(request, f'Error sending: {result.get("message")}')
-        except Exception as e:
-            logger.error(f"Error sending letter for complaint {complaint_id}: {e}")
-            messages.error(request, 'Error sending letter. Please try again.')
+        # Update user stats
+        user_stats = get_or_create_complaint_stats(request.user)
+        user_stats.update_stats()
+
+        messages.success(request, 'Marked as sent! Thank you for holding media accountable.')
+
+        # Award gamification points (integrate with factcheck system if needed)
+        # Could add: award_experience_points(request.user, 15, 'complaint_sent')
 
     return redirect('media_complaints:view_complaint', complaint_id=complaint_id)
 
@@ -286,3 +290,83 @@ def preview_letter(request, complaint_id):
         'complaint': complaint,
         'letter': letter,
     })
+
+
+@login_required
+def suggest_outlet(request):
+    """Suggest a new media outlet"""
+    if request.method == 'POST':
+        form = OutletSuggestionForm(request.POST)
+        if form.is_valid():
+            suggestion = form.save(commit=False)
+            suggestion.user = request.user
+            suggestion.status = 'pending'
+            suggestion.save()
+
+            # Trigger AI research
+            try:
+                research_data = research_media_outlet(
+                    outlet_name=suggestion.name,
+                    media_type=suggestion.media_type,
+                    website=suggestion.website
+                )
+
+                # Update suggestion with research results
+                suggestion.suggested_contact_email = research_data['contact_email']
+                suggestion.suggested_complaints_email = research_data['complaints_email']
+                suggestion.suggested_regulator = research_data['regulator']
+                suggestion.research_notes = research_data['notes']
+                suggestion.status = 'researched'
+                suggestion.save()
+
+                messages.success(request, 'Outlet suggestion submitted! AI research completed.')
+            except Exception as e:
+                logger.error(f"Error researching outlet suggestion {suggestion.id}: {e}")
+                messages.warning(request, 'Outlet suggested, but AI research failed. An admin will review manually.')
+
+            return redirect('media_complaints:view_suggestion', suggestion_id=suggestion.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = OutletSuggestionForm()
+
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'media_complaints/suggest_outlet.html', context)
+
+
+@login_required
+def view_suggestion(request, suggestion_id):
+    """View an outlet suggestion"""
+    suggestion = get_object_or_404(OutletSuggestion, id=suggestion_id)
+
+    # Check if user is owner or staff
+    is_owner = suggestion.user == request.user
+    can_view = is_owner or request.user.is_staff
+
+    if not can_view:
+        messages.error(request, 'You do not have permission to view this suggestion.')
+        return redirect('media_complaints:home')
+
+    context = {
+        'suggestion': suggestion,
+        'is_owner': is_owner,
+    }
+
+    return render(request, 'media_complaints/suggestion_detail.html', context)
+
+
+@login_required
+def my_suggestions(request):
+    """List user's outlet suggestions"""
+    suggestions = OutletSuggestion.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    context = {
+        'suggestions': suggestions,
+    }
+
+    return render(request, 'media_complaints/my_suggestions.html', context)

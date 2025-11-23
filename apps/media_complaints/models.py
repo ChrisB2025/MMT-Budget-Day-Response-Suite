@@ -281,3 +281,58 @@ class ComplaintStats(models.Model):
             self.most_active_outlet_id = top_outlet['outlet']
 
         self.save()
+
+
+class OutletSuggestion(models.Model):
+    """User suggestions for new media outlets"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Research'),
+        ('researched', 'Research Complete'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('created', 'Outlet Created'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='outlet_suggestions'
+    )
+
+    # Suggested outlet details
+    name = models.CharField(max_length=200)
+    media_type = models.CharField(max_length=20, choices=MediaOutlet.MEDIA_TYPE_CHOICES)
+    website = models.URLField(blank=True, help_text='Official website')
+    description = models.TextField(blank=True, help_text='Why this outlet should be added')
+
+    # AI-researched information
+    suggested_contact_email = models.EmailField(blank=True, help_text='AI-suggested contact email')
+    suggested_complaints_email = models.EmailField(blank=True, help_text='AI-suggested complaints email')
+    suggested_regulator = models.CharField(max_length=100, blank=True, help_text='AI-suggested regulator')
+    research_notes = models.TextField(blank=True, help_text='AI research findings')
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, help_text='Admin review notes')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_outlet_suggestions'
+    )
+
+    class Meta:
+        db_table = 'outlet_suggestions'
+        verbose_name = 'Outlet Suggestion'
+        verbose_name_plural = 'Outlet Suggestions'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} suggested by {self.user.display_name}"

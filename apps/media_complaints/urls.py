@@ -18,4 +18,9 @@ urlpatterns = [
     path('<int:complaint_id>/send/', views.send_letter, name='send_letter'),
     path('<int:complaint_id>/delete/', views.delete_complaint, name='delete_complaint'),
     path('<int:complaint_id>/preview/', views.preview_letter, name='preview_letter'),
+
+    # Outlet suggestions
+    path('suggest-outlet/', views.suggest_outlet, name='suggest_outlet'),
+    path('my-suggestions/', views.my_suggestions, name='my_suggestions'),
+    path('suggestions/<int:suggestion_id>/', views.view_suggestion, name='view_suggestion'),
 ]

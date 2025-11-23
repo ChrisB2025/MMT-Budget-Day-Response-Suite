@@ -385,3 +385,99 @@ def get_or_create_complaint_stats(user):
     if not created:
         stats.update_stats()
     return stats
+
+
+def research_media_outlet(outlet_name, media_type, website=''):
+    """
+    Use Claude AI to research complaints contact information for a media outlet.
+
+    Args:
+        outlet_name: Name of the media outlet
+        media_type: Type of media (tv, radio, print, online)
+        website: Optional website URL
+
+    Returns:
+        dict with: contact_email, complaints_email, regulator, notes
+    """
+    client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+    prompt = f"""You are researching contact information for a UK media outlet.
+
+OUTLET NAME: {outlet_name}
+MEDIA TYPE: {media_type}
+WEBSITE: {website or 'Not provided'}
+
+Please research and provide the following information:
+
+1. CONTACT EMAIL: General contact email address
+2. COMPLAINTS EMAIL: Specific complaints department email (if different from general)
+3. REGULATOR: Which UK regulator oversees this outlet (e.g., Ofcom for broadcast, IPSO for print)
+4. NOTES: Any additional information about complaint procedures
+
+Based on your knowledge of UK media outlets and typical structures:
+- For BBC outlets: complaints@bbc.co.uk
+- For Ofcom-regulated broadcasters: Look for viewer services emails
+- For print media: Look for editorial complaints or readers' editor emails
+- For online: Check if they follow IPSO or another regulator
+
+Return as JSON with these exact keys: contact_email, complaints_email, regulator, notes
+
+Return ONLY valid JSON, no other text."""
+
+    try:
+        logger.info(f"Researching outlet: {outlet_name}")
+
+        message = client.messages.create(
+            model=settings.CLAUDE_MODEL,
+            max_tokens=2000,
+            messages=[
+                {
+                    'role': 'user',
+                    'content': prompt
+                }
+            ]
+        )
+
+        # Extract text from response
+        response_text = message.content[0].text if message.content else ''
+
+        # Clean up response
+        cleaned_text = response_text.strip()
+        if cleaned_text.startswith('```json'):
+            cleaned_text = cleaned_text[7:]
+        elif cleaned_text.startswith('```'):
+            cleaned_text = cleaned_text[3:]
+
+        if cleaned_text.endswith('```'):
+            cleaned_text = cleaned_text[:-3]
+
+        cleaned_text = cleaned_text.strip()
+
+        # Parse JSON response
+        research_data = json.loads(cleaned_text)
+
+        return {
+            'contact_email': research_data.get('contact_email', ''),
+            'complaints_email': research_data.get('complaints_email', ''),
+            'regulator': research_data.get('regulator', ''),
+            'notes': research_data.get('notes', '')
+        }
+
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parsing error for outlet research {outlet_name}: {e}")
+        # Return basic fallback
+        return {
+            'contact_email': '',
+            'complaints_email': '',
+            'regulator': 'Ofcom' if media_type in ['tv', 'radio'] else 'IPSO',
+            'notes': 'AI research failed - please verify contact details manually'
+        }
+
+    except Exception as e:
+        logger.error(f"Error researching outlet {outlet_name}: {e}")
+        return {
+            'contact_email': '',
+            'complaints_email': '',
+            'regulator': '',
+            'notes': f'Research error: {str(e)}'
+        }
