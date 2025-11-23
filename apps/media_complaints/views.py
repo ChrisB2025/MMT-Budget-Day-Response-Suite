@@ -16,21 +16,23 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def complaints_home(request):
-    """Home page for media complaints"""
-    # Get user's complaints
-    user_complaints = Complaint.objects.filter(user=request.user).select_related('outlet')[:10]
+    """Home page for media complaints with optimized queries"""
+    # Get user's complaints with related data
+    user_complaints = Complaint.objects.filter(
+        user=request.user
+    ).select_related('outlet', 'user').prefetch_related('letter')[:10]
 
-    # Get statistics
+    # Get statistics (use aggregation for efficiency)
     total_complaints = Complaint.objects.count()
     total_sent = Complaint.objects.filter(status='sent').count()
 
     # Get or create user stats
     user_stats = get_or_create_complaint_stats(request.user)
 
-    # Get recent community complaints
+    # Get recent community complaints with all related data
     recent_complaints = Complaint.objects.filter(
         status__in=['generated', 'sent']
-    ).select_related('user', 'outlet').order_by('-created_at')[:10]
+    ).select_related('user', 'outlet').prefetch_related('letter').order_by('-created_at')[:10]
 
     # Get most complained about outlets
     top_outlets = MediaOutlet.objects.annotate(
@@ -177,10 +179,10 @@ def send_letter(request, complaint_id):
 
 @login_required
 def my_complaints(request):
-    """List user's complaints"""
+    """List user's complaints with optimized query"""
     complaints = Complaint.objects.filter(
         user=request.user
-    ).select_related('outlet').order_by('-created_at')
+    ).select_related('outlet').prefetch_related('letter').order_by('-created_at')
 
     # Get user stats
     user_stats = get_or_create_complaint_stats(request.user)
@@ -207,12 +209,13 @@ def delete_complaint(request, complaint_id):
 
 
 def community_complaints(request):
-    """View all community complaints (public)"""
+    """View all community complaints (public) with optimized queries"""
     # Filter by status
     status_filter = request.GET.get('status', 'all')
     outlet_filter = request.GET.get('outlet', 'all')
 
-    complaints = Complaint.objects.select_related('outlet', 'user')
+    # Optimize query with select_related for foreign keys
+    complaints = Complaint.objects.select_related('outlet', 'user').prefetch_related('letter')
 
     if status_filter != 'all':
         complaints = complaints.filter(status=status_filter)
@@ -222,7 +225,7 @@ def community_complaints(request):
 
     complaints = complaints.order_by('-created_at')
 
-    # Get outlet list for filter
+    # Get outlet list for filter (optimize with annotation)
     outlets = MediaOutlet.objects.annotate(
         complaint_count=Count('complaints')
     ).filter(complaint_count__gt=0).order_by('name')
