@@ -84,8 +84,20 @@ def generate_rebuttal_with_claude(transcript='', priority_claims=None):
         # Extract text from response
         response_text = message.content[0].text if message.content else ''
 
+        # Clean up response - remove markdown code blocks if present
+        cleaned_text = response_text.strip()
+        if cleaned_text.startswith('```json'):
+            cleaned_text = cleaned_text[7:]  # Remove ```json
+        elif cleaned_text.startswith('```'):
+            cleaned_text = cleaned_text[3:]  # Remove ```
+
+        if cleaned_text.endswith('```'):
+            cleaned_text = cleaned_text[:-3]  # Remove trailing ```
+
+        cleaned_text = cleaned_text.strip()
+
         # Parse JSON response
-        rebuttal_data = json.loads(response_text)
+        rebuttal_data = json.loads(cleaned_text)
 
         return {
             'sections': rebuttal_data if isinstance(rebuttal_data, list) else []
