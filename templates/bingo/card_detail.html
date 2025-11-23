@@ -4,31 +4,31 @@
 {% block title %}Bingo Card #{{ card.id }} - MMT Budget Response Suite{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-2 sm:px-4" x-data="{ showInstructions: !{{ card.completed|yesno:'true,false' }}, bingoCompleted: {{ card.completed|yesno:'true,false' }}, markedCount: {{ card.marked_count }} }" id="bingo-game-container">
+<div class="container-professional section-spacing" x-data="{ showInstructions: !{{ card.completed|yesno:'true,false' }}, bingoCompleted: {{ card.completed|yesno:'true,false' }}, markedCount: {{ card.marked_count }} }" id="bingo-game-container">
     <!-- Header Section -->
-    <div class="mb-6">
+    <div style="margin-bottom: var(--space-xl);">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-                <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-sm);">
                     <span x-show="bingoCompleted">🎉 BINGO! You Win! 🎉</span>
                     <span x-show="!bingoCompleted">Budget Day Bingo</span>
                 </h1>
-                <p class="text-sm sm:text-base text-gray-600 mt-2">
+                <p class="text-small">
                     Card #{{ card.id }} • Difficulty:
-                    <span class="font-semibold {% if card.difficulty == 'classic' %}text-green-600{% elif card.difficulty == 'advanced' %}text-blue-600{% else %}text-purple-600{% endif %}">
+                    <span class="font-semibold" style="color: var(--color-playful);">
                         {{ card.difficulty|title }}
                     </span>
                 </p>
             </div>
             <div class="flex flex-col items-end gap-2">
                 <div x-show="bingoCompleted" x-transition class="text-center md:text-right">
-                    <div class="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 animate-bounce">WINNER!</div>
-                    <p class="text-xs sm:text-sm text-gray-600">Just completed! 🎊</p>
-                    <p class="text-xs sm:text-sm text-green-600 font-semibold">+100 points earned!</p>
+                    <div class="text-2xl sm:text-3xl md:text-4xl font-bold animate-bounce" style="color: var(--color-success);">WINNER!</div>
+                    <p class="text-small">Just completed! 🎊</p>
+                    <p class="text-small font-semibold" style="color: var(--color-success);">+100 points earned!</p>
                 </div>
-                <div x-show="!bingoCompleted" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 md:px-6 py-3 md:py-4 rounded-lg shadow-lg text-center">
-                    <div class="text-3xl md:text-4xl font-bold" x-text="markedCount + '/25'">{{ card.marked_count }}/25</div>
-                    <p class="text-xs md:text-sm mt-1 opacity-90">Squares Marked</p>
+                <div x-show="!bingoCompleted" class="stat-card" style="background: linear-gradient(135deg, var(--color-playful) 0%, var(--color-playful-hover) 100%); color: white; border-color: var(--color-playful);">
+                    <span class="stat-number" style="color: white;" x-text="markedCount + '/25'">{{ card.marked_count }}/25</span>
+                    <span class="stat-label" style="color: white; opacity: 0.9;">Squares Marked</span>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
         <div class="mt-4">
             <button
                 @click="showInstructions = !showInstructions"
-                class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                class="btn-text flex items-center gap-2"
             >
                 <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': showInstructions }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -50,10 +50,10 @@
         <div
             x-show="showInstructions"
             x-transition
-            class="mt-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 md:p-6"
+            class="alert alert-info mt-4"
         >
-            <h2 class="text-lg sm:text-xl font-bold text-blue-900 mb-3">📋 How to Play Budget Day Bingo</h2>
-            <div class="grid sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700">
+            <h2 class="text-lg sm:text-xl font-bold mb-3">How to Play Budget Day Bingo</h2>
+            <div class="grid sm:grid-cols-2 gap-3 sm:gap-4 text-small">
                 <div>
                     <h3 class="font-semibold text-blue-800 mb-2">🎯 Objective</h3>
                     <p>Mark 5 squares in a row (horizontal, vertical, or diagonal) to win BINGO!</p>
@@ -83,10 +83,10 @@
     </div>
 
     <!-- Bingo Grid -->
-    <div class="bg-gradient-to-br from-white to-gray-50 rounded-lg sm:rounded-xl shadow-2xl p-2 sm:p-4 md:p-8 border-2 sm:border-4 transition-colors duration-500" :class="bingoCompleted ? 'border-green-500' : 'border-indigo-500'">
-        <div x-show="!bingoCompleted" class="mb-2 sm:mb-3 md:mb-4 text-center">
-            <p class="text-xs sm:text-sm md:text-base text-gray-600 font-medium">
-                👆 <span class="text-blue-600 font-bold">Click or tap</span> any white square to mark it when you hear that budget myth!
+    <div class="bingo-card-container transition-colors duration-500" :style="bingoCompleted ? 'border-color: var(--color-success);' : 'border-color: var(--color-playful);'">
+        <div x-show="!bingoCompleted" class="text-center" style="margin-bottom: var(--space-md);">
+            <p class="text-small font-medium" style="color: var(--color-text-secondary);">
+                👆 <span class="font-bold" style="color: var(--color-playful);">Click or tap</span> any white square to mark it when you hear that budget myth!
             </p>
         </div>
 
@@ -98,40 +98,31 @@
             {% endfor %}
         </div>
 
-        <div x-show="bingoCompleted" x-transition class="mt-6 text-center bg-green-50 border-2 border-green-500 rounded-lg p-4 md:p-6">
-            <p class="text-xl md:text-2xl font-bold text-green-700 mb-2">🏆 Congratulations! 🏆</p>
-            <p class="text-sm md:text-base text-gray-700">You've successfully spotted 5 budget myths in a row!</p>
-            <p class="text-xs md:text-sm text-gray-600 mt-2">Check the <a href="{% url 'bingo:leaderboard' %}" class="text-blue-600 hover:underline font-semibold">leaderboard</a> to see how you rank!</p>
+        <div x-show="bingoCompleted" x-transition class="alert alert-success mt-6 text-center">
+            <p class="text-xl md:text-2xl font-bold mb-2">🏆 Congratulations! 🏆</p>
+            <p class="text-sm md:text-base">You've successfully spotted 5 budget myths in a row!</p>
+            <p class="text-small mt-2">Check the <a href="{% url 'bingo:leaderboard' %}" class="font-semibold" style="color: var(--color-accent);">leaderboard</a> to see how you rank!</p>
         </div>
     </div>
 
     <!-- Action Buttons -->
-    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
-        <a href="{% url 'bingo:home' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition shadow-md hover:shadow-lg touch-manipulation">
+    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center" style="margin-top: var(--space-xl);">
+        <a href="{% url 'bingo:home' %}" class="btn-secondary w-full sm:w-auto text-center touch-manipulation">
             ← Back to My Cards
         </a>
-        <a href="{% url 'bingo:generate' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-indigo-600 text-white text-sm sm:text-base rounded-lg hover:bg-indigo-700 transition shadow-md hover:shadow-lg touch-manipulation">
-            🎲 New Card
+        <a href="{% url 'bingo:generate' %}" class="btn-primary w-full sm:w-auto text-center touch-manipulation">
+            New Card
         </a>
-        <a href="{% url 'bingo:leaderboard' %}" class="w-full sm:w-auto text-center px-5 sm:px-6 py-3 sm:py-3.5 bg-purple-600 text-white text-sm sm:text-base rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg touch-manipulation">
-            🏆 Leaderboard
+        <a href="{% url 'bingo:leaderboard' %}" class="btn-secondary w-full sm:w-auto text-center touch-manipulation">
+            Leaderboard
         </a>
     </div>
 
     <!-- Helpful Hints -->
-    <div x-show="!bingoCompleted" class="mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm text-yellow-700">
-                    <strong>Pro tip:</strong> Hover over any square to see a description of why it's a myth. This helps you identify them during the budget speech!
-                </p>
-            </div>
-        </div>
+    <div x-show="!bingoCompleted" class="alert alert-warning" style="margin-top: var(--space-xl);">
+        <p class="text-small">
+            <strong>Pro tip:</strong> Hover over any square to see a description of why it's a myth. This helps you identify them during the budget speech!
+        </p>
     </div>
 </div>
 
