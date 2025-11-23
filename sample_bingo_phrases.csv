@@ -1,0 +1,11 @@
+phrase,category,difficulty,explanation
+"We've maxed out the national credit card",Debt,classic,"The UK government issues its own currency and cannot ""max out"" like a household. It's the monopoly issuer of pounds."
+"The country is running out of money",Spending,classic,"A currency-issuing government cannot run out of the currency it creates. Only real resources can be exhausted."
+"We're leaving a mountain of debt for our children",Intergenerational,classic,"Future generations inherit both the debt and the assets it created, plus the productive capacity those assets enabled."
+"The government has to balance its books like a household",Deficit,classic,"Households are currency users, governments are currency issuers. The operations are fundamentally different."
+"Where's the magic money tree?",Spending,classic,"Governments with sovereign currencies create money through keystrokes. The constraint is inflation, not money availability."
+"The gilt market won't tolerate this level of borrowing",Borrowing,advanced,"The Bank of England sets the base rate and can control the yield curve. Markets accommodate, they don't constrain."
+"Bond vigilantes will punish this fiscal irresponsibility",Borrowing,advanced,"The BoE's ability to purchase gilts and set rates means bond markets cannot force policy changes on the UK."
+"This will crowd out private investment",Spending,advanced,"Government spending creates income and demand, typically crowding in private investment. Currency issuers don't compete for funds."
+"The debt sustainability analysis shows this is untenable",Debt,technical,"DSA frameworks designed for currency users don't apply to currency issuers. Sustainability is about inflation, not solvency."
+"The r minus g dynamic is becoming unfavorable",Debt,technical,"This framework assumes government solvency constraint. For currency issuers, inflation risk matters, not the r-g relationship."

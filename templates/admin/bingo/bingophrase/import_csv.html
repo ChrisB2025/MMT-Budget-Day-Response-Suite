@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Import Bingo Phrases from CSV{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:bingo_bingophrase_changelist' %}">Bingo Phrases</a>
+    &rsaquo; Import CSV
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Import Bingo Phrases from CSV</h1>
+
+<div class="module">
+    <h2>CSV Format Requirements</h2>
+    <p>Your CSV file must have the following columns (header row required):</p>
+    <ul>
+        <li><strong>phrase</strong> - The bingo phrase text (max 200 characters)</li>
+        <li><strong>category</strong> - One of: {{ valid_categories|join:", " }}</li>
+        <li><strong>difficulty</strong> - One of: {{ valid_difficulties|join:", " }}</li>
+        <li><strong>explanation</strong> - MMT rebuttal explanation</li>
+    </ul>
+
+    <h3>Example CSV:</h3>
+    <pre style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc;">phrase,category,difficulty,explanation
+"We've maxed out the national credit card",Debt,classic,"The UK government issues its own currency and cannot ""max out"" like a household."
+"The country is running out of money",Spending,classic,"A currency-issuing government cannot run out of the currency it creates."</pre>
+
+    <h3>CSV Encoding Rules:</h3>
+    <ul>
+        <li>Encoding: UTF-8 (with or without BOM)</li>
+        <li>Delimiter: Comma (,)</li>
+        <li>Quote fields containing commas, quotes, or newlines</li>
+        <li>Escape quotes by doubling them ("")</li>
+    </ul>
+</div>
+
+<div class="module" style="margin-top: 20px;">
+    <h2>Upload CSV File</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            {{ form.as_p }}
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="Import CSV" class="default" />
+            <a href="{% url 'admin:bingo_bingophrase_changelist' %}" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="module" style="margin-top: 20px; background: #fff9e6; border: 1px solid #ffd700;">
+    <h2>ℹ️ Import Behavior</h2>
+    <ul>
+        <li><strong>New phrases:</strong> Will be created</li>
+        <li><strong>Existing phrases:</strong> Will be updated if the phrase text matches exactly</li>
+        <li><strong>Invalid rows:</strong> Will be skipped and reported</li>
+        <li><strong>Validation:</strong> All fields are validated before import</li>
+    </ul>
+</div>
+{% endblock %}
