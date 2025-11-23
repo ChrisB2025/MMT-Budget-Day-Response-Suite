@@ -193,3 +193,51 @@ def grant_staff_emergency(request):
         return HttpResponse(f'User not found.<br><br>Available users:<br>{user_list}')
     except Exception as e:
         return HttpResponse(f'Error: {str(e)}', status=500)
+
+
+@staff_member_required
+def reset_test_data(request):
+    """
+    Reset test data for v1 launch.
+    Clears bingo cards and resets user points.
+    Staff-only view.
+    """
+    from apps.bingo.models import BingoCard
+    from apps.users.models import User
+    from apps.core.models import UserAction
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'clear_bingo':
+            count = BingoCard.objects.all().delete()[0]
+            messages.success(request, f'Deleted {count} bingo card(s) and associated squares.')
+
+        elif action == 'reset_points':
+            User.objects.all().update(points=0)
+            messages.success(request, 'Reset all user points to 0.')
+
+        elif action == 'clear_actions':
+            count = UserAction.objects.all().delete()[0]
+            messages.success(request, f'Deleted {count} user action(s).')
+
+        elif action == 'clear_all':
+            bingo_count = BingoCard.objects.all().delete()[0]
+            User.objects.all().update(points=0)
+            action_count = UserAction.objects.all().delete()[0]
+            messages.success(request, f'Cleared ALL test data: {bingo_count} bingo cards, all points reset, {action_count} actions.')
+
+        return redirect('core:reset_test_data')
+
+    # GET request - show stats
+    stats = {
+        'bingo_cards': BingoCard.objects.count(),
+        'completed_cards': BingoCard.objects.filter(completed=True).count(),
+        'total_user_points': User.objects.aggregate(models.Sum('points'))['points__sum'] or 0,
+        'users_with_points': User.objects.filter(points__gt=0).count(),
+        'user_actions': UserAction.objects.count(),
+    }
+
+    return render(request, 'core/reset_test_data.html', {
+        'stats': stats
+    })
