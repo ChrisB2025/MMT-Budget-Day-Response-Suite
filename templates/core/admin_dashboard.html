@@ -83,7 +83,17 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             🗄️ Data Management
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a href="{% url 'core:reset_test_data' %}" class="block p-4 border-2 border-orange-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">🔄</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Reset Test Data</div>
+                        <div class="text-sm text-gray-600">Clear bingo cards and reset leaderboard for v1 launch</div>
+                    </div>
+                </div>
+            </a>
+
             <a href="{% url 'core:delete_test_submissions' %}" class="block p-4 border-2 border-red-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">
                 <div class="flex items-center gap-3">
                     <div class="text-3xl">🗑️</div>
