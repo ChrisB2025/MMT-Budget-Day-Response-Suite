@@ -1,9 +1,10 @@
-"""Claude API service for fact-checking"""
+"""Claude API service for fact-checking with Modern Monetary Theory perspective."""
 import json
 import logging
+from typing import Dict, List, Any, Optional
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from datetime import timedelta, datetime
 from anthropic import Anthropic
 
@@ -34,17 +35,30 @@ Return as JSON with these exact keys: the_claim, the_problem, the_reality, the_e
 Important: Return ONLY valid JSON, no other text."""
 
 
-def generate_fact_check_with_claude(claim, context='', severity=5):
+def generate_fact_check_with_claude(
+    claim: str,
+    context: str = '',
+    severity: int = 5
+) -> Dict[str, Any]:
     """
-    Generate a fact-check response using Claude API.
+    Generate a fact-check response using Claude API with MMT perspective.
 
     Args:
         claim: The claim text to fact-check
-        context: Additional context (optional)
-        severity: User-rated severity 1-10
+        context: Additional context (optional, defaults to empty string)
+        severity: User-rated severity 1-10 (defaults to 5)
 
     Returns:
-        dict with fact-check data
+        Dictionary containing:
+            - the_claim (str): Restated claim
+            - the_problem (str): What is misleading
+            - the_reality (str): What is actually true
+            - the_evidence (str): Supporting evidence
+            - mmt_perspective (str): MMT analysis
+            - citations (list): List of citation dicts with 'title' and 'url'
+
+    Raises:
+        Exception: If Claude API call fails
     """
     client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
@@ -114,16 +128,24 @@ def generate_fact_check_with_claude(claim, context='', severity=5):
         raise Exception(f"Error calling Claude API: {str(e)}")
 
 
-def process_fact_check_request(request_id):
+def process_fact_check_request(request_id: int) -> Dict[str, Any]:
     """
     Process a fact-check request synchronously.
     This is the actual processing logic, callable without Celery.
 
     Args:
-        request_id: FactCheckRequest ID
+        request_id: FactCheckRequest database ID
 
     Returns:
-        dict with status and response_id or error message
+        Dictionary with keys:
+            - status (str): 'success' or 'error'
+            - response_id (int): ID of created response (if successful)
+            - message (str): Error message (if failed)
+
+    Example:
+        >>> result = process_fact_check_request(123)
+        >>> if result['status'] == 'success':
+        >>>     print(f"Created response {result['response_id']}")
     """
     from .models import FactCheckRequest, FactCheckResponse
 
@@ -183,31 +205,56 @@ def process_fact_check_request(request_id):
         }
 
 
-def get_or_create_user_profile(user):
-    """Get or create user profile for fact-checker"""
+def get_or_create_user_profile(user: Any) -> 'UserProfile':
+    """
+    Get or create user profile for fact-checker.
+
+    Args:
+        user: Django User instance
+
+    Returns:
+        UserProfile instance associated with the user
+    """
     from .models import UserProfile
     profile, created = UserProfile.objects.get_or_create(user=user)
     return profile
 
 
-def award_badge(user, badge_type):
-    """Award a badge to a user if they don't already have it"""
+def award_badge(user: Any, badge_type: str) -> bool:
+    """
+    Award a badge to a user if they don't already have it.
+
+    Args:
+        user: Django User instance
+        badge_type: Badge type from UserBadge.BADGE_TYPES
+
+    Returns:
+        True if new badge was awarded, False if user already had it
+    """
     from .models import UserBadge
     badge, created = UserBadge.objects.get_or_create(
         user=user,
         badge_type=badge_type
     )
-    return created  # Returns True if new badge was awarded
+    return created
 
 
-def check_and_award_badges(user):
-    """Check user stats and award appropriate badges"""
+def check_and_award_badges(user: Any) -> List[str]:
+    """
+    Check user stats and award appropriate badges based on achievements.
+
+    Args:
+        user: Django User instance
+
+    Returns:
+        List of newly awarded badge types
+    """
     from .models import UserProfile, FactCheckRequest
 
     profile = get_or_create_user_profile(user)
     profile.update_stats()
 
-    badges_awarded = []
+    badges_awarded: List[str] = []
 
     # First claim
     if profile.total_claims_submitted >= 1:

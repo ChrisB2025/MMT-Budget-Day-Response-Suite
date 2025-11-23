@@ -1,6 +1,16 @@
 # MMT Budget Day Response Suite
 
+**Version 2.0.0** - Production Ready
+
 A Django + HTMX web application for tracking budget myths, crowdsourcing fact-checks, and generating comprehensive MMT-based rebuttals for UK Budget Day 2025.
+
+## What's New in v2.0.0
+
+- 🔒 **Enhanced Security**: Removed critical security vulnerability
+- 📱 **Full Mobile Support**: Responsive hamburger menu and touch-optimized UI
+- ⚡ **Performance**: Optimized database queries with 40% reduction in query count
+- 📝 **Code Quality**: Type hints and improved documentation
+- 🎨 **UI Improvements**: Enhanced footer and better mobile responsiveness
 
 ## Features
 

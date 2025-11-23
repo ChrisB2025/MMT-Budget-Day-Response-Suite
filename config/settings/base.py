@@ -10,6 +10,9 @@ import environ
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Application version
+VERSION = '2.0.0'
+
 # Initialize environment variables
 env = environ.Env(
     DEBUG=(bool, False)
