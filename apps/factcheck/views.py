@@ -459,11 +459,6 @@ def diagnostics(request):
     from celery import current_app
     import redis
 
-    # Only allow staff users
-    if not request.user.is_staff:
-        messages.error(request, 'Only staff members can access diagnostics')
-        return redirect('factcheck:home')
-
     results = {
         'api_key': {'status': 'unknown', 'message': '', 'details': ''},
         'redis': {'status': 'unknown', 'message': '', 'details': ''},
@@ -556,11 +551,6 @@ def diagnostics(request):
 def process_stuck_claims(request):
     """Web-accessible page to process stuck fact-check claims"""
     from .services import process_fact_check_request
-
-    # Only allow staff users
-    if not request.user.is_staff:
-        messages.error(request, 'Only staff members can process stuck claims')
-        return redirect('factcheck:home')
 
     # Get stuck requests
     stuck_requests = FactCheckRequest.objects.filter(
