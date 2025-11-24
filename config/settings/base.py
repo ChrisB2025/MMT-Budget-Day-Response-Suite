@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Keep for existing migrations
 
     # Third party
     'channels',
@@ -165,6 +166,9 @@ LOGOUT_REDIRECT_URL = 'core:home'
 # Session configuration
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_SAVE_EVERY_REQUEST = True
+
+# Django Sites Framework (required for existing migrations)
+SITE_ID = 1
 
 # Authentication backends
 AUTHENTICATION_BACKENDS = [
