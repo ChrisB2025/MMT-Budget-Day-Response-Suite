@@ -5,14 +5,7 @@ from .models import User
 
 
 class RegisterForm(UserCreationForm):
-    """User registration form"""
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={
-            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',
-            'placeholder': 'your.email@example.com'
-        })
-    )
+    """User registration form - simple username and password"""
     display_name = forms.CharField(
         max_length=100,
         required=False,
@@ -24,7 +17,7 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'display_name', 'password1', 'password2']
+        fields = ['username', 'display_name', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500',

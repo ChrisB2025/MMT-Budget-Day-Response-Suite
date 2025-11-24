@@ -26,9 +26,6 @@ reportlab==4.0.7
 markdown==3.5.1
 weasyprint==60.1
 
-# Authentication
-django-allauth==0.57.0
-
 # Utilities
 python-dateutil==2.8.2
 pytz==2023.3
