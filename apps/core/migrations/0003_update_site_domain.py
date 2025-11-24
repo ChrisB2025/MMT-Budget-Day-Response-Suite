@@ -8,23 +8,15 @@ def update_site_configuration(apps, schema_editor):
     Site = apps.get_model('sites', 'Site')
     SocialApp = apps.get_model('socialaccount', 'SocialApp')
 
-    # Get or create site with ID 1
-    site, created = Site.objects.get_or_create(
+    # Delete ALL existing sites to start fresh
+    Site.objects.all().delete()
+
+    # Create site with ID 1
+    site = Site.objects.create(
         id=1,
-        defaults={
-            'domain': 'mmtaction.uk',
-            'name': 'MMT Action'
-        }
+        domain='mmtaction.uk',
+        name='MMT Action'
     )
-
-    # Update if it already existed but had wrong values
-    if not created:
-        site.domain = 'mmtaction.uk'
-        site.name = 'MMT Action'
-        site.save()
-
-    # Delete any duplicate sites with the same domain but different ID
-    Site.objects.filter(domain='mmtaction.uk').exclude(id=1).delete()
 
     # Ensure all social apps are associated with site ID 1
     for social_app in SocialApp.objects.all():
