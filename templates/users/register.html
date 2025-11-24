@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load socialaccount %}
 
 {% block title %}Register - MMT Budget Response Suite{% endblock %}
 
@@ -8,13 +7,6 @@
     <div class="card">
         <h1 class="card-title" style="margin-bottom: var(--space-lg); text-align: center;">Register</h1>
 
-        <!-- Social Login Buttons - Temporarily disabled until Site configuration is fixed -->
-        {% comment %}
-        Social login is disabled because Site ID 1 doesn't exist in database.
-        To re-enable, see instructions in login.html template.
-        {% endcomment %}
-
-        <!-- Traditional Registration Form -->
         <form method="post">
             {% csrf_token %}
 
@@ -25,16 +17,6 @@
                 {{ form.username }}
                 {% if form.username.errors %}
                 <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.username.errors.0 }}</p>
-                {% endif %}
-            </div>
-
-            <div style="margin-bottom: var(--space-md);">
-                <label for="{{ form.email.id_for_label }}" class="text-small" style="display: block; font-weight: 500; margin-bottom: var(--space-xs); color: var(--color-text-primary);">
-                    Email
-                </label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                <p style="margin-top: var(--space-xs); color: var(--color-error);" class="text-small">{{ form.email.errors.0 }}</p>
                 {% endif %}
             </div>
 

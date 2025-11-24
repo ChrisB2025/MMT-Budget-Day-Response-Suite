@@ -77,7 +77,7 @@ def setup_admin_view(request):
     try:
         admin_user = User.objects.create_superuser(
             username='admin',
-            email='admin@example.com',
+            email='',
             password='password',
             display_name='Admin'
         )
