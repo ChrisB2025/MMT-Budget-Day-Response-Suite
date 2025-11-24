@@ -8,7 +8,8 @@
     <div class="card">
         <h1 class="card-title" style="margin-bottom: var(--space-lg); text-align: center;">Register</h1>
 
-        <!-- Social Login Buttons -->
+        <!-- Social Login Buttons - Temporarily disabled until apps are configured in database -->
+        {% comment %}
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
         <div class="mb-6">
@@ -44,6 +45,7 @@
             </div>
         </div>
         {% endif %}
+        {% endcomment %}
 
         <!-- Traditional Registration Form -->
         <form method="post">
