@@ -8,7 +8,14 @@
     <div class="card">
         <h1 class="card-title" style="margin-bottom: var(--space-lg); text-align: center;">Login</h1>
 
-        <!-- Social Login Buttons -->
+        <!-- Social Login Buttons - Temporarily disabled until Site configuration is fixed -->
+        {% comment %}
+        Social login is disabled because Site ID 1 doesn't exist in database.
+        To re-enable:
+        1. Go to Django admin at /admin/sites/site/
+        2. Ensure site with ID 1 exists with domain 'mmtaction.uk'
+        3. Go to Social applications and ensure they use site ID 1
+        4. Uncomment this section
         {% get_providers as socialaccount_providers %}
         {% if socialaccount_providers %}
         <div class="mb-6">
@@ -44,6 +51,7 @@
             </div>
         </div>
         {% endif %}
+        {% endcomment %}
 
         <!-- Traditional Login Form -->
         <form method="post">
