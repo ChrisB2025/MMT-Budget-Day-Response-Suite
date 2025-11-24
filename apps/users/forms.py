@@ -27,6 +27,10 @@ class RegisterForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Remove email field - we don't want it at all
+        if 'email' in self.fields:
+            del self.fields['email']
+        # Update password field styling
         self.fields['password1'].widget.attrs.update({
             'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500'
         })
