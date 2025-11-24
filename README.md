@@ -177,4 +177,4 @@ git push origin main
 ## Version
 
 Current version: 1.0.0 (MVP)
-Launch date: November 30, 2025
+Budget Date: November 26, 2025, 12:30 PM UK time

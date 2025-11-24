@@ -70,10 +70,44 @@
                 <span class="stat-label">Claims Fact-Checked</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number">Nov 30</span>
-                <span class="stat-label">Launch Date</span>
+                <span class="stat-number" id="countdown-timer">Calculating...</span>
+                <span class="stat-label">Budget Date</span>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function updateCountdown() {
+    // Budget Date: November 26, 2025, 12:30 PM UK time
+    const budgetDate = new Date('2025-11-26T12:30:00+00:00');
+    const now = new Date();
+    const diff = budgetDate - now;
+
+    const countdownEl = document.getElementById('countdown-timer');
+
+    if (diff <= 0) {
+        countdownEl.textContent = 'Budget Day!';
+        countdownEl.style.fontSize = 'var(--font-size-xl)';
+        return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    if (days > 0) {
+        countdownEl.textContent = `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+        countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+    } else {
+        countdownEl.textContent = `${minutes}m ${seconds}s`;
+    }
+}
+
+// Update countdown immediately and then every second
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
 {% endblock %}
