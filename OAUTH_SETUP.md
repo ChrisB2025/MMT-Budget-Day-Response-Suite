@@ -2,10 +2,18 @@
 
 This guide explains how to set up Google and Discord OAuth for single sign-on (SSO) authentication.
 
+## Quick Links to Detailed Guides
+
+- **[Discord OAuth Setup (Detailed Step-by-Step)](DISCORD_OAUTH_SETUP.md)** ← Start here for Discord
+- **[Google OAuth Setup (Detailed Step-by-Step)](GOOGLE_OAUTH_SETUP.md)** ← Start here for Google
+
 ## Prerequisites
 
-- Django application running locally or deployed
-- Access to Google Cloud Console and Discord Developer Portal
+- Django application deployed (e.g., on Railway)
+- Personal Google account (no organization required!)
+- Discord account
+
+**Note for Individuals**: You CAN use Google OAuth without being an organization! Just select "External" user type when setting up (see detailed guide).
 
 ## Google OAuth Setup
 

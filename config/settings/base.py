@@ -187,6 +187,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Django-allauth configuration
+ACCOUNT_ADAPTER = 'apps.users.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'apps.users.adapters.CustomSocialAccountAdapter'
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Allow login with username or email
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # Don't require email verification for social logins
