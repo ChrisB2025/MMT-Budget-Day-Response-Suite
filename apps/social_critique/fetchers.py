@@ -660,18 +660,33 @@ def fetch_with_cache(url: str, timeout: int = 30) -> Dict[str, Any]:
     Fetch URL content with caching support.
 
     First checks cache, then fetches if needed and caches result.
+    Twitter URLs skip cache due to their unreliable nature.
     """
-    # Check cache first
+    # Skip cache entirely for Twitter URLs - they're problematic to cache
+    # because fetch methods can fail and we don't want to cache failures
+    if is_twitter_url(url):
+        logger.info(f"Skipping cache for Twitter URL: {url[:50]}")
+        content = fetch_url_content(url, timeout)
+        # Only cache if we got meaningful content
+        if not content.get('error') and content.get('text') and len(content.get('text', '')) > 20:
+            cache_content(url, content)
+        return content
+
+    # Check cache first for non-Twitter URLs
     cached = get_cached_content(url)
     if cached:
-        logger.info(f"Cache hit for URL: {url[:50]}")
-        return cached
+        # Validate cached content has meaningful text
+        if cached.get('text') and len(cached.get('text', '')) > 20:
+            logger.info(f"Cache hit for URL: {url[:50]}")
+            return cached
+        else:
+            logger.info(f"Cache hit but content empty, re-fetching: {url[:50]}")
 
     # Fetch fresh content
     content = fetch_url_content(url, timeout)
 
-    # Only cache successful fetches
-    if not content.get('error'):
+    # Only cache successful fetches with meaningful content
+    if not content.get('error') and content.get('text') and len(content.get('text', '')) > 20:
         cache_content(url, content)
 
     return content
