@@ -1,0 +1,7 @@
+<button
+    hx-post="{% url 'social_critique:upvote' share_id=critique.share_id %}"
+    hx-swap="outerHTML"
+    class="px-4 py-2 {% if has_upvoted %}bg-indigo-600{% else %}bg-gray-600{% endif %} text-white rounded-md hover:bg-indigo-700 transition-colors">
+    {% if has_upvoted %}✓ Upvoted{% else %}↑ Upvote{% endif %}
+    {% if upvote_count %}({{ upvote_count }}){% endif %}
+</button>

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.factcheck',
     'apps.rebuttal',
     'apps.media_complaints',
+    'apps.social_critique',
 ]
 
 MIDDLEWARE = [
