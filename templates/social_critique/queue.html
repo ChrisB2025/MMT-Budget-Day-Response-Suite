@@ -1,9 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'base_with_sidebar.html' %}
 
 {% block title %}Critique Queue - MMT Budget Response Suite{% endblock %}
 
-{% block content %}
-<div class="max-w-6xl mx-auto">
+{% block sidebar_content %}
+<div class="w-full">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-900">Critique Queue</h1>
         <a href="{% url 'social_critique:submit' %}"
@@ -117,4 +117,4 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
+{% endblock sidebar_content %}

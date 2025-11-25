@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - Fact-Check Platform{% endblock %}
+
+{% block content %}
+<div class="container-professional section-spacing">
+    <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-lg);">Fact-Checker Leaderboard</h1>
+
+    <!-- Timeframe Filter -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'factcheck:leaderboard' %}?timeframe=all"
+               class="{% if timeframe == 'all' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+                All Time
+            </a>
+            <a href="{% url 'factcheck:leaderboard' %}?timeframe=week"
+               class="{% if timeframe == 'week' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+                This Week
+            </a>
+            <a href="{% url 'factcheck:leaderboard' %}?timeframe=month"
+               class="{% if timeframe == 'month' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+                This Month
+            </a>
+        </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        {% if top_users %}
+        <div class="list-professional">
+            {% for profile in top_users %}
+            <li style="padding: var(--space-md); {% if forloop.counter <= 3 %}background: var(--color-surface);{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <!-- Rank -->
+                        <div style="font-size: var(--font-size-2xl); min-width: 3rem; text-align: center;">
+                            {% if forloop.counter == 1 %}
+                                <span style="color: #FFD700;">1</span>
+                            {% elif forloop.counter == 2 %}
+                                <span style="color: #C0C0C0;">2</span>
+                            {% elif forloop.counter == 3 %}
+                                <span style="color: #CD7F32;">3</span>
+                            {% else %}
+                                <span style="color: var(--color-text-secondary);">{{ forloop.counter }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- User Info -->
+                        <div>
+                            <div class="font-semibold" style="color: var(--color-text-primary);">
+                                {{ profile.user.display_name|default:"Anonymous" }}
+                            </div>
+                            <div class="text-small" style="color: var(--color-text-secondary);">
+                                Level: <span class="badge {% if profile.level == 'platinum' %}badge-warning{% elif profile.level == 'gold' %}badge-warning{% elif profile.level == 'silver' %}badge-info{% else %}badge-info{% endif %}">
+                                    {{ profile.level|default:"bronze"|title }}
+                                </span>
+                                {% if profile.hot_streak > 1 %}
+                                    <span class="ml-2" style="color: var(--color-warning);">Hot Streak: {{ profile.hot_streak }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="flex items-center gap-6 text-right">
+                        <div>
+                            <div class="font-semibold" style="font-size: var(--font-size-lg); color: var(--color-accent);">
+                                {{ profile.experience_points|default:0 }} XP
+                            </div>
+                            <div class="text-meta">Experience</div>
+                        </div>
+                        <div>
+                            <div class="font-semibold" style="font-size: var(--font-size-lg); color: var(--color-text-primary);">
+                                {{ profile.total_claims_submitted|default:0 }}
+                            </div>
+                            <div class="text-meta">Claims</div>
+                        </div>
+                        <a href="{% url 'factcheck:user_profile' profile.user.id %}" class="btn-text">
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center" style="padding: var(--space-xl);">
+            <p class="text-lg" style="color: var(--color-text-secondary); margin-bottom: var(--space-md);">
+                No fact-checkers on the leaderboard yet.
+            </p>
+            <p class="text-small" style="color: var(--color-text-tertiary); margin-bottom: var(--space-lg);">
+                Be the first to climb the ranks by submitting claims!
+            </p>
+            <a href="{% url 'factcheck:submit' %}" class="btn-primary">
+                Submit Your First Claim
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'factcheck:home' %}" class="btn-secondary">
+            Back to Home
+        </a>
+        <a href="{% url 'factcheck:stats' %}" class="btn-secondary">
+            View Statistics
+        </a>
+        <a href="{% url 'factcheck:submit' %}" class="btn-primary">
+            Submit a Claim
+        </a>
+    </div>
+</div>
+{% endblock %}

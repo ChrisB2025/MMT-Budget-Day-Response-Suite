@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.display_name }} - Fact-Check Profile{% endblock %}
+
+{% block content %}
+<div class="container-professional section-spacing">
+    <!-- Profile Header -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="flex items-start justify-between">
+            <div>
+                <h1 style="font-size: var(--font-size-3xl); margin-bottom: var(--space-sm);">
+                    {{ profile_user.display_name }}
+                </h1>
+                <div class="flex items-center gap-3">
+                    <span class="badge {% if profile.level == 'platinum' %}badge-warning{% elif profile.level == 'gold' %}badge-warning{% elif profile.level == 'silver' %}badge-info{% else %}badge-info{% endif %}">
+                        {{ profile.level|default:"bronze"|title }} Level
+                    </span>
+                    {% if profile.hot_streak > 1 %}
+                        <span class="badge badge-error">Hot Streak: {{ profile.hot_streak }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if user.is_authenticated and user != profile_user %}
+            <button
+                hx-post="{% url 'factcheck:follow_user' profile_user.id %}"
+                hx-swap="outerHTML"
+                class="{% if is_following %}btn-secondary{% else %}btn-primary{% endif %}">
+                {% if is_following %}Unfollow{% else %}Follow{% endif %}
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Statistics</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number">{{ profile.experience_points|default:0 }}</span>
+                <span class="stat-label">Experience Points</span>
+            </div>
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number">{{ profile.total_claims_submitted|default:0 }}</span>
+                <span class="stat-label">Claims Submitted</span>
+            </div>
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number">{{ profile.claims_fact_checked|default:0 }}</span>
+                <span class="stat-label">Claims Fact-Checked</span>
+            </div>
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number">{{ profile.hot_streak|default:0 }}</span>
+                <span class="stat-label">Current Streak</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges -->
+    {% if badges %}
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Badges</h2>
+        <div class="flex flex-wrap gap-4">
+            {% for badge in badges %}
+            <div class="p-4 text-center" style="background: var(--color-surface); border-radius: var(--radius-lg); min-width: 120px;">
+                <div style="font-size: var(--font-size-2xl);">{{ badge.badge_icon|default:"" }}</div>
+                <div class="font-semibold text-small">{{ badge.badge_name }}</div>
+                <div class="text-meta">{{ badge.earned_at|date:"M d, Y" }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Claims -->
+    {% if recent_claims %}
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Recent Claims</h2>
+        <div class="space-y-4">
+            {% for claim in recent_claims %}
+            <div class="card" style="border-color: var(--color-border);">
+                <div class="flex justify-between items-start" style="margin-bottom: var(--space-sm);">
+                    <p class="font-medium" style="color: var(--color-text-primary);">{{ claim.claim_text|truncatewords:20 }}</p>
+                    <span class="badge {% if claim.severity >= 8 %}badge-error{% elif claim.severity >= 5 %}badge-warning{% else %}badge-info{% endif %}">
+                        Severity: {{ claim.severity }}/10
+                    </span>
+                </div>
+                <div class="flex justify-between items-center" style="margin-top: var(--space-md);">
+                    <span class="text-small">
+                        {{ claim.upvotes }} upvotes - {{ claim.created_at|timesince }} ago
+                    </span>
+                    <a href="{% url 'factcheck:detail' claim.id %}" class="btn-text">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Links -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'factcheck:leaderboard' %}" class="btn-secondary">
+            Back to Leaderboard
+        </a>
+        <a href="{% url 'factcheck:home' %}" class="btn-secondary">
+            Fact-Check Home
+        </a>
+    </div>
+</div>
+{% endblock %}

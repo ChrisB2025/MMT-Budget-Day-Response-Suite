@@ -1,44 +1,43 @@
-{% extends 'base.html' %}
+{% extends 'base_with_sidebar.html' %}
 
 {% block title %}Social Media Critique - MMT Budget Response Suite{% endblock %}
 
-{% block content %}
-<div class="max-w-6xl mx-auto">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg shadow-lg p-8 mb-8 text-white">
-        <h1 class="text-4xl font-bold mb-4">Social Media Fact-Checker</h1>
-        <p class="text-xl opacity-90 mb-6">
+{% block sidebar_content %}
+<div class="w-full">
+    <!-- Hero Section - Using Professional Design System Colors -->
+    <div class="card" style="background: var(--color-surface); margin-bottom: var(--space-xl); padding: var(--space-xl);">
+        <h1 style="font-size: var(--font-size-4xl); color: var(--color-text-primary); margin-bottom: var(--space-md);">Social Media Fact-Checker</h1>
+        <p style="font-size: var(--font-size-lg); color: var(--color-text-secondary); margin-bottom: var(--space-lg); max-width: none;">
             Paste a YouTube video, tweet, or social media post URL and get an evidence-based MMT critique with shareable replies.
         </p>
-        <a href="{% url 'social_critique:submit' %}"
-           class="inline-block px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg">
+        <a href="{% url 'social_critique:submit' %}" class="btn-primary" style="padding: var(--space-md) var(--space-xl); font-size: var(--font-size-lg);">
             Critique a Post
         </a>
     </div>
 
-    <!-- Stats -->
+    <!-- Stats - Using Design System -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6 text-center">
-            <div class="text-4xl font-bold text-indigo-600">{{ stats.total }}</div>
-            <div class="text-gray-600">Total Critiques</div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-accent);">{{ stats.total }}</span>
+            <span class="stat-label">Total Critiques</span>
         </div>
-        <div class="bg-white rounded-lg shadow p-6 text-center">
-            <div class="text-4xl font-bold text-green-600">{{ stats.today }}</div>
-            <div class="text-gray-600">Critiques Today</div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-success);">{{ stats.today }}</span>
+            <span class="stat-label">Critiques Today</span>
         </div>
-        <div class="bg-white rounded-lg shadow p-6 text-center">
-            <div class="text-4xl font-bold text-purple-600">{{ platform_counts|length }}</div>
-            <div class="text-gray-600">Platforms Covered</div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-playful);">{{ platform_counts|length }}</span>
+            <span class="stat-label">Platforms Covered</span>
         </div>
     </div>
 
     <!-- Platform Breakdown -->
     {% if platform_counts %}
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Platforms</h2>
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-md);">Platforms</h2>
         <div class="flex flex-wrap gap-3">
             {% for p in platform_counts %}
-            <span class="px-4 py-2 bg-gray-100 rounded-full text-gray-700">
+            <span class="badge badge-neutral">
                 {{ p.platform|title }}: {{ p.count }}
             </span>
             {% endfor %}
@@ -47,24 +46,24 @@
     {% endif %}
 
     <!-- Recent Critiques -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Recent Critiques</h2>
-            <a href="{% url 'social_critique:queue' %}" class="text-indigo-600 hover:text-indigo-700">
-                View All →
-            </a>
+    <div class="card">
+        <div class="card-header">
+            <div class="flex justify-between items-center">
+                <h2 class="card-title" style="margin: 0;">Recent Critiques</h2>
+                <a href="{% url 'social_critique:queue' %}" class="btn-text">View All →</a>
+            </div>
         </div>
 
         {% if recent_critiques %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="margin-top: var(--space-md);">
             {% for critique in recent_critiques %}
             <a href="{% url 'social_critique:detail' share_id=critique.share_id %}"
-               class="block bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
+               class="card card-interactive" style="text-decoration: none;">
                 {% if critique.source_thumbnail_url %}
                 <img src="{{ critique.source_thumbnail_url }}" alt=""
                      class="w-full h-32 object-cover rounded mb-3">
                 {% else %}
-                <div class="w-full h-32 bg-gradient-to-r from-gray-200 to-gray-300 rounded mb-3 flex items-center justify-center">
+                <div class="w-full h-32 rounded mb-3 flex items-center justify-center" style="background: var(--color-surface);">
                     <span class="text-4xl">
                         {% if critique.platform == 'youtube' %}📺
                         {% elif critique.platform == 'twitter' %}🐦
@@ -79,36 +78,31 @@
                 {% endif %}
 
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                    <span class="badge badge-info">
                         {{ critique.get_platform_display }}
                     </span>
                     {% if critique.response %}
-                    <span class="px-2 py-1 rounded text-xs font-medium
-                        {% if critique.response.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
-                        {% elif critique.response.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
-                        {% elif critique.response.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
-                        {% elif critique.response.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
-                        {% else %}bg-red-100 text-red-700{% endif %}">
+                    <span class="badge {% if critique.response.accuracy_rating == 'accurate' %}badge-success{% elif critique.response.accuracy_rating == 'mostly_accurate' %}badge-info{% elif critique.response.accuracy_rating == 'mixed' %}badge-warning{% elif critique.response.accuracy_rating == 'misleading' %}badge-warning{% else %}badge-error{% endif %}">
                         {{ critique.response.get_accuracy_rating_display }}
                     </span>
                     {% endif %}
                 </div>
 
-                <h3 class="font-semibold text-gray-900 line-clamp-2">
+                <h3 style="font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">
                     {{ critique.source_title|default:"Untitled"|truncatechars:60 }}
                 </h3>
-                <p class="text-sm text-gray-500 mt-1">
+                <p class="text-small">
                     {{ critique.created_at|timesince }} ago
                 </p>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12 text-gray-500">
-            <div class="text-5xl mb-4">🔍</div>
+        <div class="text-center" style="padding: var(--space-xl); color: var(--color-text-secondary);">
+            <div style="font-size: var(--font-size-5xl); margin-bottom: var(--space-md);">🔍</div>
             <p>No critiques yet. Be the first to submit one!</p>
         </div>
         {% endif %}
     </div>
 </div>
-{% endblock %}
+{% endblock sidebar_content %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Feed - Fact-Check Platform{% endblock %}
+
+{% block content %}
+<div class="container-professional section-spacing">
+    <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-lg);">Live Feed</h1>
+
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <p class="text-small" style="color: var(--color-text-secondary); margin-bottom: var(--space-lg);">
+            Real-time stream of claims being submitted and fact-checked.
+        </p>
+
+        {% if feed %}
+        <div class="list-professional">
+            {% for claim in feed %}
+            <li class="card-status {% if claim.severity >= 8 %}status-error{% elif claim.severity >= 5 %}status-warning{% else %}status-success{% endif %}" style="border: none; border-left: 3px solid; padding: var(--space-md);">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <p class="font-medium" style="color: var(--color-text-primary); margin-bottom: var(--space-xs);">
+                            {{ claim.claim_text|truncatewords:25 }}
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3 text-meta">
+                            <span>By {{ claim.user.display_name|default:"Anonymous" }}</span>
+                            <span>{{ claim.upvotes }} upvotes</span>
+                            <span class="badge {% if claim.severity >= 8 %}badge-error{% elif claim.severity >= 5 %}badge-warning{% else %}badge-info{% endif %}">
+                                Severity {{ claim.severity }}
+                            </span>
+                            <span>{{ claim.created_at|timesince }} ago</span>
+                            <span class="badge {% if claim.status == 'reviewed' or claim.status == 'published' %}badge-success{% elif claim.status == 'processing' %}badge-warning{% else %}badge-info{% endif %}">
+                                {{ claim.status|title }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{% url 'factcheck:detail' claim.id %}" class="ml-4 btn-secondary btn-sm">
+                        View
+                    </a>
+                </div>
+            </li>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center" style="padding: var(--space-xl);">
+            <p class="text-lg" style="color: var(--color-text-secondary); margin-bottom: var(--space-md);">
+                No claims in the feed yet.
+            </p>
+            <p class="text-small" style="color: var(--color-text-tertiary); margin-bottom: var(--space-lg);">
+                Be the first to submit a claim for fact-checking!
+            </p>
+            <a href="{% url 'factcheck:submit' %}" class="btn-primary">
+                Submit a Claim
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'factcheck:home' %}" class="btn-secondary">
+            Back to Home
+        </a>
+        <a href="{% url 'factcheck:queue' %}" class="btn-secondary">
+            Browse Queue
+        </a>
+        <a href="{% url 'factcheck:submit' %}" class="btn-primary">
+            Submit a Claim
+        </a>
+    </div>
+</div>
+{% endblock %}

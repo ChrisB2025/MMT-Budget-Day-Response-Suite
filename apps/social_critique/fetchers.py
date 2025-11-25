@@ -3,12 +3,23 @@ import re
 import hashlib
 import logging
 from datetime import timedelta
-from typing import Dict, Any, Optional
-from urllib.parse import urlparse, parse_qs
+from typing import Dict, Any, Optional, Tuple
+from urllib.parse import urlparse, parse_qs, urlunparse
 
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+# Nitter instances for Twitter/X proxy (in order of preference)
+NITTER_INSTANCES = [
+    'nitter.net',
+    'nitter.poast.org',
+    'nitter.privacydev.net',
+    'nitter.cz',
+]
+
+# Site domain for shareable links
+SITE_DOMAIN = 'mmtaction.uk'
 
 
 # Platform character limits for replies
@@ -98,6 +109,76 @@ def extract_twitter_post_id(url: str) -> Optional[str]:
     return None
 
 
+def convert_twitter_to_nitter(url: str, nitter_instance: str = None) -> Tuple[str, str]:
+    """
+    Convert a Twitter/X URL to a Nitter URL for fetching.
+
+    Args:
+        url: Original Twitter/X URL
+        nitter_instance: Specific Nitter instance to use (default: first available)
+
+    Returns:
+        Tuple of (nitter_url, original_url)
+    """
+    if nitter_instance is None:
+        nitter_instance = NITTER_INSTANCES[0]
+
+    parsed = urlparse(url)
+
+    # Check if this is a Twitter/X URL
+    domain = parsed.netloc.lower().replace('www.', '')
+    if domain not in ['twitter.com', 'x.com', 'mobile.twitter.com', 'mobile.x.com']:
+        return url, url  # Not a Twitter URL, return as-is
+
+    # Replace the domain with Nitter
+    nitter_url = urlunparse((
+        'https',
+        nitter_instance,
+        parsed.path,
+        parsed.params,
+        '',  # Remove query params (they often break Nitter)
+        ''   # Remove fragment
+    ))
+
+    return nitter_url, url
+
+
+def convert_nitter_to_twitter(url: str) -> str:
+    """
+    Convert a Nitter URL back to Twitter URL.
+
+    Args:
+        url: Nitter URL
+
+    Returns:
+        Original Twitter URL
+    """
+    parsed = urlparse(url)
+
+    # Check if this is a Nitter URL
+    if not any(instance in parsed.netloc for instance in NITTER_INSTANCES):
+        return url  # Not a Nitter URL
+
+    # Replace with Twitter
+    twitter_url = urlunparse((
+        'https',
+        'x.com',
+        parsed.path,
+        parsed.params,
+        parsed.query,
+        parsed.fragment
+    ))
+
+    return twitter_url
+
+
+def is_twitter_url(url: str) -> bool:
+    """Check if URL is a Twitter/X URL"""
+    parsed = urlparse(url.lower())
+    domain = parsed.netloc.replace('www.', '')
+    return domain in ['twitter.com', 'x.com', 'mobile.twitter.com', 'mobile.x.com', 't.co']
+
+
 def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     """
     Fetch content from a URL and extract relevant information.
@@ -115,6 +196,7 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
             - description: Meta description
             - thumbnail_url: Thumbnail/preview image
             - publish_date: Publication date if available
+            - original_url: The original URL (important for Twitter/Nitter conversion)
             - error: Error message if fetch failed
     """
     try:
@@ -127,6 +209,7 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
         }
 
     platform = detect_platform(url)
+    original_url = url  # Store original URL
 
     result = {
         'platform': platform,
@@ -136,6 +219,7 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
         'description': '',
         'thumbnail_url': '',
         'publish_date': None,
+        'original_url': original_url,
         'error': None,
     }
 
@@ -146,8 +230,28 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
         'DNT': '1',
     }
 
+    # For Twitter/X URLs, convert to Nitter for fetching
+    fetch_url = url
+    if is_twitter_url(url):
+        # Try multiple Nitter instances
+        for nitter_instance in NITTER_INSTANCES:
+            nitter_url, _ = convert_twitter_to_nitter(url, nitter_instance)
+            try:
+                response = requests.get(nitter_url, headers=headers, timeout=timeout, allow_redirects=True)
+                if response.status_code == 200:
+                    fetch_url = nitter_url
+                    logger.info(f"Successfully fetched Twitter content via {nitter_instance}")
+                    break
+            except Exception as e:
+                logger.warning(f"Nitter instance {nitter_instance} failed: {e}")
+                continue
+        else:
+            # All Nitter instances failed, try original URL as fallback
+            logger.warning("All Nitter instances failed, trying original Twitter URL")
+            fetch_url = url
+
     try:
-        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+        response = requests.get(fetch_url, headers=headers, timeout=timeout, allow_redirects=True)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -244,9 +348,21 @@ def _extract_platform_text(soup, platform: str, url: str) -> str:
         if meta:
             return meta.get('content', '')
 
-    # Twitter/X - limited content in page source
+    # Twitter/X - use Nitter extraction or OG tags
     elif platform == 'twitter':
-        # Twitter heavily relies on JavaScript, so we mainly get OG tags
+        # Check if this is a Nitter page (has tweet-content class)
+        tweet_content = soup.find('div', class_='tweet-content')
+        if tweet_content:
+            return tweet_content.get_text(strip=True)
+
+        # Try to find the main tweet text on Nitter
+        main_tweet = soup.find('div', class_='main-tweet')
+        if main_tweet:
+            content = main_tweet.find('div', class_='tweet-content')
+            if content:
+                return content.get_text(strip=True)
+
+        # Fallback to OG description
         og_desc = soup.find('meta', property='og:description')
         if og_desc:
             return og_desc.get('content', '')

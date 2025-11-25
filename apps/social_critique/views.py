@@ -6,12 +6,27 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Count
 from django.utils import timezone
+from django.conf import settings
 from urllib.parse import quote
 
 from .models import SocialMediaCritique, CritiqueResponse, ShareableReply, CritiqueUpvote
 from .forms import SocialCritiqueSubmitForm
 from .tasks import process_social_critique_task
-from .fetchers import validate_url, fetch_url_content, detect_platform
+from .fetchers import validate_url, fetch_url_content, detect_platform, SITE_DOMAIN
+
+
+def build_share_url(critique, request=None):
+    """
+    Build the shareable URL for a critique using the configured domain.
+
+    Args:
+        critique: SocialMediaCritique instance
+        request: Optional request object (not used but kept for compatibility)
+
+    Returns:
+        Full shareable URL string
+    """
+    return f"https://{SITE_DOMAIN}/critique/share/{critique.share_id}/"
 
 
 def critique_home(request):
@@ -39,6 +54,8 @@ def critique_home(request):
             'today': critiques_today,
         },
         'platform_counts': platform_counts,
+        'sidebar_section': 'social_critique',
+        'sidebar_active': 'home',
     })
 
 
@@ -93,6 +110,8 @@ def submit_critique(request):
     return render(request, 'social_critique/submit.html', {
         'form': form,
         'user_critiques': user_critiques,
+        'sidebar_section': 'social_critique',
+        'sidebar_active': 'submit',
     })
 
 
@@ -118,14 +137,16 @@ def critique_detail(request, share_id):
     if not request.user.is_authenticated or request.user != critique.user:
         critique.increment_views()
 
-    # Build absolute URL for sharing
-    share_url = request.build_absolute_uri(critique.get_share_url())
+    # Build shareable URL using mmtaction.uk domain
+    share_url = build_share_url(critique)
 
     return render(request, 'social_critique/detail.html', {
         'critique': critique,
         'shareable_replies': shareable_replies,
         'has_upvoted': has_upvoted,
         'share_url': share_url,
+        'sidebar_section': 'social_critique',
+        'sidebar_active': 'detail',
     })
 
 
@@ -143,8 +164,8 @@ def public_critique_view(request, share_id):
     # Get shareable replies
     shareable_replies = ShareableReply.objects.filter(critique=critique)
 
-    # Build absolute URL for sharing
-    share_url = request.build_absolute_uri(request.path)
+    # Build shareable URL using mmtaction.uk domain
+    share_url = build_share_url(critique)
 
     return render(request, 'social_critique/public_view.html', {
         'critique': critique,
@@ -177,6 +198,8 @@ def critique_queue(request):
         'status_filter': status_filter,
         'platform_filter': platform_filter,
         'platforms': platforms,
+        'sidebar_section': 'social_critique',
+        'sidebar_active': 'queue',
     })
 
 
@@ -258,8 +281,8 @@ def get_share_link(request, share_id, platform):
         # Fallback text
         share_text = f"Check out this MMT analysis of a {critique.get_platform_display()} post"
 
-    # Build critique URL
-    critique_url = request.build_absolute_uri(critique.get_share_url())
+    # Build critique URL using mmtaction.uk domain
+    critique_url = build_share_url(critique)
 
     # Generate platform-specific share link
     encoded_text = quote(share_text)
@@ -273,6 +296,7 @@ def get_share_link(request, share_id, platform):
         'threads': f"https://threads.net/intent/post?text={encoded_text}%20{encoded_url}",
         'bluesky': f"https://bsky.app/intent/compose?text={encoded_text}%20{encoded_url}",
         'mastodon': f"https://mastodon.social/share?text={encoded_text}%20{encoded_url}",
+        'youtube': f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}",  # YouTube doesn't have share intent, use Twitter
     }
 
     share_link = share_links.get(platform, share_links['twitter'])
@@ -295,8 +319,8 @@ def copy_reply_content(request, share_id, reply_type, platform):
             platform_target=platform
         )
 
-        # Build full critique URL
-        critique_url = request.build_absolute_uri(critique.get_share_url())
+        # Build critique URL using mmtaction.uk domain
+        critique_url = build_share_url(critique)
 
         # For threads, return the thread parts
         if reply_type == 'thread' and reply.thread_parts:
@@ -335,7 +359,9 @@ def my_critiques(request):
     ).select_related('response').order_by('-created_at')
 
     return render(request, 'social_critique/my_critiques.html', {
-        'critiques': critiques
+        'critiques': critiques,
+        'sidebar_section': 'social_critique',
+        'sidebar_active': 'my_critiques',
     })
 
 
@@ -362,29 +388,36 @@ def delete_critique(request, share_id):
     return redirect('social_critique:my_critiques')
 
 
+@login_required
 def regenerate_replies(request, share_id):
-    """Regenerate shareable replies for a critique"""
+    """Regenerate shareable replies for a critique with optional suggestions"""
     critique = get_object_or_404(SocialMediaCritique, share_id=share_id, status='completed')
 
     # Only owner or staff can regenerate
-    if request.user.is_authenticated and (request.user.is_staff or critique.user == request.user):
-        try:
-            from .services import _generate_and_save_replies
-            critique_url = request.build_absolute_uri(critique.get_share_url())
+    if not (request.user.is_staff or critique.user == request.user):
+        messages.error(request, 'You do not have permission to regenerate replies.')
+        return redirect('social_critique:detail', share_id=share_id)
 
-            # Regenerate for original platform
-            _generate_and_save_replies(
-                critique, critique.response, critique.platform, critique_url
+    # Get suggestions from POST data if provided
+    suggestions = request.POST.get('suggestions', '').strip() if request.method == 'POST' else ''
+
+    try:
+        from .services import _generate_and_save_replies_with_suggestions
+        critique_url = build_share_url(critique)
+
+        # Regenerate for original platform
+        _generate_and_save_replies_with_suggestions(
+            critique, critique.response, critique.platform, critique_url, suggestions
+        )
+
+        # Also for Twitter if different
+        if critique.platform != 'twitter':
+            _generate_and_save_replies_with_suggestions(
+                critique, critique.response, 'twitter', critique_url, suggestions
             )
 
-            # Also for Twitter if different
-            if critique.platform != 'twitter':
-                _generate_and_save_replies(
-                    critique, critique.response, 'twitter', critique_url
-                )
-
-            messages.success(request, 'Replies regenerated successfully!')
-        except Exception as e:
-            messages.error(request, f'Error regenerating replies: {str(e)}')
+        messages.success(request, 'Replies regenerated successfully!')
+    except Exception as e:
+        messages.error(request, f'Error regenerating replies: {str(e)}')
 
     return redirect('social_critique:detail', share_id=share_id)

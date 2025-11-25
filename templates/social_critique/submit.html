@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_with_sidebar.html' %}
 
 {% block title %}Submit URL for Critique - MMT Budget Response Suite{% endblock %}
 
@@ -20,8 +20,8 @@
 </style>
 {% endblock %}
 
-{% block content %}
-<div class="max-w-3xl mx-auto">
+{% block sidebar_content %}
+<div class="w-full">
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Critique Social Media Content</h1>
         <p class="text-gray-600 mb-6">
@@ -229,4 +229,4 @@ document.getElementById('critique-form').addEventListener('submit', function() {
     submitBtn.innerHTML = '<span class="pulse">Analyzing...</span>';
 });
 </script>
-{% endblock %}
+{% endblock sidebar_content %}

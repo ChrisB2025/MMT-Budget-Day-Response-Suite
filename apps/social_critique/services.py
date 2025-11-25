@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Optional
 from django.conf import settings
 from anthropic import Anthropic
 
-from .fetchers import PLATFORM_CHAR_LIMITS
+from .fetchers import PLATFORM_CHAR_LIMITS, SITE_DOMAIN
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ KEY POINTS:
 {key_points}
 
 CRITIQUE URL: {critique_url}
-
+{suggestions_section}
 Requirements:
 - Maximum {char_limit} characters (this is strict!)
 - Be respectful but factual
@@ -86,7 +86,7 @@ Key Misconceptions: {misconceptions}
 Reality Check: {reality}
 
 CRITIQUE URL: {critique_url}
-
+{suggestions_section}
 Requirements:
 - Each post must be under {char_limit} characters
 - Create 4-6 posts that flow logically
@@ -222,7 +222,8 @@ def generate_short_reply(
     summary: str,
     key_points: str,
     platform: str,
-    critique_url: str
+    critique_url: str,
+    suggestions: str = ''
 ) -> str:
     """
     Generate a short reply suitable for the target platform.
@@ -232,6 +233,7 @@ def generate_short_reply(
         key_points: Key points to highlight
         platform: Target platform
         critique_url: URL to the full critique
+        suggestions: Optional user suggestions for the reply
 
     Returns:
         String containing the reply text
@@ -239,12 +241,18 @@ def generate_short_reply(
     client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
     char_limit = PLATFORM_CHAR_LIMITS.get(platform, 280)
 
+    # Build suggestions section if provided
+    suggestions_section = ''
+    if suggestions:
+        suggestions_section = f"\nUSER SUGGESTIONS (incorporate these if possible):\n{suggestions}\n"
+
     prompt = SHORT_REPLY_PROMPT.format(
         platform=platform,
         summary=summary,
         key_points=key_points,
         critique_url=critique_url,
-        char_limit=char_limit
+        char_limit=char_limit,
+        suggestions_section=suggestions_section
     )
 
     try:
@@ -278,7 +286,8 @@ def generate_short_reply(
 def generate_thread_reply(
     analysis: Dict[str, Any],
     platform: str,
-    critique_url: str
+    critique_url: str,
+    suggestions: str = ''
 ) -> List[str]:
     """
     Generate a thread-style reply for the target platform.
@@ -287,6 +296,7 @@ def generate_thread_reply(
         analysis: Full critique analysis dictionary
         platform: Target platform
         critique_url: URL to the full critique
+        suggestions: Optional user suggestions for the thread
 
     Returns:
         List of strings, each being one post in the thread
@@ -297,6 +307,11 @@ def generate_thread_reply(
     # Format claims as bullet points
     claims = '\n'.join(f"- {c}" for c in analysis.get('claims_identified', []))
 
+    # Build suggestions section if provided
+    suggestions_section = ''
+    if suggestions:
+        suggestions_section = f"\nUSER SUGGESTIONS (incorporate these if possible):\n{suggestions}\n"
+
     prompt = THREAD_REPLY_PROMPT.format(
         platform=platform,
         summary=analysis.get('summary', ''),
@@ -305,7 +320,8 @@ def generate_thread_reply(
         misconceptions=analysis.get('key_misconceptions', ''),
         reality=analysis.get('reality_check', ''),
         critique_url=critique_url,
-        char_limit=char_limit
+        char_limit=char_limit,
+        suggestions_section=suggestions_section
     )
 
     try:
@@ -495,8 +511,8 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
         # Step 3: Generate shareable replies
         logger.info(f"Generating shareable replies for {critique_id}")
 
-        # Build critique URL (will need domain from request in production)
-        critique_url = f"/critique/{critique.share_id}/"
+        # Build critique URL using the configured domain
+        critique_url = f"https://{SITE_DOMAIN}/critique/share/{critique.share_id}/"
 
         # Generate for original platform
         _generate_and_save_replies(critique, response, critique.platform, critique_url)
@@ -580,6 +596,107 @@ def _generate_and_save_replies(critique, response, platform: str, critique_url: 
         logger.error(f"Error generating thread for {platform}: {e}")
 
     # Generate summary card
+    try:
+        summary_card = generate_summary_card(
+            title=critique.source_title,
+            author=critique.source_author,
+            platform=critique.platform,
+            summary=response.summary,
+            rating=response.accuracy_rating,
+            critique_url=critique_url
+        )
+
+        ShareableReply.objects.update_or_create(
+            critique=critique,
+            reply_type='summary',
+            platform_target=platform,
+            defaults={
+                'content': summary_card,
+                'char_count': len(summary_card),
+                'thread_parts': []
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating summary card for {platform}: {e}")
+
+
+def _generate_and_save_replies_with_suggestions(
+    critique,
+    response,
+    platform: str,
+    critique_url: str,
+    suggestions: str = ''
+):
+    """
+    Helper to generate and save shareable replies with user suggestions.
+
+    Args:
+        critique: SocialMediaCritique instance
+        response: CritiqueResponse instance
+        platform: Target platform
+        critique_url: URL to the full critique
+        suggestions: User-provided suggestions for the replies
+    """
+    from .models import ShareableReply
+
+    # Prepare key points for short reply
+    key_points = response.key_misconceptions or response.summary
+
+    # Generate short reply with suggestions
+    try:
+        short_reply = generate_short_reply(
+            summary=response.summary,
+            key_points=key_points,
+            platform=platform,
+            critique_url=critique_url,
+            suggestions=suggestions
+        )
+
+        ShareableReply.objects.update_or_create(
+            critique=critique,
+            reply_type='short',
+            platform_target=platform,
+            defaults={
+                'content': short_reply,
+                'char_count': len(short_reply),
+                'thread_parts': []
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating short reply with suggestions for {platform}: {e}")
+
+    # Generate thread reply with suggestions
+    try:
+        thread_parts = generate_thread_reply(
+            analysis={
+                'summary': response.summary,
+                'claims_identified': response.claims_identified,
+                'mmt_analysis': response.mmt_analysis,
+                'key_misconceptions': response.key_misconceptions,
+                'reality_check': response.reality_check
+            },
+            platform=platform,
+            critique_url=critique_url,
+            suggestions=suggestions
+        )
+
+        # Combine for display
+        thread_content = '\n\n---\n\n'.join(thread_parts)
+
+        ShareableReply.objects.update_or_create(
+            critique=critique,
+            reply_type='thread',
+            platform_target=platform,
+            defaults={
+                'content': thread_content,
+                'char_count': sum(len(p) for p in thread_parts),
+                'thread_parts': thread_parts
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating thread with suggestions for {platform}: {e}")
+
+    # Generate summary card (no suggestions for this one)
     try:
         summary_card = generate_summary_card(
             title=critique.source_title,

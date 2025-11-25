@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_with_sidebar.html' %}
 
 {% block title %}{{ critique.source_title|default:"Critique" }} - MMT Budget Response Suite{% endblock %}
 
@@ -41,7 +41,7 @@
 {% endif %}
 {% endblock %}
 
-{% block content %}
+{% block sidebar_content %}
 <div class="max-w-4xl mx-auto">
     <!-- Source Content Card -->
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
@@ -318,6 +318,45 @@
                 </a>
             </div>
         </div>
+
+        <!-- Regenerate Replies Section -->
+        {% if user.is_authenticated and critique.user == user or user.is_staff %}
+        <div class="mt-6 pt-6 border-t" x-data="{ showForm: false }">
+            <div class="flex items-center justify-between">
+                <h3 class="font-medium text-gray-900">Regenerate Replies</h3>
+                <button @click="showForm = !showForm"
+                        class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                    <span x-show="!showForm">Customize & Regenerate</span>
+                    <span x-show="showForm">Cancel</span>
+                </button>
+            </div>
+
+            <div x-show="showForm" x-transition class="mt-4">
+                <form method="post" action="{% url 'social_critique:regenerate' share_id=critique.share_id %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="suggestions" class="block text-sm font-medium text-gray-700 mb-2">
+                            Suggestions for improvement (optional)
+                        </label>
+                        <textarea
+                            name="suggestions"
+                            id="suggestions"
+                            rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="e.g., Focus more on the deficit myth, make it friendlier, emphasize the job guarantee..."
+                        ></textarea>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Tell the AI how to improve the replies. Leave empty for a fresh regeneration.
+                        </p>
+                    </div>
+                    <button type="submit"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-medium">
+                        Regenerate Replies
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     {% elif critique.status == 'failed' %}
