@@ -196,6 +196,7 @@ def fetch_twitter_oembed(url: str, timeout: int = 15) -> Optional[Dict[str, Any]
     try:
         import requests
         import re
+        from bs4 import BeautifulSoup
 
         # Normalize URL to use twitter.com (oEmbed requires it)
         normalized_url = url.replace('x.com', 'twitter.com')
@@ -212,13 +213,25 @@ def fetch_twitter_oembed(url: str, timeout: int = 15) -> Optional[Dict[str, Any]
         if response.status_code == 200:
             data = response.json()
 
-            # Extract text from HTML
+            # Extract text from HTML using BeautifulSoup for better parsing
             html_content = data.get('html', '')
-            # Remove HTML tags to get plain text
-            text = re.sub(r'<[^>]+>', ' ', html_content)
-            text = re.sub(r'\s+', ' ', text).strip()
-            # Remove "— Author (@handle) Date" suffix
-            text = re.sub(r'\s*—\s*[^—]+\(@\w+\)\s*\w+\s*\d+,\s*\d+\s*$', '', text)
+
+            # Parse HTML to extract tweet text properly
+            soup = BeautifulSoup(html_content, 'html.parser')
+
+            # Find the paragraph tag which contains the actual tweet text
+            p_tag = soup.find('p')
+            if p_tag:
+                # Get text content, preserving the full text
+                text = p_tag.get_text(separator=' ', strip=True)
+            else:
+                # Fallback: strip all HTML tags
+                text = re.sub(r'<[^>]+>', ' ', html_content)
+                text = re.sub(r'\s+', ' ', text).strip()
+                # Remove author attribution at the end (— Author (@handle) Date)
+                text = re.sub(r'\s*—\s*[^—]+$', '', text)
+
+            logger.info(f"oEmbed extracted text ({len(text)} chars): {text[:100]}...")
 
             return {
                 'author': data.get('author_name', ''),
