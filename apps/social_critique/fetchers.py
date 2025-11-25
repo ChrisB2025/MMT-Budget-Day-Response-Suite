@@ -11,12 +11,19 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 # Nitter instances for Twitter/X proxy (in order of preference)
+# Updated list - many instances go down frequently
 NITTER_INSTANCES = [
-    'nitter.net',
-    'nitter.poast.org',
     'nitter.privacydev.net',
-    'nitter.cz',
+    'nitter.poast.org',
+    'nitter.woodland.cafe',
+    'nitter.esmailelbob.xyz',
+    'nitter.d420.de',
+    'n.opnxng.com',
 ]
+
+# Twitter syndication API - more reliable fallback
+TWITTER_SYNDICATION_URL = 'https://syndication.twitter.com/srv/timeline-profile/screen-name/'
+TWITTER_PUBLISH_URL = 'https://publish.twitter.com/oembed'
 
 # Site domain for shareable links
 SITE_DOMAIN = 'mmtaction.uk'
@@ -179,6 +186,193 @@ def is_twitter_url(url: str) -> bool:
     return domain in ['twitter.com', 'x.com', 'mobile.twitter.com', 'mobile.x.com', 't.co']
 
 
+def fetch_twitter_oembed(url: str, timeout: int = 15) -> Optional[Dict[str, Any]]:
+    """
+    Fetch Twitter content using the official oEmbed API.
+    This is more reliable than scraping Nitter.
+
+    Returns dict with author_name, author_url, html (contains tweet text)
+    """
+    try:
+        import requests
+        import re
+
+        # Normalize URL to use twitter.com (oEmbed requires it)
+        normalized_url = url.replace('x.com', 'twitter.com')
+
+        oembed_url = f"{TWITTER_PUBLISH_URL}?url={normalized_url}&omit_script=true"
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json',
+        }
+
+        response = requests.get(oembed_url, headers=headers, timeout=timeout)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            # Extract text from HTML
+            html_content = data.get('html', '')
+            # Remove HTML tags to get plain text
+            text = re.sub(r'<[^>]+>', ' ', html_content)
+            text = re.sub(r'\s+', ' ', text).strip()
+            # Remove "— Author (@handle) Date" suffix
+            text = re.sub(r'\s*—\s*[^—]+\(@\w+\)\s*\w+\s*\d+,\s*\d+\s*$', '', text)
+
+            return {
+                'author': data.get('author_name', ''),
+                'author_url': data.get('author_url', ''),
+                'text': text,
+                'html': html_content,
+            }
+        else:
+            logger.warning(f"Twitter oEmbed failed with status {response.status_code}")
+            return None
+
+    except Exception as e:
+        logger.warning(f"Twitter oEmbed error: {e}")
+        return None
+
+
+def fetch_twitter_content(url: str, timeout: int = 30) -> Dict[str, Any]:
+    """
+    Fetch Twitter/X content using multiple methods:
+    1. Try oEmbed API (most reliable)
+    2. Try Nitter instances
+    3. Fall back to basic meta tags from Twitter
+
+    Returns standardized content dict
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    result = {
+        'platform': 'twitter',
+        'title': '',
+        'author': '',
+        'text': '',
+        'description': '',
+        'thumbnail_url': '',
+        'publish_date': None,
+        'original_url': url,
+        'error': None,
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+
+    # Method 1: Try oEmbed API first (most reliable)
+    logger.info(f"Trying Twitter oEmbed for {url}")
+    oembed_data = fetch_twitter_oembed(url, timeout=timeout)
+
+    if oembed_data and oembed_data.get('text'):
+        result['author'] = oembed_data.get('author', '')
+        result['text'] = oembed_data.get('text', '')
+        result['title'] = f"Tweet by {result['author']}" if result['author'] else "Tweet"
+        result['description'] = result['text'][:300] if result['text'] else ''
+        logger.info(f"Successfully fetched via oEmbed: {result['text'][:100]}...")
+        return result
+
+    # Method 2: Try Nitter instances
+    logger.info(f"oEmbed failed, trying Nitter instances")
+    for nitter_instance in NITTER_INSTANCES:
+        try:
+            nitter_url, _ = convert_twitter_to_nitter(url, nitter_instance)
+            logger.info(f"Trying Nitter instance: {nitter_instance}")
+
+            response = requests.get(nitter_url, headers=headers, timeout=timeout, allow_redirects=True)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+
+                # Try multiple Nitter content selectors
+                tweet_text = None
+
+                # Primary: tweet-content class
+                tweet_content = soup.find('div', class_='tweet-content')
+                if tweet_content:
+                    tweet_text = tweet_content.get_text(strip=True)
+
+                # Alternative: main-tweet container
+                if not tweet_text:
+                    main_tweet = soup.find('div', class_='main-tweet')
+                    if main_tweet:
+                        content = main_tweet.find('div', class_='tweet-content')
+                        if content:
+                            tweet_text = content.get_text(strip=True)
+
+                # Alternative: timeline-item
+                if not tweet_text:
+                    timeline_item = soup.find('div', class_='timeline-item')
+                    if timeline_item:
+                        content = timeline_item.find('div', class_='tweet-content')
+                        if content:
+                            tweet_text = content.get_text(strip=True)
+
+                if tweet_text and len(tweet_text) > 20:
+                    # Get author
+                    author_elem = soup.find('a', class_='fullname')
+                    if author_elem:
+                        result['author'] = author_elem.get_text(strip=True)
+
+                    result['text'] = tweet_text
+                    result['title'] = f"Tweet by {result['author']}" if result['author'] else "Tweet"
+                    result['description'] = tweet_text[:300]
+
+                    # Try to get avatar/image
+                    avatar = soup.find('img', class_='avatar')
+                    if avatar:
+                        result['thumbnail_url'] = avatar.get('src', '')
+
+                    logger.info(f"Successfully fetched via Nitter ({nitter_instance}): {tweet_text[:100]}...")
+                    return result
+                else:
+                    logger.warning(f"Nitter {nitter_instance} returned no useful content")
+
+        except requests.exceptions.Timeout:
+            logger.warning(f"Nitter {nitter_instance} timed out")
+        except Exception as e:
+            logger.warning(f"Nitter {nitter_instance} error: {e}")
+
+        continue
+
+    # Method 3: Last resort - try Twitter directly (usually blocked but worth trying)
+    logger.info("All Nitter instances failed, trying Twitter directly")
+    try:
+        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            og_desc = soup.find('meta', property='og:description')
+            if og_desc:
+                result['description'] = og_desc.get('content', '')
+                result['text'] = result['description']
+
+            og_title = soup.find('meta', property='og:title')
+            if og_title:
+                result['title'] = og_title.get('content', '')
+                # Extract author from title like "Author on X: ..."
+                if ' on X:' in result['title'] or ' on Twitter:' in result['title']:
+                    result['author'] = result['title'].split(' on ')[0]
+
+            og_image = soup.find('meta', property='og:image')
+            if og_image:
+                result['thumbnail_url'] = og_image.get('content', '')
+
+            if result['text']:
+                logger.info(f"Got content from Twitter directly: {result['text'][:100]}...")
+                return result
+    except Exception as e:
+        logger.warning(f"Direct Twitter fetch error: {e}")
+
+    result['error'] = 'Could not fetch Twitter content. All methods failed (oEmbed, Nitter instances, direct).'
+    return result
+
+
 def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     """
     Fetch content from a URL and extract relevant information.
@@ -211,6 +405,11 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     platform = detect_platform(url)
     original_url = url  # Store original URL
 
+    # For Twitter/X URLs, use dedicated Twitter fetcher
+    if is_twitter_url(url):
+        logger.info(f"Detected Twitter URL, using dedicated fetcher: {url}")
+        return fetch_twitter_content(url, timeout=timeout)
+
     result = {
         'platform': platform,
         'title': '',
@@ -230,25 +429,7 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
         'DNT': '1',
     }
 
-    # For Twitter/X URLs, convert to Nitter for fetching
     fetch_url = url
-    if is_twitter_url(url):
-        # Try multiple Nitter instances
-        for nitter_instance in NITTER_INSTANCES:
-            nitter_url, _ = convert_twitter_to_nitter(url, nitter_instance)
-            try:
-                response = requests.get(nitter_url, headers=headers, timeout=timeout, allow_redirects=True)
-                if response.status_code == 200:
-                    fetch_url = nitter_url
-                    logger.info(f"Successfully fetched Twitter content via {nitter_instance}")
-                    break
-            except Exception as e:
-                logger.warning(f"Nitter instance {nitter_instance} failed: {e}")
-                continue
-        else:
-            # All Nitter instances failed, try original URL as fallback
-            logger.warning("All Nitter instances failed, trying original Twitter URL")
-            fetch_url = url
 
     try:
         response = requests.get(fetch_url, headers=headers, timeout=timeout, allow_redirects=True)
