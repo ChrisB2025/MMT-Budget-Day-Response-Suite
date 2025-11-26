@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["python311", "postgresql"]
+
+[phases.install]
+cmds = [
+    "python -m venv /app/.venv",
+    "pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = ["python manage.py collectstatic --noinput"]
+
+[start]
+cmd = "daphne -b 0.0.0.0 -p $PORT config.asgi:application"
+
+[deploy]
+releaseCommand = "python manage.py migrate && python manage.py seed_media_outlets && python manage.py load_budget_phrases"
