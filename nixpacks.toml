@@ -8,10 +8,10 @@ cmds = [
 ]
 
 [phases.build]
-cmds = ["python manage.py collectstatic --noinput"]
+cmds = [
+    "chmod +x setup_deployment.sh",
+    "python manage.py collectstatic --noinput"
+]
 
 [start]
-cmd = "daphne -b 0.0.0.0 -p $PORT config.asgi:application"
-
-[deploy]
-releaseCommand = "python manage.py migrate && python manage.py seed_media_outlets && python manage.py load_budget_phrases"
+cmd = "bash setup_deployment.sh && daphne -b 0.0.0.0 -p $PORT config.asgi:application"
