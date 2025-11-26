@@ -186,6 +186,137 @@ def is_twitter_url(url: str) -> bool:
     return domain in ['twitter.com', 'x.com', 'mobile.twitter.com', 'mobile.x.com', 't.co']
 
 
+def is_bluesky_url(url: str) -> bool:
+    """Check if URL is a Bluesky URL"""
+    parsed = urlparse(url.lower())
+    domain = parsed.netloc.replace('www.', '')
+    return domain in ['bsky.app', 'bsky.social']
+
+
+def extract_bluesky_post_info(url: str) -> Optional[Dict[str, str]]:
+    """
+    Extract username and post ID from Bluesky URL.
+
+    Bluesky URLs format: https://bsky.app/profile/{handle}/post/{post_id}
+    """
+    parsed = urlparse(url)
+
+    # Match /profile/{handle}/post/{post_id} pattern
+    match = re.search(r'/profile/([^/]+)/post/([^/?]+)', parsed.path)
+    if match:
+        return {
+            'handle': match.group(1),
+            'post_id': match.group(2)
+        }
+
+    return None
+
+
+def fetch_bluesky_content(url: str, timeout: int = 30) -> Dict[str, Any]:
+    """
+    Fetch Bluesky post content using web scraping.
+
+    Returns standardized content dict
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    result = {
+        'platform': 'bluesky',
+        'title': '',
+        'author': '',
+        'text': '',
+        'description': '',
+        'thumbnail_url': '',
+        'publish_date': None,
+        'original_url': url,
+        'error': None,
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+
+    try:
+        logger.info(f"Fetching Bluesky content from {url}")
+        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Extract Open Graph metadata (Bluesky provides good OG tags)
+            og_title = soup.find('meta', property='og:title')
+            og_description = soup.find('meta', property='og:description')
+            og_image = soup.find('meta', property='og:image')
+
+            # Twitter Card metadata (also provided by Bluesky)
+            twitter_title = soup.find('meta', attrs={'name': 'twitter:title'})
+            twitter_description = soup.find('meta', attrs={'name': 'twitter:description'})
+            twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+
+            # Extract post text from description
+            post_text = ''
+            if og_description:
+                post_text = og_description.get('content', '')
+            elif twitter_description:
+                post_text = twitter_description.get('content', '')
+
+            # Extract author from title (format: "Author on Bluesky: ...")
+            author = ''
+            if og_title:
+                title_text = og_title.get('content', '')
+                result['title'] = title_text
+
+                # Extract author from title
+                if ' on Bluesky' in title_text:
+                    author = title_text.split(' on Bluesky')[0]
+                elif ':' in title_text:
+                    # Format might be "Author: post text..."
+                    author = title_text.split(':')[0]
+            elif twitter_title:
+                title_text = twitter_title.get('content', '')
+                result['title'] = title_text
+                if ':' in title_text:
+                    author = title_text.split(':')[0]
+
+            # Get post info from URL for fallback author
+            if not author:
+                post_info = extract_bluesky_post_info(url)
+                if post_info:
+                    author = post_info['handle']
+
+            result['author'] = author
+            result['text'] = post_text
+            result['description'] = post_text[:300] if post_text else ''
+
+            # Thumbnail
+            if og_image:
+                result['thumbnail_url'] = og_image.get('content', '')
+            elif twitter_image:
+                result['thumbnail_url'] = twitter_image.get('content', '')
+
+            if post_text and len(post_text) > 20:
+                logger.info(f"Successfully fetched Bluesky content: {post_text[:100]}...")
+                return result
+            else:
+                logger.warning("Bluesky content fetched but text too short or empty")
+                result['error'] = 'Could not extract post text from Bluesky'
+        else:
+            logger.warning(f"Bluesky fetch failed with status {response.status_code}")
+            result['error'] = f'Failed to fetch Bluesky post (HTTP {response.status_code})'
+
+    except requests.exceptions.Timeout:
+        result['error'] = 'Request timed out fetching Bluesky post'
+        logger.warning(f"Bluesky fetch timeout: {url}")
+    except Exception as e:
+        result['error'] = f'Error fetching Bluesky post: {str(e)}'
+        logger.error(f"Bluesky fetch error: {e}")
+
+    return result
+
+
 def fetch_twitter_oembed(url: str, timeout: int = 15) -> Optional[Dict[str, Any]]:
     """
     Fetch Twitter content using the official oEmbed API.
@@ -422,6 +553,11 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     if is_twitter_url(url):
         logger.info(f"Detected Twitter URL, using dedicated fetcher: {url}")
         return fetch_twitter_content(url, timeout=timeout)
+
+    # For Bluesky URLs, use dedicated Bluesky fetcher
+    if is_bluesky_url(url):
+        logger.info(f"Detected Bluesky URL, using dedicated fetcher: {url}")
+        return fetch_bluesky_content(url, timeout=timeout)
 
     result = {
         'platform': platform,
@@ -673,12 +809,13 @@ def fetch_with_cache(url: str, timeout: int = 30) -> Dict[str, Any]:
     Fetch URL content with caching support.
 
     First checks cache, then fetches if needed and caches result.
-    Twitter URLs skip cache due to their unreliable nature.
+    Twitter and Bluesky URLs skip initial cache check due to dynamic content.
     """
-    # Skip cache entirely for Twitter URLs - they're problematic to cache
-    # because fetch methods can fail and we don't want to cache failures
-    if is_twitter_url(url):
-        logger.info(f"Skipping cache for Twitter URL: {url[:50]}")
+    # Skip cache for Twitter/Bluesky URLs on first check - they have dynamic content
+    # but still cache successful fetches for a short time
+    if is_twitter_url(url) or is_bluesky_url(url):
+        platform_name = 'Twitter' if is_twitter_url(url) else 'Bluesky'
+        logger.info(f"Skipping cache for {platform_name} URL: {url[:50]}")
         content = fetch_url_content(url, timeout)
         # Only cache if we got meaningful content
         if not content.get('error') and content.get('text') and len(content.get('text', '')) > 20:
