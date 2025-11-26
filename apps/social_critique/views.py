@@ -266,7 +266,7 @@ def preview_url(request):
 
 
 def get_share_link(request, share_id, platform):
-    """Generate share link for a specific platform"""
+    """Generate share link for a specific platform and redirect to it"""
     critique = get_object_or_404(SocialMediaCritique, share_id=share_id, status='completed')
 
     # Get the shareable reply for this platform
@@ -301,11 +301,8 @@ def get_share_link(request, share_id, platform):
 
     share_link = share_links.get(platform, share_links['twitter'])
 
-    return JsonResponse({
-        'share_link': share_link,
-        'share_text': share_text,
-        'critique_url': critique_url
-    })
+    # Redirect to the share link
+    return redirect(share_link)
 
 
 def copy_reply_content(request, share_id, reply_type, platform):

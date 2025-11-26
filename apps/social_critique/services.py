@@ -472,7 +472,7 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
         critique.source_description = content.get('description', '')
         critique.source_thumbnail_url = content.get('thumbnail_url', '')[:2048]
         critique.source_publish_date = content.get('publish_date')
-        critique.status = 'processing'
+        critique.status = 'analyzing'
         critique.save()
 
         # Step 2: Generate AI critique
@@ -510,6 +510,8 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
 
         # Step 3: Generate shareable replies
         logger.info(f"Generating shareable replies for {critique_id}")
+        critique.status = 'generating_replies'
+        critique.save()
 
         # Build critique URL using the configured domain
         critique_url = f"https://{SITE_DOMAIN}/critique/share/{critique.share_id}/"

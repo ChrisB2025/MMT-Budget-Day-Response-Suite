@@ -11,6 +11,8 @@ class SocialMediaCritique(models.Model):
     STATUS_CHOICES = [
         ('submitted', 'Submitted'),
         ('fetching', 'Fetching Content'),
+        ('analyzing', 'Analyzing Content'),
+        ('generating_replies', 'Generating Replies'),
         ('processing', 'Processing'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
