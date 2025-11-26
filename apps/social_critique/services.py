@@ -256,8 +256,9 @@ def generate_short_reply(
     )
 
     try:
+        # Use faster Haiku model for reply generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=500,
             messages=[
                 {
@@ -325,8 +326,9 @@ def generate_thread_reply(
     )
 
     try:
+        # Use faster Haiku model for thread generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=2000,
             messages=[
                 {
@@ -400,8 +402,9 @@ def generate_summary_card(
     )
 
     try:
+        # Use faster Haiku model for summary card generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=100,
             messages=[
                 {
@@ -472,7 +475,7 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
         critique.source_description = content.get('description', '')
         critique.source_thumbnail_url = content.get('thumbnail_url', '')[:2048]
         critique.source_publish_date = content.get('publish_date')
-        critique.status = 'processing'
+        critique.status = 'analyzing'
         critique.save()
 
         # Step 2: Generate AI critique
@@ -510,6 +513,8 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
 
         # Step 3: Generate shareable replies
         logger.info(f"Generating shareable replies for {critique_id}")
+        critique.status = 'generating_replies'
+        critique.save()
 
         # Build critique URL using the configured domain
         critique_url = f"https://{SITE_DOMAIN}/critique/share/{critique.share_id}/"

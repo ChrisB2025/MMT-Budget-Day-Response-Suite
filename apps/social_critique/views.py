@@ -266,7 +266,7 @@ def preview_url(request):
 
 
 def get_share_link(request, share_id, platform):
-    """Generate share link for a specific platform"""
+    """Generate share link for a specific platform and redirect to it"""
     critique = get_object_or_404(SocialMediaCritique, share_id=share_id, status='completed')
 
     # Get the shareable reply for this platform
@@ -289,23 +289,20 @@ def get_share_link(request, share_id, platform):
     encoded_url = quote(critique_url)
 
     share_links = {
-        'twitter': f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}",
+        'twitter': f"https://twitter.com/intent/tweet?text={encoded_text}",
         'facebook': f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}&quote={encoded_text}",
         'linkedin': f"https://www.linkedin.com/sharing/share-offsite/?url={encoded_url}",
         'reddit': f"https://www.reddit.com/submit?url={encoded_url}&title={encoded_text}",
         'threads': f"https://threads.net/intent/post?text={encoded_text}%20{encoded_url}",
         'bluesky': f"https://bsky.app/intent/compose?text={encoded_text}%20{encoded_url}",
         'mastodon': f"https://mastodon.social/share?text={encoded_text}%20{encoded_url}",
-        'youtube': f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}",  # YouTube doesn't have share intent, use Twitter
+        'youtube': f"https://twitter.com/intent/tweet?text={encoded_text}",  # YouTube doesn't have share intent, use Twitter
     }
 
     share_link = share_links.get(platform, share_links['twitter'])
 
-    return JsonResponse({
-        'share_link': share_link,
-        'share_text': share_text,
-        'critique_url': critique_url
-    })
+    # Redirect to the share link
+    return redirect(share_link)
 
 
 def copy_reply_content(request, share_id, reply_type, platform):
