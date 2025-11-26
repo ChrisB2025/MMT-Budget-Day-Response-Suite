@@ -42,18 +42,16 @@
     {% endif %}
 
     {% if square.phrase.description and square.position != 12 %}
-        <!-- Tooltip -->
+        <!-- Light yellow overlay with description on hover -->
         <div
             x-show="showTooltip"
             x-transition
-            class="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 rounded-lg shadow-lg max-w-xs pointer-events-none text-xs"
-            style="display: none; background: var(--color-text-primary); color: white;"
+            class="absolute inset-0 flex items-center justify-center p-2 rounded-lg pointer-events-none"
+            style="display: none; background: rgba(255, 255, 153, 0.95); z-index: 10;"
         >
-            <p class="font-semibold mb-1">{{ square.phrase.phrase_text }}</p>
-            <p style="color: #e5e7eb;">{{ square.phrase.description|truncatewords:20 }}</p>
-            <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                <div class="border-4 border-transparent" style="border-top-color: var(--color-text-primary);"></div>
-            </div>
+            <p class="text-[8px] xs:text-[9px] sm:text-xs leading-tight text-center" style="color: #000000;">
+                {{ square.phrase.description }}
+            </p>
         </div>
     {% endif %}
 </div>
