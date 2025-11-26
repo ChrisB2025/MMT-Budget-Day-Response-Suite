@@ -68,11 +68,11 @@ class SocialMediaCritique(models.Model):
         verbose_name_plural = 'Social Media Critiques'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['user']),
-            models.Index(fields=['share_id']),
-            models.Index(fields=['platform']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=['status'], name='social_crit_status_idx'),
+            models.Index(fields=['user'], name='social_crit_user_idx'),
+            models.Index(fields=['share_id'], name='social_crit_share_id_idx'),
+            models.Index(fields=['platform'], name='social_crit_platform_idx'),
+            models.Index(fields=['created_at'], name='social_crit_created_idx'),
         ]
 
     def __str__(self):
@@ -239,8 +239,8 @@ class ContentCache(models.Model):
         verbose_name = 'Content Cache'
         verbose_name_plural = 'Content Cache Entries'
         indexes = [
-            models.Index(fields=['url_hash']),
-            models.Index(fields=['expires_at']),
+            models.Index(fields=['url_hash'], name='social_cache_url_hash_idx'),
+            models.Index(fields=['expires_at'], name='social_cache_expires_idx'),
         ]
 
     def __str__(self):

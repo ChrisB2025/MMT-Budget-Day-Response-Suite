@@ -21,7 +21,7 @@ class Team(models.Model):
 class User(AbstractUser):
     """Extended user model with MMT Budget Suite specific fields"""
     # Make email optional - not required for registration
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, verbose_name="email address")
 
     display_name = models.CharField(max_length=100, blank=True)
     team = models.ForeignKey(
@@ -38,7 +38,7 @@ class User(AbstractUser):
         verbose_name = 'User'
         verbose_name_plural = 'Users'
         indexes = [
-            models.Index(fields=['team']),
+            models.Index(fields=['team'], name='users_team_id_76fc8d_idx'),
         ]
 
     def __str__(self):
