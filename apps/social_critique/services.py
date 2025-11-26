@@ -256,8 +256,9 @@ def generate_short_reply(
     )
 
     try:
+        # Use faster Haiku model for reply generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=500,
             messages=[
                 {
@@ -325,8 +326,9 @@ def generate_thread_reply(
     )
 
     try:
+        # Use faster Haiku model for thread generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=2000,
             messages=[
                 {
@@ -400,8 +402,9 @@ def generate_summary_card(
     )
 
     try:
+        # Use faster Haiku model for summary card generation
         message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
+            model='claude-3-5-haiku-20241022',
             max_tokens=100,
             messages=[
                 {
