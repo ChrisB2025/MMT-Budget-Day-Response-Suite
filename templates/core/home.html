@@ -1,65 +1,118 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-professional">
-    <div class="container-narrow">
-        <h1 class="hero-title">
-            MMT Budget Day Response Suite
-        </h1>
-        <p class="hero-subtitle">
-            Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate comprehensive MMT rebuttals for the UK Budget 2025. <strong>Budget Day: November 26, 2025 at 12:30 PM UK time.</strong>
-        </p>
-        <div class="flex justify-center gap-4 flex-wrap">
-            <a href="{% url 'factcheck:submit' %}" class="btn-primary">Submit Fact-Check</a>
-            <a href="{% url 'rebuttal:latest' %}" class="btn-secondary">View Latest Rebuttal</a>
+<!-- Compact Hero Section with Integrated Countdown -->
+<div class="hero-professional" style="padding: var(--space-md) 0 var(--space-lg) 0;">
+    <div class="container-professional">
+        <div class="hero-grid">
+            <!-- Left: Content -->
+            <div class="hero-content">
+                <h1 class="hero-title-compact">
+                    MMT Budget Day Response Suite
+                </h1>
+                <p class="hero-subtitle-compact">
+                    Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate MMT rebuttals.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{% url 'factcheck:submit' %}" class="btn-primary btn-sm">Submit Fact-Check</a>
+                    <a href="{% url 'rebuttal:latest' %}" class="btn-secondary btn-sm">View Rebuttal</a>
+                </div>
+            </div>
+
+            <!-- Right: Compact Countdown -->
+            <div class="hero-countdown">
+                <div class="countdown-box-compact">
+                    <div class="countdown-header">
+                        <span class="countdown-label">Autumn Statement</span>
+                        <span class="countdown-date-inline">26 Nov 2025 · 12:30 PM</span>
+                    </div>
+                    <div class="countdown-timer-container">
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="countdown-days">--</span>
+                            <span class="countdown-unit-label">Days</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="countdown-hours">--</span>
+                            <span class="countdown-unit-label">Hrs</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="countdown-minutes">--</span>
+                            <span class="countdown-unit-label">Min</span>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-unit">
+                            <span class="countdown-value" id="countdown-seconds">--</span>
+                            <span class="countdown-unit-label">Sec</span>
+                        </div>
+                    </div>
+                    <div id="countdown-status" class="countdown-status"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Feature Cards -->
-<div style="padding: var(--space-lg) 0;">
+<!-- Feature Cards - Compact -->
+<div style="padding: var(--space-md) 0 var(--space-lg) 0;">
     <div class="container-professional">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <!-- Bingo -->
-            <div class="card card-interactive">
-                <div class="text-2xl mb-2">🎯</div>
-                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Budget Bingo</h3>
-                <p class="text-small mb-3" style="line-height: 1.4;">Track and mark budget myths in real-time. Compete with others!</p>
-                <a href="{% url 'bingo:home' %}" class="btn-secondary">Play Bingo</a>
-            </div>
+            <a href="{% url 'bingo:home' %}" class="feature-card-compact">
+                <span class="feature-icon-small">🎯</span>
+                <span class="feature-title-small">Budget Bingo</span>
+            </a>
 
             <!-- Fact-Check -->
-            <div class="card card-interactive">
-                <div class="text-2xl mb-2">✓</div>
-                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Fact-Check Platform</h3>
-                <p class="text-small mb-3" style="line-height: 1.4;">Submit claims for AI-powered fact-checking with MMT perspective.</p>
-                <a href="{% url 'factcheck:submit' %}" class="btn-secondary">Submit Claim</a>
-            </div>
+            <a href="{% url 'factcheck:submit' %}" class="feature-card-compact">
+                <span class="feature-icon-small">✓</span>
+                <span class="feature-title-small">Fact-Check</span>
+            </a>
 
             <!-- Rebuttal -->
-            <div class="card card-interactive">
-                <div class="text-2xl mb-2">📄</div>
-                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Comprehensive Rebuttal</h3>
-                <p class="text-small mb-3" style="line-height: 1.4;">AI-generated comprehensive analysis and rebuttal document.</p>
-                <a href="{% url 'rebuttal:latest' %}" class="btn-secondary">View Rebuttal</a>
-            </div>
+            <a href="{% url 'rebuttal:latest' %}" class="feature-card-compact">
+                <span class="feature-icon-small">📄</span>
+                <span class="feature-title-small">Rebuttal</span>
+            </a>
 
             <!-- Media Complaints -->
-            <div class="card card-interactive">
-                <div class="text-2xl mb-2">📢</div>
-                <h3 class="font-semibold mb-2" style="color: var(--color-text-primary); font-size: var(--font-size-lg);">Media Complaints</h3>
-                <p class="text-small mb-3" style="line-height: 1.4;">Report misinformation and generate AI-powered complaint letters.</p>
-                <a href="{% url 'media_complaints:home' %}" class="btn-secondary">File Complaint</a>
-            </div>
+            <a href="{% url 'media_complaints:home' %}" class="feature-card-compact">
+                <span class="feature-icon-small">📢</span>
+                <span class="feature-title-small">Complaints</span>
+            </a>
+
+            <!-- Social Critique -->
+            <a href="{% url 'social_critique:home' %}" class="feature-card-compact">
+                <span class="feature-icon-small">💬</span>
+                <span class="feature-title-small">Social Critique</span>
+            </a>
+
+            <!-- Stats -->
+            <a href="{% url 'factcheck:stats' %}" class="feature-card-compact">
+                <span class="feature-icon-small">📊</span>
+                <span class="feature-title-small">Statistics</span>
+            </a>
+
+            <!-- Leaderboard -->
+            <a href="{% url 'factcheck:leaderboard' %}" class="feature-card-compact">
+                <span class="feature-icon-small">🏆</span>
+                <span class="feature-title-small">Leaderboard</span>
+            </a>
+
+            <!-- Live Feed -->
+            <a href="{% url 'factcheck:live_feed' %}" class="feature-card-compact">
+                <span class="feature-icon-small">📡</span>
+                <span class="feature-title-small">Live Feed</span>
+            </a>
         </div>
     </div>
 </div>
 
-<!-- Stats -->
+<!-- Stats Section -->
 <div style="background: var(--color-surface); padding: var(--space-xl) 0 var(--space-2xl) 0;">
     <div class="container-professional">
-        <h2 class="text-center mb-6" style="font-size: var(--font-size-2xl); color: var(--color-text-primary);">Live Statistics</h2>
+        <h2 class="section-title">Live Statistics</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="stat-card">
                 <span class="stat-number">{{ total_bingo_cards }}</span>
@@ -70,12 +123,232 @@
                 <span class="stat-label">Claims Fact-Checked</span>
             </div>
             <div class="stat-card">
-                <span class="stat-number" id="countdown-timer">Calculating...</span>
-                <span class="stat-label">Budget Date</span>
+                <span class="stat-number">{{ total_complaints|default:"0" }}</span>
+                <span class="stat-label">Complaints Filed</span>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Hero Grid Layout - Compact */
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-xl);
+    align-items: center;
+}
+
+.hero-content {
+    text-align: left;
+}
+
+.hero-title-compact {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-sm);
+    line-height: 1.2;
+}
+
+.hero-subtitle-compact {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-md);
+    max-width: 450px;
+    line-height: 1.5;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+/* Compact Countdown Box */
+.hero-countdown {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.countdown-box-compact {
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.countdown-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-sm);
+}
+
+.countdown-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.countdown-date-inline {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.countdown-timer-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 42px;
+}
+
+.countdown-value {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.countdown-unit-label {
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: 2px;
+}
+
+.countdown-separator {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+    line-height: 1;
+}
+
+.countdown-status {
+    margin-top: var(--space-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-success);
+}
+
+.countdown-status.live {
+    color: var(--color-error);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Compact Feature Cards */
+.feature-card-compact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.feature-card-compact:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.feature-icon-small {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.feature-title-small {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+/* Section Title */
+.section-title {
+    text-align: center;
+    font-size: var(--font-size-xl);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-lg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+
+    .hero-content {
+        text-align: center;
+    }
+
+    .hero-title-compact {
+        font-size: var(--font-size-2xl);
+    }
+
+    .hero-subtitle-compact {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-countdown {
+        justify-content: center;
+    }
+
+    .countdown-box-compact {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .countdown-unit {
+        min-width: 36px;
+    }
+
+    .countdown-value {
+        font-size: var(--font-size-xl);
+    }
+
+    .countdown-separator {
+        font-size: var(--font-size-lg);
+    }
+
+    .feature-card-compact {
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .feature-title-small {
+        font-size: var(--font-size-xs);
+    }
+}
+</style>
 
 <script>
 function updateCountdown() {
@@ -84,11 +357,20 @@ function updateCountdown() {
     const now = new Date();
     const diff = budgetDate - now;
 
-    const countdownEl = document.getElementById('countdown-timer');
+    const daysEl = document.getElementById('countdown-days');
+    const hoursEl = document.getElementById('countdown-hours');
+    const minutesEl = document.getElementById('countdown-minutes');
+    const secondsEl = document.getElementById('countdown-seconds');
+    const statusEl = document.getElementById('countdown-status');
 
     if (diff <= 0) {
-        countdownEl.textContent = 'Budget Day!';
-        countdownEl.style.fontSize = 'var(--font-size-xl)';
+        // Budget is happening or has passed
+        daysEl.textContent = '00';
+        hoursEl.textContent = '00';
+        minutesEl.textContent = '00';
+        secondsEl.textContent = '00';
+        statusEl.textContent = '🔴 LIVE NOW';
+        statusEl.classList.add('live');
         return;
     }
 
@@ -97,13 +379,21 @@ function updateCountdown() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    // Always show seconds for live countdown animation
-    if (days > 0) {
-        countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    } else if (hours > 0) {
-        countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+    // Pad with zeros
+    daysEl.textContent = String(days).padStart(2, '0');
+    hoursEl.textContent = String(hours).padStart(2, '0');
+    minutesEl.textContent = String(minutes).padStart(2, '0');
+    secondsEl.textContent = String(seconds).padStart(2, '0');
+
+    // Update status based on time remaining
+    if (days === 0 && hours < 1) {
+        statusEl.textContent = 'Starting Soon!';
+        statusEl.style.color = 'var(--color-warning)';
+    } else if (days === 0) {
+        statusEl.textContent = 'Today!';
+        statusEl.style.color = 'var(--color-success)';
     } else {
-        countdownEl.textContent = `${minutes}m ${seconds}s`;
+        statusEl.textContent = '';
     }
 }
 

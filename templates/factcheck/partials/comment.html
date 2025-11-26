@@ -1,0 +1,13 @@
+<div class="p-3" style="background: var(--color-surface); border-radius: var(--radius-md); margin-bottom: var(--space-sm);">
+    <div class="flex items-start justify-between">
+        <div>
+            <span class="font-semibold text-small" style="color: var(--color-text-primary);">
+                {{ comment.user.display_name|default:"Anonymous" }}
+            </span>
+            <span class="text-meta ml-2">{{ comment.created_at|timesince }} ago</span>
+        </div>
+    </div>
+    <p class="text-small mt-2" style="color: var(--color-text-secondary);">
+        {{ comment.text }}
+    </p>
+</div>

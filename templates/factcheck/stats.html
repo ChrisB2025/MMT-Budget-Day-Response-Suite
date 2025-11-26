@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistics - Fact-Check Platform{% endblock %}
+
+{% block content %}
+<div class="container-professional section-spacing">
+    <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-lg);">Fact-Check Statistics</h1>
+
+    <!-- Overview Stats -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Overview</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number">{{ total_submitted }}</span>
+                <span class="stat-label">Total Claims Submitted</span>
+            </div>
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number" style="color: var(--color-success);">{{ total_answered }}</span>
+                <span class="stat-label">Claims Fact-Checked</span>
+            </div>
+            <div class="stat-card" style="border: none; box-shadow: none; background: var(--color-surface);">
+                <span class="stat-number" style="color: {% if avg_severity >= 7 %}var(--color-error){% elif avg_severity >= 4 %}var(--color-warning){% else %}var(--color-success){% endif %};">{{ avg_severity }}</span>
+                <span class="stat-label">Avg Severity Rating</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Rate -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Completion Rate</h2>
+        <div class="w-full bg-gray-200 rounded-full h-6" style="background: var(--color-surface);">
+            {% widthratio total_answered total_submitted 100 as completion_pct %}
+            <div class="h-6 rounded-full transition-all" style="width: {% if total_submitted > 0 %}{% widthratio total_answered total_submitted 100 %}%{% else %}0%{% endif %}; background: var(--color-success);"></div>
+        </div>
+        <p class="text-small mt-2">
+            {% if total_submitted > 0 %}
+                {% widthratio total_answered total_submitted 100 %}% of claims have been fact-checked
+            {% else %}
+                No claims submitted yet
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Top Contributors -->
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-lg);">Top Contributors</h2>
+        {% if top_contributors %}
+        <div class="list-professional">
+            {% for contributor in top_contributors %}
+            <li style="padding: var(--space-md); {% if forloop.counter <= 3 %}background: var(--color-surface);{% endif %}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div style="font-size: var(--font-size-xl); min-width: 2rem; text-align: center;">
+                            {% if forloop.counter == 1 %}
+                                <span style="color: #FFD700;">1</span>
+                            {% elif forloop.counter == 2 %}
+                                <span style="color: #C0C0C0;">2</span>
+                            {% elif forloop.counter == 3 %}
+                                <span style="color: #CD7F32;">3</span>
+                            {% else %}
+                                <span style="color: var(--color-text-secondary);">{{ forloop.counter }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="font-semibold" style="color: var(--color-text-primary);">
+                                {{ contributor.user__display_name|default:"Anonymous" }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="badge badge-info">{{ contributor.count }} claims</span>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-small" style="color: var(--color-text-secondary);">No contributors yet. Be the first!</p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'factcheck:home' %}" class="btn-secondary">
+            Back to Home
+        </a>
+        <a href="{% url 'factcheck:leaderboard' %}" class="btn-secondary">
+            View Leaderboard
+        </a>
+        <a href="{% url 'factcheck:submit' %}" class="btn-primary">
+            Submit a Claim
+        </a>
+    </div>
+</div>
+{% endblock %}

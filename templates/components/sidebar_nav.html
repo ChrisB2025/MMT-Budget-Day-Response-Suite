@@ -1,0 +1,205 @@
+{% comment %}
+Sidebar navigation for sections with lots of functionality
+Include this component and pass 'section' variable to customize links
+
+Usage: {% include 'components/sidebar_nav.html' with section='factcheck' %}
+       {% include 'components/sidebar_nav.html' with section='social_critique' %}
+{% endcomment %}
+
+<aside class="sidebar-nav hidden lg:block" style="width: 220px; flex-shrink: 0;">
+    <div class="sticky" style="top: 100px;">
+        <nav class="card" style="padding: var(--space-md);">
+
+            {% if section == 'factcheck' %}
+            <h3 class="font-semibold text-small mb-4" style="color: var(--color-text-primary);">Fact-Check</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'factcheck:submit' %}" class="sidebar-link {% if active == 'submit' %}active{% endif %}">
+                        <span class="sidebar-icon">+</span> Submit Claim
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'factcheck:queue' %}" class="sidebar-link {% if active == 'queue' %}active{% endif %}">
+                        <span class="sidebar-icon">&#9776;</span> Browse Queue
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'factcheck:live_feed' %}" class="sidebar-link {% if active == 'live_feed' %}active{% endif %}">
+                        <span class="sidebar-icon">&#9889;</span> Live Feed
+                    </a>
+                </li>
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'factcheck:leaderboard' %}" class="sidebar-link {% if active == 'leaderboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#127942;</span> Leaderboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'factcheck:stats' %}" class="sidebar-link {% if active == 'stats' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128202;</span> Statistics
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'factcheck:dashboard' %}" class="sidebar-link {% if active == 'dashboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128100;</span> My Dashboard
+                    </a>
+                </li>
+                {% endif %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'factcheck:home' %}" class="sidebar-link {% if active == 'home' %}active{% endif %}">
+                        <span class="sidebar-icon">&#8962;</span> Overview
+                    </a>
+                </li>
+            </ul>
+
+            {% elif section == 'social_critique' %}
+            <h3 class="font-semibold text-small mb-4" style="color: var(--color-text-primary);">Social Critique</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'social_critique:submit' %}" class="sidebar-link {% if active == 'submit' %}active{% endif %}">
+                        <span class="sidebar-icon">+</span> Submit URL
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'social_critique:queue' %}" class="sidebar-link {% if active == 'queue' %}active{% endif %}">
+                        <span class="sidebar-icon">&#9776;</span> Browse Queue
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'social_critique:my_critiques' %}" class="sidebar-link {% if active == 'my_critiques' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128100;</span> My Critiques
+                    </a>
+                </li>
+                {% endif %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'social_critique:home' %}" class="sidebar-link {% if active == 'home' %}active{% endif %}">
+                        <span class="sidebar-icon">&#8962;</span> Overview
+                    </a>
+                </li>
+            </ul>
+
+            {% elif section == 'bingo' %}
+            <h3 class="font-semibold text-small mb-4" style="color: var(--color-text-primary);">Budget Bingo</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'bingo:create_card' %}" class="sidebar-link {% if active == 'create' %}active{% endif %}">
+                        <span class="sidebar-icon">+</span> New Card
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'bingo:leaderboard' %}" class="sidebar-link {% if active == 'leaderboard' %}active{% endif %}">
+                        <span class="sidebar-icon">&#127942;</span> Leaderboard
+                    </a>
+                </li>
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'bingo:home' %}" class="sidebar-link {% if active == 'home' %}active{% endif %}">
+                        <span class="sidebar-icon">&#8962;</span> Overview
+                    </a>
+                </li>
+            </ul>
+
+            {% elif section == 'complaints' %}
+            <h3 class="font-semibold text-small mb-4" style="color: var(--color-text-primary);">Media Complaints</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'media_complaints:submit' %}" class="sidebar-link {% if active == 'submit' %}active{% endif %}">
+                        <span class="sidebar-icon">+</span> New Complaint
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'media_complaints:community' %}" class="sidebar-link {% if active == 'community' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128101;</span> Community
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'media_complaints:my_complaints' %}" class="sidebar-link {% if active == 'my_complaints' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128100;</span> My Complaints
+                    </a>
+                </li>
+                {% endif %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'media_complaints:home' %}" class="sidebar-link {% if active == 'home' %}active{% endif %}">
+                        <span class="sidebar-icon">&#8962;</span> Overview
+                    </a>
+                </li>
+            </ul>
+
+            {% endif %}
+        </nav>
+    </div>
+</aside>
+
+<style>
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    transition: all 0.15s ease;
+}
+
+.sidebar-link:hover {
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.sidebar-link.active {
+    background: var(--color-accent);
+    color: white;
+}
+
+.sidebar-icon {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: var(--space-sm);
+}
+
+/* Mobile sticky bottom nav */
+@media (max-width: 1023px) {
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--color-card-bg);
+        border-top: 1px solid var(--color-border);
+        padding: var(--space-sm) var(--space-md);
+        z-index: 40;
+        display: flex;
+        justify-content: space-around;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    }
+
+    .mobile-nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: var(--space-xs);
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        font-size: 0.65rem;
+    }
+
+    .mobile-nav-link.active {
+        color: var(--color-accent);
+    }
+
+    .mobile-nav-icon {
+        font-size: 1.25rem;
+        margin-bottom: 2px;
+    }
+}
+</style>

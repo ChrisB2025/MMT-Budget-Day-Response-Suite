@@ -1,0 +1,108 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Social Media Critique - MMT Budget Response Suite{% endblock %}
+
+{% block sidebar_content %}
+<div class="w-full">
+    <!-- Hero Section - Using Professional Design System Colors -->
+    <div class="card" style="background: var(--color-surface); margin-bottom: var(--space-xl); padding: var(--space-xl);">
+        <h1 style="font-size: var(--font-size-4xl); color: var(--color-text-primary); margin-bottom: var(--space-md);">Social Media Fact-Checker</h1>
+        <p style="font-size: var(--font-size-lg); color: var(--color-text-secondary); margin-bottom: var(--space-lg); max-width: none;">
+            Paste a YouTube video, tweet, or social media post URL and get an evidence-based MMT critique with shareable replies.
+        </p>
+        <a href="{% url 'social_critique:submit' %}" class="btn-primary" style="padding: var(--space-md) var(--space-xl); font-size: var(--font-size-lg);">
+            Critique a Post
+        </a>
+    </div>
+
+    <!-- Stats - Using Design System -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-accent);">{{ stats.total }}</span>
+            <span class="stat-label">Total Critiques</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-success);">{{ stats.today }}</span>
+            <span class="stat-label">Critiques Today</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" style="color: var(--color-playful);">{{ platform_counts|length }}</span>
+            <span class="stat-label">Platforms Covered</span>
+        </div>
+    </div>
+
+    <!-- Platform Breakdown -->
+    {% if platform_counts %}
+    <div class="card" style="margin-bottom: var(--space-xl);">
+        <h2 class="card-title" style="margin-bottom: var(--space-md);">Platforms</h2>
+        <div class="flex flex-wrap gap-3">
+            {% for p in platform_counts %}
+            <span class="badge badge-neutral">
+                {{ p.platform|title }}: {{ p.count }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Critiques -->
+    <div class="card">
+        <div class="card-header">
+            <div class="flex justify-between items-center">
+                <h2 class="card-title" style="margin: 0;">Recent Critiques</h2>
+                <a href="{% url 'social_critique:queue' %}" class="btn-text">View All →</a>
+            </div>
+        </div>
+
+        {% if recent_critiques %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" style="margin-top: var(--space-md);">
+            {% for critique in recent_critiques %}
+            <a href="{% url 'social_critique:detail' share_id=critique.share_id %}"
+               class="card card-interactive" style="text-decoration: none;">
+                {% if critique.source_thumbnail_url %}
+                <img src="{{ critique.source_thumbnail_url }}" alt=""
+                     class="w-full h-32 object-cover rounded mb-3">
+                {% else %}
+                <div class="w-full h-32 rounded mb-3 flex items-center justify-center" style="background: var(--color-surface);">
+                    <span class="text-4xl">
+                        {% if critique.platform == 'youtube' %}📺
+                        {% elif critique.platform == 'twitter' %}🐦
+                        {% elif critique.platform == 'facebook' %}📘
+                        {% elif critique.platform == 'instagram' %}📷
+                        {% elif critique.platform == 'tiktok' %}🎵
+                        {% elif critique.platform == 'linkedin' %}💼
+                        {% elif critique.platform == 'reddit' %}🤖
+                        {% else %}🔗{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="badge badge-info">
+                        {{ critique.get_platform_display }}
+                    </span>
+                    {% if critique.response %}
+                    <span class="badge {% if critique.response.accuracy_rating == 'accurate' %}badge-success{% elif critique.response.accuracy_rating == 'mostly_accurate' %}badge-info{% elif critique.response.accuracy_rating == 'mixed' %}badge-warning{% elif critique.response.accuracy_rating == 'misleading' %}badge-warning{% else %}badge-error{% endif %}">
+                        {{ critique.response.get_accuracy_rating_display }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h3 style="font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-xs);">
+                    {{ critique.source_title|default:"Untitled"|truncatechars:60 }}
+                </h3>
+                <p class="text-small">
+                    {{ critique.created_at|timesince }} ago
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center" style="padding: var(--space-xl); color: var(--color-text-secondary);">
+            <div style="font-size: var(--font-size-5xl); margin-bottom: var(--space-md);">🔍</div>
+            <p>No critiques yet. Be the first to submit one!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock sidebar_content %}

@@ -1,0 +1,120 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Critique Queue - MMT Budget Response Suite{% endblock %}
+
+{% block sidebar_content %}
+<div class="w-full">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Critique Queue</h1>
+        <a href="{% url 'social_critique:submit' %}"
+           class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+            + Submit New URL
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <form method="get" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select name="status" class="px-3 py-2 border border-gray-300 rounded">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
+                    <option value="fetching" {% if status_filter == 'fetching' %}selected{% endif %}>Fetching</option>
+                    <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                <select name="platform" class="px-3 py-2 border border-gray-300 rounded">
+                    <option value="all" {% if platform_filter == 'all' %}selected{% endif %}>All Platforms</option>
+                    {% for value, label in platforms %}
+                    <option value="{{ value }}" {% if platform_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Critiques List -->
+    <div class="bg-white rounded-lg shadow">
+        {% if critiques %}
+        <div class="divide-y divide-gray-200">
+            {% for critique in critiques %}
+            <a href="{% url 'social_critique:detail' share_id=critique.share_id %}"
+               class="block p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-4">
+                    {% if critique.source_thumbnail_url %}
+                    <img src="{{ critique.source_thumbnail_url }}" alt=""
+                         class="w-20 h-20 object-cover rounded flex-shrink-0">
+                    {% else %}
+                    <div class="w-20 h-20 bg-gray-100 rounded flex-shrink-0 flex items-center justify-center">
+                        <span class="text-3xl">
+                            {% if critique.platform == 'youtube' %}📺
+                            {% elif critique.platform == 'twitter' %}🐦
+                            {% elif critique.platform == 'facebook' %}📘
+                            {% elif critique.platform == 'instagram' %}📷
+                            {% elif critique.platform == 'tiktok' %}🎵
+                            {% elif critique.platform == 'linkedin' %}💼
+                            {% elif critique.platform == 'reddit' %}🤖
+                            {% else %}🔗{% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                                {{ critique.get_platform_display }}
+                            </span>
+                            <span class="px-2 py-1 rounded text-xs font-medium
+                                {% if critique.status == 'completed' %}bg-green-100 text-green-700
+                                {% elif critique.status == 'processing' or critique.status == 'fetching' %}bg-blue-100 text-blue-700
+                                {% elif critique.status == 'failed' %}bg-red-100 text-red-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ critique.get_status_display }}
+                            </span>
+                            {% if critique.response %}
+                            <span class="px-2 py-1 rounded text-xs font-medium
+                                {% if critique.response.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                                {% elif critique.response.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                                {% elif critique.response.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                                {% elif critique.response.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ critique.response.get_accuracy_rating_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <h3 class="font-semibold text-gray-900 truncate">
+                            {{ critique.source_title|default:"Processing..."|truncatechars:80 }}
+                        </h3>
+
+                        {% if critique.source_author %}
+                        <p class="text-sm text-gray-600">{{ critique.source_author }}</p>
+                        {% endif %}
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            By {{ critique.user.display_name|default:"Anonymous" }} •
+                            {{ critique.created_at|timesince }} ago
+                            {% if critique.view_count %} • {{ critique.view_count }} views{% endif %}
+                        </p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-12 text-center text-gray-500">
+            <div class="text-5xl mb-4">🔍</div>
+            <p>No critiques found matching your filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock sidebar_content %}

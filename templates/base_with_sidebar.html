@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block main_class %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex gap-8">
+        <!-- Left Sidebar Navigation -->
+        {% include 'components/sidebar_nav.html' with section=sidebar_section active=sidebar_active %}
+
+        <!-- Main Content Area -->
+        <div class="flex-1 min-w-0">
+            {% block sidebar_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Bottom Navigation -->
+<nav class="mobile-bottom-nav lg:hidden">
+    {% if sidebar_section == 'factcheck' %}
+        <a href="{% url 'factcheck:home' %}" class="mobile-nav-link {% if sidebar_active == 'home' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#8962;</span>
+            Home
+        </a>
+        <a href="{% url 'factcheck:submit' %}" class="mobile-nav-link {% if sidebar_active == 'submit' %}active{% endif %}">
+            <span class="mobile-nav-icon">+</span>
+            Submit
+        </a>
+        <a href="{% url 'factcheck:queue' %}" class="mobile-nav-link {% if sidebar_active == 'queue' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#9776;</span>
+            Queue
+        </a>
+        <a href="{% url 'factcheck:leaderboard' %}" class="mobile-nav-link {% if sidebar_active == 'leaderboard' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#127942;</span>
+            Leaders
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'factcheck:dashboard' %}" class="mobile-nav-link {% if sidebar_active == 'dashboard' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#128100;</span>
+            Me
+        </a>
+        {% endif %}
+    {% elif sidebar_section == 'social_critique' %}
+        <a href="{% url 'social_critique:home' %}" class="mobile-nav-link {% if sidebar_active == 'home' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#8962;</span>
+            Home
+        </a>
+        <a href="{% url 'social_critique:submit' %}" class="mobile-nav-link {% if sidebar_active == 'submit' %}active{% endif %}">
+            <span class="mobile-nav-icon">+</span>
+            Submit
+        </a>
+        <a href="{% url 'social_critique:queue' %}" class="mobile-nav-link {% if sidebar_active == 'queue' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#9776;</span>
+            Queue
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'social_critique:my_critiques' %}" class="mobile-nav-link {% if sidebar_active == 'my_critiques' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#128100;</span>
+            Mine
+        </a>
+        {% endif %}
+    {% elif sidebar_section == 'bingo' %}
+        <a href="{% url 'bingo:home' %}" class="mobile-nav-link {% if sidebar_active == 'home' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#8962;</span>
+            Home
+        </a>
+        <a href="{% url 'bingo:create_card' %}" class="mobile-nav-link {% if sidebar_active == 'create' %}active{% endif %}">
+            <span class="mobile-nav-icon">+</span>
+            New
+        </a>
+        <a href="{% url 'bingo:leaderboard' %}" class="mobile-nav-link {% if sidebar_active == 'leaderboard' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#127942;</span>
+            Leaders
+        </a>
+    {% elif sidebar_section == 'complaints' %}
+        <a href="{% url 'media_complaints:home' %}" class="mobile-nav-link {% if sidebar_active == 'home' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#8962;</span>
+            Home
+        </a>
+        <a href="{% url 'media_complaints:submit' %}" class="mobile-nav-link {% if sidebar_active == 'submit' %}active{% endif %}">
+            <span class="mobile-nav-icon">+</span>
+            Submit
+        </a>
+        <a href="{% url 'media_complaints:community' %}" class="mobile-nav-link {% if sidebar_active == 'community' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#128101;</span>
+            Community
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'media_complaints:my_complaints' %}" class="mobile-nav-link {% if sidebar_active == 'my_complaints' %}active{% endif %}">
+            <span class="mobile-nav-icon">&#128100;</span>
+            Mine
+        </a>
+        {% endif %}
+    {% endif %}
+</nav>
+
+<style>
+/* Add padding to body to account for mobile bottom nav */
+@media (max-width: 1023px) {
+    body {
+        padding-bottom: 70px;
+    }
+}
+</style>
+{% endblock %}
