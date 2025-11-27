@@ -319,6 +319,172 @@ Please provide the complete transcript now:"""
     return result
 
 
+def fetch_youtube_transcript_via_youtube_api(video_id: str) -> Dict[str, Any]:
+    """
+    Fetch YouTube video transcript using YouTube Data API.
+
+    Uses the YouTube Data API to get caption tracks and then fetches
+    the caption content via YouTube's timedtext endpoint.
+
+    Args:
+        video_id: The YouTube video ID
+
+    Returns:
+        Dictionary containing:
+            - transcript: Extracted transcript text
+            - language: Language code of the transcript
+            - error: Error message if fetch failed
+    """
+    from django.conf import settings
+    import requests
+    import xml.etree.ElementTree as ET
+
+    result = {
+        'transcript': '',
+        'language': None,
+        'error': None,
+    }
+
+    # Check if YouTube API key is configured
+    youtube_api_key = getattr(settings, 'YOUTUBE_API_KEY', '')
+    if not youtube_api_key:
+        result['error'] = 'YOUTUBE_API_KEY not configured'
+        logger.warning("YouTube API key not configured for caption fetching")
+        return result
+
+    try:
+        from googleapiclient.discovery import build
+        from googleapiclient.errors import HttpError
+
+        # Build the YouTube API client
+        youtube = build('youtube', 'v3', developerKey=youtube_api_key)
+
+        # First, get the list of caption tracks for this video
+        logger.info(f"Fetching caption tracks for video {video_id} via YouTube API")
+
+        captions_response = youtube.captions().list(
+            part='snippet',
+            videoId=video_id
+        ).execute()
+
+        caption_tracks = captions_response.get('items', [])
+
+        if not caption_tracks:
+            result['error'] = 'No caption tracks found for this video'
+            logger.warning(f"No caption tracks found for video {video_id}")
+            return result
+
+        # Find English caption track (prefer manual over auto-generated)
+        selected_track = None
+        for track in caption_tracks:
+            snippet = track.get('snippet', {})
+            lang = snippet.get('language', '')
+            track_kind = snippet.get('trackKind', '')
+
+            if lang.startswith('en'):
+                if track_kind != 'ASR':  # Prefer non-auto-generated
+                    selected_track = track
+                    break
+                elif selected_track is None:
+                    selected_track = track
+
+        # If no English track, use the first available
+        if selected_track is None:
+            selected_track = caption_tracks[0]
+
+        track_snippet = selected_track.get('snippet', {})
+        result['language'] = track_snippet.get('language', 'unknown')
+        track_id = selected_track.get('id')
+
+        logger.info(f"Selected caption track: {result['language']} (ID: {track_id})")
+
+        # Try to fetch captions via YouTube's timedtext endpoint
+        # This is a public endpoint that works without OAuth for public videos
+        timedtext_url = f"https://www.youtube.com/api/timedtext?v={video_id}&lang={result['language']}&fmt=srv3"
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+        }
+
+        response = requests.get(timedtext_url, headers=headers, timeout=30)
+
+        if response.status_code == 200 and response.text:
+            # Parse the XML response
+            try:
+                root = ET.fromstring(response.text)
+                transcript_parts = []
+
+                for text_elem in root.findall('.//text'):
+                    text_content = text_elem.text
+                    if text_content:
+                        # Clean up HTML entities and whitespace
+                        text_content = text_content.replace('&amp;', '&')
+                        text_content = text_content.replace('&lt;', '<')
+                        text_content = text_content.replace('&gt;', '>')
+                        text_content = text_content.replace('&#39;', "'")
+                        text_content = text_content.replace('&quot;', '"')
+                        text_content = text_content.replace('\n', ' ')
+                        transcript_parts.append(text_content.strip())
+
+                if transcript_parts:
+                    result['transcript'] = ' '.join(transcript_parts)
+                    result['transcript'] = ' '.join(result['transcript'].split())  # Normalize whitespace
+                    logger.info(f"Successfully fetched transcript via YouTube API ({len(result['transcript'])} chars)")
+                else:
+                    result['error'] = 'Caption track found but no text content'
+                    logger.warning(f"Empty caption content for video {video_id}")
+
+            except ET.ParseError as e:
+                result['error'] = f'Failed to parse caption XML: {str(e)}'
+                logger.error(f"XML parse error for video {video_id}: {e}")
+        else:
+            # Try alternative format
+            timedtext_url_alt = f"https://www.youtube.com/api/timedtext?v={video_id}&lang={result['language']}"
+            response = requests.get(timedtext_url_alt, headers=headers, timeout=30)
+
+            if response.status_code == 200 and response.text:
+                try:
+                    root = ET.fromstring(response.text)
+                    transcript_parts = []
+
+                    for text_elem in root.findall('.//text'):
+                        text_content = text_elem.text
+                        if text_content:
+                            text_content = text_content.replace('\n', ' ').strip()
+                            transcript_parts.append(text_content)
+
+                    if transcript_parts:
+                        result['transcript'] = ' '.join(transcript_parts)
+                        result['transcript'] = ' '.join(result['transcript'].split())
+                        logger.info(f"Successfully fetched transcript via alt endpoint ({len(result['transcript'])} chars)")
+                    else:
+                        result['error'] = 'Could not extract caption text'
+                except ET.ParseError:
+                    result['error'] = 'Failed to parse caption response'
+            else:
+                result['error'] = f'Timedtext endpoint returned status {response.status_code}'
+                logger.warning(f"Timedtext fetch failed for video {video_id}: HTTP {response.status_code}")
+
+    except ImportError:
+        result['error'] = 'google-api-python-client not installed'
+        logger.error("google-api-python-client not installed")
+    except HttpError as e:
+        if e.resp.status == 403:
+            result['error'] = 'YouTube API access forbidden - check API key permissions'
+        elif e.resp.status == 404:
+            result['error'] = 'Video not found or captions not available'
+        else:
+            result['error'] = f'YouTube API error: {str(e)}'
+        logger.error(f"YouTube API error for video {video_id}: {e}")
+    except Exception as e:
+        result['error'] = f'Error fetching captions: {str(e)}'
+        logger.error(f"Error fetching YouTube captions for {video_id}: {e}")
+
+    return result
+
+
 def extract_twitter_post_id(url: str) -> Optional[str]:
     """Extract Twitter/X post ID from URL"""
     parsed = urlparse(url)
@@ -648,38 +814,59 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
                 f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
             )
 
-            # Now fetch the transcript - try direct API first, then Gemini fallback
+            # Now fetch the transcript - try multiple methods in order:
+            # 1. youtube-transcript-api (direct, no API key needed)
+            # 2. YouTube Data API (requires API key)
+            # 3. Gemini AI fallback (requires API key)
             logger.info(f"Attempting to fetch transcript for video {video_id}")
             transcript_result = fetch_youtube_transcript(video_id)
             transcript_text = None
             transcript_source = None
+            errors = []
 
             if transcript_result.get('transcript') and not transcript_result.get('error'):
                 # Direct transcript fetch succeeded
                 transcript_text = transcript_result['transcript']
-                transcript_source = 'youtube_api'
+                transcript_source = 'youtube-transcript-api'
                 result['transcript_available'] = True
                 result['transcript_language'] = transcript_result.get('language')
                 result['transcript_is_generated'] = transcript_result.get('is_generated', False)
                 logger.info(f"Got transcript via youtube-transcript-api ({len(transcript_text)} chars)")
             else:
-                # Direct fetch failed - try Gemini fallback
+                # Method 1 failed - try YouTube Data API
                 direct_error = transcript_result.get('error', 'Unknown error')
-                logger.info(f"Direct transcript fetch failed ({direct_error}), trying Gemini fallback...")
+                errors.append(f"youtube-transcript-api: {direct_error}")
+                logger.info(f"Direct transcript fetch failed ({direct_error}), trying YouTube Data API...")
 
-                gemini_result = fetch_youtube_transcript_via_gemini(url)
+                yt_api_result = fetch_youtube_transcript_via_youtube_api(video_id)
 
-                if gemini_result.get('transcript') and not gemini_result.get('error'):
-                    transcript_text = gemini_result['transcript']
-                    transcript_source = 'gemini'
+                if yt_api_result.get('transcript') and not yt_api_result.get('error'):
+                    transcript_text = yt_api_result['transcript']
+                    transcript_source = 'youtube-data-api'
                     result['transcript_available'] = True
-                    result['transcript_is_generated'] = True  # Gemini extracts from audio
-                    logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
+                    result['transcript_language'] = yt_api_result.get('language')
+                    result['transcript_is_generated'] = False
+                    logger.info(f"Got transcript via YouTube Data API ({len(transcript_text)} chars)")
                 else:
-                    # Both methods failed
-                    gemini_error = gemini_result.get('error', 'Unknown error')
-                    logger.warning(f"Both transcript methods failed. Direct: {direct_error}, Gemini: {gemini_error}")
-                    result['transcript_error'] = f"Direct: {direct_error}; Gemini: {gemini_error}"
+                    # Method 2 failed - try Gemini fallback
+                    yt_api_error = yt_api_result.get('error', 'Unknown error')
+                    errors.append(f"YouTube Data API: {yt_api_error}")
+                    logger.info(f"YouTube Data API failed ({yt_api_error}), trying Gemini fallback...")
+
+                    gemini_result = fetch_youtube_transcript_via_gemini(url)
+
+                    if gemini_result.get('transcript') and not gemini_result.get('error'):
+                        transcript_text = gemini_result['transcript']
+                        transcript_source = 'gemini'
+                        result['transcript_available'] = True
+                        result['transcript_is_generated'] = True  # Gemini extracts from audio
+                        logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
+                    else:
+                        # All methods failed
+                        gemini_error = gemini_result.get('error', 'Unknown error')
+                        errors.append(f"Gemini: {gemini_error}")
+                        logger.warning(f"All transcript methods failed: {'; '.join(errors)}")
+                        result['transcript_error'] = '; '.join(errors)
 
             if transcript_text:
                 # We got a transcript - use it as the main text content

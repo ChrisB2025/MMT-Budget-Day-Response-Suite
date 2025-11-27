@@ -170,6 +170,9 @@ CLAUDE_MAX_TOKENS = env.int('CLAUDE_MAX_TOKENS', default=4000)
 # Google Gemini API (for YouTube video transcript extraction)
 GEMINI_API_KEY = env('GEMINI_API_KEY', default='')
 
+# YouTube Data API (for fetching video captions)
+YOUTUBE_API_KEY = env('YOUTUBE_API_KEY', default='')
+
 # Login configuration
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
