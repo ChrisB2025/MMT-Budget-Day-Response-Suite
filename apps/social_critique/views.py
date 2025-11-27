@@ -288,6 +288,8 @@ def get_share_link(request, share_id, platform):
     encoded_text = quote(share_text)
     encoded_url = quote(critique_url)
 
+    # Platforms with share intent URLs
+    # Note: YouTube, TikTok, Instagram don't have share intents - use copy button instead
     share_links = {
         'twitter': f"https://twitter.com/intent/tweet?text={encoded_text}",
         'facebook': f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}&quote={encoded_text}",
@@ -296,9 +298,9 @@ def get_share_link(request, share_id, platform):
         'threads': f"https://threads.net/intent/post?text={encoded_text}%20{encoded_url}",
         'bluesky': f"https://bsky.app/intent/compose?text={encoded_text}%20{encoded_url}",
         'mastodon': f"https://mastodon.social/share?text={encoded_text}%20{encoded_url}",
-        'youtube': f"https://twitter.com/intent/tweet?text={encoded_text}",  # YouTube doesn't have share intent, use Twitter
     }
 
+    # Default to Twitter if platform doesn't have share intent
     share_link = share_links.get(platform, share_links['twitter'])
 
     # Redirect to the share link

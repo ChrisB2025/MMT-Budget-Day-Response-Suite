@@ -253,13 +253,15 @@
                 <div class="flex gap-2">
                     <button onclick="copyReply('{{ reply.reply_type }}', '{{ reply.platform_target }}')"
                             class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 hover:text-white copy-btn">
-                        Copy
+                        {% if reply.platform_target == 'youtube' %}Copy for YouTube Comment{% elif reply.platform_target == 'tiktok' %}Copy for TikTok{% elif reply.platform_target == 'instagram' %}Copy for Instagram{% else %}Copy{% endif %}
                     </button>
+                    {% if reply.platform_target != 'youtube' and reply.platform_target != 'tiktok' and reply.platform_target != 'instagram' %}
                     <a href="{% url 'social_critique:share_link' share_id=critique.share_id platform=reply.platform_target %}"
                        target="_blank"
                        class="px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 hover:text-white">
                         Share on {{ reply.get_platform_target_display }}
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
