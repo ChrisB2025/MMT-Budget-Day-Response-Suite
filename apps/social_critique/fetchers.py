@@ -205,6 +205,96 @@ def fetch_youtube_transcript(video_id: str, languages: list = None) -> Dict[str,
     return result
 
 
+def fetch_youtube_transcript_via_gemini(video_url: str) -> Dict[str, Any]:
+    """
+    Fetch YouTube video transcript using Google Gemini API.
+
+    Gemini can directly process YouTube videos and extract their content,
+    which works even when direct transcript access is blocked.
+
+    Args:
+        video_url: The full YouTube video URL
+
+    Returns:
+        Dictionary containing:
+            - transcript: Extracted transcript/content text
+            - error: Error message if fetch failed
+    """
+    from django.conf import settings
+
+    result = {
+        'transcript': '',
+        'error': None,
+    }
+
+    # Check if Gemini API key is configured
+    gemini_api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    if not gemini_api_key:
+        result['error'] = 'GEMINI_API_KEY not configured'
+        logger.warning("Gemini API key not configured for YouTube transcript fallback")
+        return result
+
+    try:
+        import google.generativeai as genai
+
+        # Configure Gemini
+        genai.configure(api_key=gemini_api_key)
+
+        # Use Gemini 2.0 Flash which has good video understanding capabilities
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+
+        # Create the prompt to extract transcript
+        prompt = """Please extract and provide the complete transcript/spoken content from this YouTube video.
+
+Important instructions:
+1. Provide ONLY the transcript text - no summaries, analysis, or commentary
+2. Include all spoken words as accurately as possible
+3. If there are multiple speakers, you can indicate speaker changes with line breaks
+4. Do not include timestamps unless they are spoken in the video
+5. If the video has no speech (e.g., music only), indicate that briefly
+
+YouTube URL: """ + video_url
+
+        logger.info(f"Fetching YouTube transcript via Gemini for: {video_url}")
+
+        # Generate content - Gemini can process YouTube URLs directly
+        response = model.generate_content(prompt)
+
+        if response and response.text:
+            transcript_text = response.text.strip()
+
+            # Check if Gemini indicated no transcript available
+            no_transcript_indicators = [
+                'no speech', 'no spoken', 'music only', 'no transcript',
+                'cannot access', 'unable to access', 'not available'
+            ]
+            if any(indicator in transcript_text.lower() for indicator in no_transcript_indicators) and len(transcript_text) < 200:
+                result['error'] = 'No speech content found in video'
+                logger.warning(f"Gemini indicated no speech in video: {video_url}")
+            else:
+                result['transcript'] = transcript_text
+                logger.info(f"Successfully fetched transcript via Gemini ({len(transcript_text)} chars)")
+        else:
+            result['error'] = 'Gemini returned empty response'
+            logger.warning("Gemini returned empty response for YouTube transcript")
+
+    except ImportError:
+        result['error'] = 'google-generativeai not installed. Run: pip install google-generativeai'
+        logger.error("google-generativeai not installed")
+    except Exception as e:
+        error_msg = str(e)
+        # Check for specific Gemini errors
+        if 'API_KEY' in error_msg.upper() or 'authentication' in error_msg.lower():
+            result['error'] = 'Invalid or missing Gemini API key'
+        elif 'quota' in error_msg.lower() or 'rate' in error_msg.lower():
+            result['error'] = 'Gemini API quota exceeded'
+        else:
+            result['error'] = f'Gemini API error: {error_msg}'
+        logger.error(f"Error fetching YouTube transcript via Gemini: {e}")
+
+    return result
+
+
 def extract_twitter_post_id(url: str) -> Optional[str]:
     """Extract Twitter/X post ID from URL"""
     parsed = urlparse(url)
@@ -534,32 +624,52 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
                 f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
             )
 
-            # Now fetch the transcript
+            # Now fetch the transcript - try direct API first, then Gemini fallback
             logger.info(f"Attempting to fetch transcript for video {video_id}")
             transcript_result = fetch_youtube_transcript(video_id)
+            transcript_text = None
+            transcript_source = None
 
             if transcript_result.get('transcript') and not transcript_result.get('error'):
-                # We got a transcript - use it as the main text content
+                # Direct transcript fetch succeeded
                 transcript_text = transcript_result['transcript']
+                transcript_source = 'youtube_api'
                 result['transcript_available'] = True
                 result['transcript_language'] = transcript_result.get('language')
                 result['transcript_is_generated'] = transcript_result.get('is_generated', False)
+                logger.info(f"Got transcript via youtube-transcript-api ({len(transcript_text)} chars)")
+            else:
+                # Direct fetch failed - try Gemini fallback
+                direct_error = transcript_result.get('error', 'Unknown error')
+                logger.info(f"Direct transcript fetch failed ({direct_error}), trying Gemini fallback...")
 
-                # Combine transcript with video description for comprehensive analysis
-                # The transcript is the main content, description provides context
-                if video_description:
-                    result['text'] = f"VIDEO DESCRIPTION:\n{video_description}\n\nTRANSCRIPT:\n{transcript_text}"
+                gemini_result = fetch_youtube_transcript_via_gemini(url)
+
+                if gemini_result.get('transcript') and not gemini_result.get('error'):
+                    transcript_text = gemini_result['transcript']
+                    transcript_source = 'gemini'
+                    result['transcript_available'] = True
+                    result['transcript_is_generated'] = True  # Gemini extracts from audio
+                    logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
                 else:
-                    result['text'] = f"TRANSCRIPT:\n{transcript_text}"
+                    # Both methods failed
+                    gemini_error = gemini_result.get('error', 'Unknown error')
+                    logger.warning(f"Both transcript methods failed. Direct: {direct_error}, Gemini: {gemini_error}")
+                    result['transcript_error'] = f"Direct: {direct_error}; Gemini: {gemini_error}"
+
+            if transcript_text:
+                # We got a transcript - use it as the main text content
+                # Combine transcript with video description for comprehensive analysis
+                if video_description:
+                    result['text'] = f"VIDEO DESCRIPTION:\n{video_description}\n\nTRANSCRIPT (via {transcript_source}):\n{transcript_text}"
+                else:
+                    result['text'] = f"TRANSCRIPT (via {transcript_source}):\n{transcript_text}"
 
                 logger.info(f"Successfully fetched YouTube content with transcript ({len(transcript_text)} chars)")
             else:
                 # No transcript available - fall back to description only
                 result['text'] = video_description
-                if transcript_result.get('error'):
-                    logger.warning(f"Transcript fetch failed: {transcript_result['error']}")
-                    # Don't set this as the main error since we still have video description
-                    result['transcript_error'] = transcript_result['error']
+                logger.warning("No transcript available, using video description only")
 
             # We have content if we have either transcript or description
             if result['text']:
