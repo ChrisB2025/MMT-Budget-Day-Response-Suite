@@ -207,13 +207,13 @@ async function fetchPreview(url) {
         document.getElementById('preview-title').textContent = data.title || 'No title available';
         document.getElementById('preview-author').textContent = data.author || '';
         document.getElementById('preview-description').textContent = data.description || '';
-        document.getElementById('preview-icon').textContent = platformIcons[data.platform] || '🔗';
 
+        // Update thumbnail - always reset the structure first
         const thumbEl = document.getElementById('preview-thumbnail');
         if (data.thumbnail_url) {
-            thumbEl.innerHTML = `<img src="${data.thumbnail_url}" alt="" class="w-full h-full object-cover rounded">`;
+            thumbEl.innerHTML = `<img src="${data.thumbnail_url}" alt="" class="w-full h-full object-cover rounded" onerror="this.parentElement.innerHTML='<span class=\\'text-3xl\\'>${platformIcons[data.platform] || '🔗'}</span>'">`;
         } else {
-            thumbEl.innerHTML = `<span class="text-3xl" id="preview-icon">${platformIcons[data.platform] || '🔗'}</span>`;
+            thumbEl.innerHTML = `<span class="text-3xl">${platformIcons[data.platform] || '🔗'}</span>`;
         }
 
     } catch (error) {
