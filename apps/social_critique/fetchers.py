@@ -104,6 +104,107 @@ def extract_youtube_video_id(url: str) -> Optional[str]:
     return None
 
 
+def fetch_youtube_transcript(video_id: str, languages: list = None) -> Dict[str, Any]:
+    """
+    Fetch YouTube video transcript using youtube-transcript-api.
+
+    Args:
+        video_id: The YouTube video ID
+        languages: List of language codes to try (default: ['en', 'en-GB', 'en-US'])
+
+    Returns:
+        Dictionary containing:
+            - transcript: Full transcript text
+            - segments: List of transcript segments with timing
+            - language: Language code of the transcript
+            - is_generated: Whether it's auto-generated
+            - error: Error message if fetch failed
+    """
+    if languages is None:
+        languages = ['en', 'en-GB', 'en-US']
+
+    result = {
+        'transcript': '',
+        'segments': [],
+        'language': None,
+        'is_generated': False,
+        'error': None,
+    }
+
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        from youtube_transcript_api._errors import (
+            TranscriptsDisabled,
+            NoTranscriptFound,
+            VideoUnavailable,
+            NoTranscriptAvailable,
+        )
+
+        try:
+            # Try to get transcript in preferred languages
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+
+            # First try to find a manually created transcript
+            transcript = None
+            try:
+                transcript = transcript_list.find_manually_created_transcript(languages)
+                result['is_generated'] = False
+                logger.info(f"Found manual transcript for video {video_id}")
+            except NoTranscriptFound:
+                # Fall back to auto-generated transcript
+                try:
+                    transcript = transcript_list.find_generated_transcript(languages)
+                    result['is_generated'] = True
+                    logger.info(f"Found auto-generated transcript for video {video_id}")
+                except NoTranscriptFound:
+                    # Try to get any available transcript and translate it
+                    try:
+                        # Get the first available transcript
+                        for t in transcript_list:
+                            transcript = t
+                            result['is_generated'] = t.is_generated
+                            logger.info(f"Found transcript in {t.language_code} for video {video_id}")
+                            break
+                    except Exception:
+                        pass
+
+            if transcript:
+                # Fetch the actual transcript data
+                transcript_data = transcript.fetch()
+                result['language'] = transcript.language_code
+                result['segments'] = transcript_data
+
+                # Combine all text segments into full transcript
+                full_text = ' '.join(segment['text'] for segment in transcript_data)
+                # Clean up the text (remove excessive whitespace, newlines)
+                full_text = ' '.join(full_text.split())
+                result['transcript'] = full_text
+
+                logger.info(f"Successfully fetched transcript ({len(full_text)} chars) for video {video_id}")
+            else:
+                result['error'] = 'No transcript available for this video'
+                logger.warning(f"No transcript available for video {video_id}")
+
+        except TranscriptsDisabled:
+            result['error'] = 'Transcripts are disabled for this video'
+            logger.warning(f"Transcripts disabled for video {video_id}")
+        except VideoUnavailable:
+            result['error'] = 'Video is unavailable'
+            logger.warning(f"Video unavailable: {video_id}")
+        except NoTranscriptAvailable:
+            result['error'] = 'No transcript available for this video'
+            logger.warning(f"No transcript available for video {video_id}")
+
+    except ImportError:
+        result['error'] = 'youtube-transcript-api not installed. Run: pip install youtube-transcript-api'
+        logger.error("youtube-transcript-api not installed")
+    except Exception as e:
+        result['error'] = f'Error fetching transcript: {str(e)}'
+        logger.error(f"Error fetching YouTube transcript for {video_id}: {e}")
+
+    return result
+
+
 def extract_twitter_post_id(url: str) -> Optional[str]:
     """Extract Twitter/X post ID from URL"""
     parsed = urlparse(url)
@@ -191,6 +292,13 @@ def is_bluesky_url(url: str) -> bool:
     parsed = urlparse(url.lower())
     domain = parsed.netloc.replace('www.', '')
     return domain in ['bsky.app', 'bsky.social']
+
+
+def is_youtube_url(url: str) -> bool:
+    """Check if URL is a YouTube URL"""
+    parsed = urlparse(url.lower())
+    domain = parsed.netloc.replace('www.', '')
+    return domain in ['youtube.com', 'youtu.be', 'm.youtube.com']
 
 
 def extract_bluesky_post_info(url: str) -> Optional[Dict[str, str]]:
@@ -313,6 +421,160 @@ def fetch_bluesky_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     except Exception as e:
         result['error'] = f'Error fetching Bluesky post: {str(e)}'
         logger.error(f"Bluesky fetch error: {e}")
+
+    return result
+
+
+def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
+    """
+    Fetch YouTube video content including transcript.
+
+    Fetches video metadata from the page and attempts to get the transcript
+    for more comprehensive content analysis.
+
+    Returns standardized content dict with transcript included in text.
+    """
+    import requests
+    from bs4 import BeautifulSoup
+
+    result = {
+        'platform': 'youtube',
+        'title': '',
+        'author': '',
+        'text': '',
+        'description': '',
+        'thumbnail_url': '',
+        'publish_date': None,
+        'original_url': url,
+        'error': None,
+        'transcript_available': False,
+        'transcript_language': None,
+        'transcript_is_generated': False,
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    }
+
+    # Extract video ID
+    video_id = extract_youtube_video_id(url)
+    if not video_id:
+        result['error'] = 'Could not extract video ID from URL'
+        return result
+
+    try:
+        logger.info(f"Fetching YouTube content from {url} (video_id: {video_id})")
+
+        # First, fetch page metadata
+        response = requests.get(url, headers=headers, timeout=timeout, allow_redirects=True)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            # Extract Open Graph metadata
+            og_title = soup.find('meta', property='og:title')
+            og_description = soup.find('meta', property='og:description')
+            og_image = soup.find('meta', property='og:image')
+
+            # Twitter Card metadata
+            twitter_title = soup.find('meta', attrs={'name': 'twitter:title'})
+            twitter_description = soup.find('meta', attrs={'name': 'twitter:description'})
+            twitter_image = soup.find('meta', attrs={'name': 'twitter:image'})
+
+            # Standard metadata
+            meta_description = soup.find('meta', attrs={'name': 'description'})
+
+            # Title
+            result['title'] = (
+                (og_title and og_title.get('content')) or
+                (twitter_title and twitter_title.get('content')) or
+                (soup.title and soup.title.string) or
+                ''
+            )
+
+            # Description (video description from YouTube)
+            video_description = (
+                (og_description and og_description.get('content')) or
+                (twitter_description and twitter_description.get('content')) or
+                (meta_description and meta_description.get('content')) or
+                ''
+            )
+            result['description'] = video_description
+
+            # Try to get author from structured data or page content
+            # Look for channel name in JSON-LD
+            script = soup.find('script', type='application/ld+json')
+            if script:
+                try:
+                    import json
+                    data = json.loads(script.string)
+                    if isinstance(data, dict):
+                        if 'author' in data:
+                            author_data = data['author']
+                            if isinstance(author_data, dict):
+                                result['author'] = author_data.get('name', '')
+                            elif isinstance(author_data, str):
+                                result['author'] = author_data
+                except Exception:
+                    pass
+
+            # Fallback: try to extract from title pattern "Video Title - Channel Name"
+            if not result['author'] and result['title'] and ' - ' in result['title']:
+                # Last part after " - " is usually the channel name
+                parts = result['title'].rsplit(' - ', 1)
+                if len(parts) == 2:
+                    result['author'] = parts[1].replace(' - YouTube', '').strip()
+
+            # Thumbnail
+            result['thumbnail_url'] = (
+                (og_image and og_image.get('content')) or
+                (twitter_image and twitter_image.get('content')) or
+                f'https://img.youtube.com/vi/{video_id}/maxresdefault.jpg'
+            )
+
+            # Now fetch the transcript
+            logger.info(f"Attempting to fetch transcript for video {video_id}")
+            transcript_result = fetch_youtube_transcript(video_id)
+
+            if transcript_result.get('transcript') and not transcript_result.get('error'):
+                # We got a transcript - use it as the main text content
+                transcript_text = transcript_result['transcript']
+                result['transcript_available'] = True
+                result['transcript_language'] = transcript_result.get('language')
+                result['transcript_is_generated'] = transcript_result.get('is_generated', False)
+
+                # Combine transcript with video description for comprehensive analysis
+                # The transcript is the main content, description provides context
+                if video_description:
+                    result['text'] = f"VIDEO DESCRIPTION:\n{video_description}\n\nTRANSCRIPT:\n{transcript_text}"
+                else:
+                    result['text'] = f"TRANSCRIPT:\n{transcript_text}"
+
+                logger.info(f"Successfully fetched YouTube content with transcript ({len(transcript_text)} chars)")
+            else:
+                # No transcript available - fall back to description only
+                result['text'] = video_description
+                if transcript_result.get('error'):
+                    logger.warning(f"Transcript fetch failed: {transcript_result['error']}")
+                    # Don't set this as the main error since we still have video description
+                    result['transcript_error'] = transcript_result['error']
+
+            # We have content if we have either transcript or description
+            if result['text']:
+                return result
+            else:
+                result['error'] = 'Could not extract video content (no transcript or description available)'
+        else:
+            result['error'] = f'Failed to fetch YouTube page (HTTP {response.status_code})'
+
+    except requests.exceptions.Timeout:
+        result['error'] = 'Request timed out fetching YouTube video'
+        logger.warning(f"YouTube fetch timeout: {url}")
+    except Exception as e:
+        result['error'] = f'Error fetching YouTube video: {str(e)}'
+        logger.error(f"YouTube fetch error: {e}")
 
     return result
 
@@ -558,6 +820,11 @@ def fetch_url_content(url: str, timeout: int = 30) -> Dict[str, Any]:
     if is_bluesky_url(url):
         logger.info(f"Detected Bluesky URL, using dedicated fetcher: {url}")
         return fetch_bluesky_content(url, timeout=timeout)
+
+    # For YouTube URLs, use dedicated YouTube fetcher with transcript support
+    if is_youtube_url(url):
+        logger.info(f"Detected YouTube URL, using dedicated fetcher with transcript: {url}")
+        return fetch_youtube_content(url, timeout=timeout)
 
     result = {
         'platform': platform,
