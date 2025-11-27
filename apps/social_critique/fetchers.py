@@ -240,25 +240,46 @@ def fetch_youtube_transcript_via_gemini(video_url: str) -> Dict[str, Any]:
         # Configure Gemini
         genai.configure(api_key=gemini_api_key)
 
-        # Use Gemini 2.0 Flash which has good video understanding capabilities
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # Use Gemini 1.5 Flash which can process YouTube videos
+        # Try multiple models in case one isn't available
+        models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp']
 
-        # Create the prompt to extract transcript
-        prompt = """Please extract and provide the complete transcript/spoken content from this YouTube video.
+        response = None
+        last_error = None
 
-Important instructions:
-1. Provide ONLY the transcript text - no summaries, analysis, or commentary
-2. Include all spoken words as accurately as possible
-3. If there are multiple speakers, you can indicate speaker changes with line breaks
-4. Do not include timestamps unless they are spoken in the video
-5. If the video has no speech (e.g., music only), indicate that briefly
+        for model_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_name)
 
-YouTube URL: """ + video_url
+                # Create the prompt to extract transcript
+                prompt = f"""Analyze this YouTube video and provide the complete transcript of all spoken content.
 
-        logger.info(f"Fetching YouTube transcript via Gemini for: {video_url}")
+YouTube Video URL: {video_url}
 
-        # Generate content - Gemini can process YouTube URLs directly
-        response = model.generate_content(prompt)
+Instructions:
+1. Watch/analyze the video at the URL above
+2. Transcribe ALL spoken words from the video
+3. Provide ONLY the transcript - no summaries, commentary, or analysis
+4. If there are multiple speakers, indicate speaker changes with line breaks
+5. Include the full content, not just a summary
+
+Please provide the complete transcript now:"""
+
+                logger.info(f"Trying Gemini model {model_name} for: {video_url}")
+
+                response = model.generate_content(prompt)
+
+                if response and response.text and len(response.text.strip()) > 100:
+                    logger.info(f"Successfully got response from {model_name}")
+                    break
+                else:
+                    logger.warning(f"Model {model_name} returned insufficient content")
+                    response = None
+
+            except Exception as model_error:
+                last_error = model_error
+                logger.warning(f"Model {model_name} failed: {model_error}")
+                continue
 
         if response and response.text:
             transcript_text = response.text.strip()
@@ -266,17 +287,20 @@ YouTube URL: """ + video_url
             # Check if Gemini indicated no transcript available
             no_transcript_indicators = [
                 'no speech', 'no spoken', 'music only', 'no transcript',
-                'cannot access', 'unable to access', 'not available'
+                'cannot access', 'unable to access', 'not available',
+                "i cannot access", "i can't access", "i don't have access",
+                "i'm unable to", "i am unable to"
             ]
-            if any(indicator in transcript_text.lower() for indicator in no_transcript_indicators) and len(transcript_text) < 200:
-                result['error'] = 'No speech content found in video'
-                logger.warning(f"Gemini indicated no speech in video: {video_url}")
+            if any(indicator in transcript_text.lower() for indicator in no_transcript_indicators) and len(transcript_text) < 300:
+                result['error'] = f'Gemini cannot access video: {transcript_text[:200]}'
+                logger.warning(f"Gemini indicated cannot access video: {video_url}")
             else:
                 result['transcript'] = transcript_text
                 logger.info(f"Successfully fetched transcript via Gemini ({len(transcript_text)} chars)")
         else:
-            result['error'] = 'Gemini returned empty response'
-            logger.warning("Gemini returned empty response for YouTube transcript")
+            error_detail = str(last_error) if last_error else 'All models returned empty responses'
+            result['error'] = f'Gemini failed: {error_detail}'
+            logger.warning(f"Gemini returned empty response for YouTube transcript: {error_detail}")
 
     except ImportError:
         result['error'] = 'google-generativeai not installed. Run: pip install google-generativeai'
