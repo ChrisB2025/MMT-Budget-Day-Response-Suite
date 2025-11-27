@@ -36,3 +36,4 @@ pytz==2023.3
 # Web Scraping (for social media critique)
 requests==2.31.0
 beautifulsoup4==4.12.2
+youtube-transcript-api==0.6.2
