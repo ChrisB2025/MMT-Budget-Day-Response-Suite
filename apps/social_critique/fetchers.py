@@ -21,6 +21,18 @@ NITTER_INSTANCES = [
     'n.opnxng.com',
 ]
 
+# Invidious instances for YouTube proxy (alternative to direct YouTube access)
+# These can provide caption/transcript access when direct YouTube is blocked
+INVIDIOUS_INSTANCES = [
+    'invidious.fdn.fr',
+    'yewtu.be',
+    'vid.puffyan.us',
+    'invidious.nerdvpn.de',
+    'inv.nadeko.net',
+    'invidious.protokolla.fi',
+    'invidious.perennialte.ch',
+]
+
 # Twitter syndication API - more reliable fallback
 TWITTER_SYNDICATION_URL = 'https://syndication.twitter.com/srv/timeline-profile/screen-name/'
 TWITTER_PUBLISH_URL = 'https://publish.twitter.com/oembed'
@@ -319,6 +331,235 @@ Please provide the complete transcript now:"""
     return result
 
 
+def fetch_youtube_transcript_direct_timedtext(video_id: str) -> Dict[str, Any]:
+    """
+    Fetch YouTube transcript directly via the timedtext endpoint.
+
+    This bypasses the YouTube Data API and tries multiple URL patterns
+    to access the caption data directly. Works for public videos with
+    auto-generated or manual captions.
+
+    Args:
+        video_id: The YouTube video ID
+
+    Returns:
+        Dictionary containing:
+            - transcript: Extracted transcript text
+            - language: Language code of the transcript
+            - error: Error message if fetch failed
+    """
+    import requests
+    import xml.etree.ElementTree as ET
+    import json
+
+    result = {
+        'transcript': '',
+        'language': None,
+        'error': None,
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': f'https://www.youtube.com/watch?v={video_id}',
+    }
+
+    # Try different timedtext URL patterns and languages
+    languages_to_try = ['en', 'en-US', 'en-GB', 'a.en', 'asr']  # 'asr' and 'a.en' for auto-generated
+    formats_to_try = ['srv3', 'vtt', 'srv1', 'srv2', '']
+
+    logger.info(f"Trying direct timedtext endpoint for video {video_id}")
+
+    for lang in languages_to_try:
+        for fmt in formats_to_try:
+            try:
+                # Build the timedtext URL
+                params = {
+                    'v': video_id,
+                    'lang': lang,
+                }
+                if fmt:
+                    params['fmt'] = fmt
+
+                # Try with 'kind=asr' for auto-generated captions
+                for kind in ['', 'asr']:
+                    if kind:
+                        params['kind'] = kind
+                    elif 'kind' in params:
+                        del params['kind']
+
+                    query = '&'.join(f"{k}={v}" for k, v in params.items())
+                    url = f"https://www.youtube.com/api/timedtext?{query}"
+
+                    response = requests.get(url, headers=headers, timeout=15)
+
+                    if response.status_code == 200 and response.text and len(response.text) > 100:
+                        content = response.text.strip()
+
+                        # Try to parse as XML (srv formats)
+                        if content.startswith('<?xml') or content.startswith('<transcript') or content.startswith('<timedtext'):
+                            try:
+                                root = ET.fromstring(content)
+                                transcript_parts = []
+
+                                # Try different XML structures
+                                for text_elem in root.findall('.//text'):
+                                    text_content = text_elem.text
+                                    if text_content:
+                                        text_content = text_content.replace('\n', ' ').strip()
+                                        transcript_parts.append(text_content)
+
+                                if transcript_parts:
+                                    result['transcript'] = ' '.join(transcript_parts)
+                                    result['transcript'] = ' '.join(result['transcript'].split())
+                                    result['language'] = lang
+                                    logger.info(f"Got transcript via direct timedtext ({lang}, {fmt or 'default'}, {kind or 'manual'}): {len(result['transcript'])} chars")
+                                    return result
+                            except ET.ParseError:
+                                pass
+
+                        # Try to parse as VTT
+                        elif 'WEBVTT' in content:
+                            transcript_text = _parse_subtitle_content(content)
+                            if transcript_text:
+                                result['transcript'] = transcript_text
+                                result['language'] = lang
+                                logger.info(f"Got transcript via direct timedtext VTT ({lang}): {len(result['transcript'])} chars")
+                                return result
+
+                        # Try JSON format
+                        elif content.startswith('{') or content.startswith('['):
+                            try:
+                                data = json.loads(content)
+                                transcript_parts = []
+
+                                # Handle different JSON structures
+                                if isinstance(data, dict) and 'events' in data:
+                                    for event in data['events']:
+                                        if 'segs' in event:
+                                            for seg in event['segs']:
+                                                if 'utf8' in seg:
+                                                    transcript_parts.append(seg['utf8'])
+
+                                if transcript_parts:
+                                    result['transcript'] = ' '.join(transcript_parts)
+                                    result['transcript'] = ' '.join(result['transcript'].split())
+                                    result['language'] = lang
+                                    logger.info(f"Got transcript via direct timedtext JSON ({lang}): {len(result['transcript'])} chars")
+                                    return result
+                            except json.JSONDecodeError:
+                                pass
+
+            except requests.exceptions.Timeout:
+                continue
+            except Exception as e:
+                logger.debug(f"Direct timedtext attempt failed ({lang}, {fmt}): {e}")
+                continue
+
+    result['error'] = 'Could not fetch transcript via direct timedtext endpoint'
+    logger.warning(f"All direct timedtext attempts failed for video {video_id}")
+    return result
+
+
+def fetch_youtube_transcript_via_invidious(video_id: str) -> Dict[str, Any]:
+    """
+    Fetch YouTube transcript via Invidious instances.
+
+    Invidious provides a YouTube frontend that can access captions.
+    Uses the Invidious API to fetch caption data.
+
+    Args:
+        video_id: The YouTube video ID
+
+    Returns:
+        Dictionary containing:
+            - transcript: Extracted transcript text
+            - language: Language code of the transcript
+            - error: Error message if fetch failed
+    """
+    import requests
+
+    result = {
+        'transcript': '',
+        'language': None,
+        'error': None,
+    }
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+    }
+
+    logger.info(f"Trying Invidious instances for video {video_id}")
+
+    for instance in INVIDIOUS_INSTANCES:
+        try:
+            # First get video info to find caption tracks
+            api_url = f"https://{instance}/api/v1/videos/{video_id}"
+
+            response = requests.get(api_url, headers=headers, timeout=15)
+
+            if response.status_code != 200:
+                logger.debug(f"Invidious {instance} returned {response.status_code}")
+                continue
+
+            video_data = response.json()
+            captions = video_data.get('captions', [])
+
+            if not captions:
+                logger.debug(f"Invidious {instance}: No captions available")
+                continue
+
+            # Find English caption track
+            selected_caption = None
+            for caption in captions:
+                lang = caption.get('language_code', '') or caption.get('label', '')
+                if lang.lower().startswith('en'):
+                    selected_caption = caption
+                    break
+
+            # Fall back to first caption if no English
+            if not selected_caption and captions:
+                selected_caption = captions[0]
+
+            if not selected_caption:
+                continue
+
+            # Get caption URL
+            caption_url = selected_caption.get('url', '')
+            if not caption_url:
+                continue
+
+            # If URL is relative, make it absolute
+            if caption_url.startswith('/'):
+                caption_url = f"https://{instance}{caption_url}"
+
+            # Fetch the caption content
+            caption_response = requests.get(caption_url, headers=headers, timeout=15)
+
+            if caption_response.status_code == 200 and caption_response.text:
+                # Parse the caption content
+                transcript_text = _parse_subtitle_content(caption_response.text)
+
+                if transcript_text and len(transcript_text) > 50:
+                    result['transcript'] = transcript_text
+                    result['language'] = selected_caption.get('language_code', 'en')
+                    logger.info(f"Got transcript via Invidious {instance}: {len(transcript_text)} chars")
+                    return result
+
+        except requests.exceptions.Timeout:
+            logger.debug(f"Invidious {instance} timed out")
+            continue
+        except Exception as e:
+            logger.debug(f"Invidious {instance} error: {e}")
+            continue
+
+    result['error'] = 'Could not fetch transcript via Invidious instances'
+    logger.warning(f"All Invidious instances failed for video {video_id}")
+    return result
+
+
 def fetch_youtube_transcript_via_youtube_api(video_id: str) -> Dict[str, Any]:
     """
     Fetch YouTube video transcript using YouTube Data API.
@@ -521,35 +762,55 @@ def fetch_youtube_transcript_via_ytdlp(video_url: str) -> Dict[str, Any]:
             ydl_opts = {
                 'writesubtitles': True,
                 'writeautomaticsub': True,
-                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU'],
-                'subtitlesformat': 'vtt/srt/best',
+                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU', 'en-orig'],
+                'subtitlesformat': 'vtt/srv3/srv2/srv1/ttml/json3/best',
                 'skip_download': True,
                 'outtmpl': subtitle_file,
                 'quiet': True,
                 'no_warnings': True,
                 'extract_flat': False,
+                # Use Android client which often has fewer restrictions
+                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                # Bypass geographic restrictions
+                'geo_bypass': True,
+                'geo_bypass_country': 'US',
+                # HTTP settings
+                'socket_timeout': 30,
+                'retries': 3,
+                # Ignore errors to get as much info as possible
+                'ignoreerrors': False,
             }
 
             logger.info(f"Fetching transcript via yt-dlp for: {video_url}")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 # Extract info to get subtitle URLs
-                info = ydl.extract_info(video_url, download=False)
+                try:
+                    info = ydl.extract_info(video_url, download=False)
+                except Exception as extract_error:
+                    logger.error(f"yt-dlp extract_info failed: {extract_error}")
+                    result['error'] = f'yt-dlp extraction failed: {str(extract_error)}'
+                    return result
 
                 if not info:
                     result['error'] = 'Could not extract video info'
                     return result
 
+                logger.info(f"yt-dlp extracted video: {info.get('title', 'Unknown')}")
+
                 # Check for available subtitles
                 subtitles = info.get('subtitles', {})
                 auto_subs = info.get('automatic_captions', {})
+
+                logger.info(f"Available subtitles: {list(subtitles.keys()) if subtitles else 'None'}")
+                logger.info(f"Available auto-captions: {list(auto_subs.keys()) if auto_subs else 'None'}")
 
                 # Prefer manual subtitles over auto-generated
                 selected_subs = None
                 selected_lang = None
 
                 # Try English variants first
-                for lang in ['en', 'en-US', 'en-GB', 'en-AU']:
+                for lang in ['en', 'en-US', 'en-GB', 'en-AU', 'en-orig']:
                     if lang in subtitles:
                         selected_subs = subtitles[lang]
                         selected_lang = lang
@@ -1035,31 +1296,63 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
 
             # Now fetch the transcript - try multiple methods in order:
             # 1. youtube-transcript-api (direct, no API key needed)
-            # 2. yt-dlp (robust, actively maintained)
-            # 3. YouTube Data API (requires API key)
-            # 4. Gemini AI fallback (requires API key)
+            # 2. Direct timedtext endpoint (public YouTube API)
+            # 3. Invidious instances (YouTube frontend proxies)
+            # 4. yt-dlp (robust, actively maintained)
+            # 5. YouTube Data API (requires API key)
+            # 6. Gemini AI fallback (requires API key)
             logger.info(f"Attempting to fetch transcript for video {video_id}")
-            transcript_result = fetch_youtube_transcript(video_id)
             transcript_text = None
             transcript_source = None
             errors = []
 
+            # Method 1: youtube-transcript-api
+            transcript_result = fetch_youtube_transcript(video_id)
             if transcript_result.get('transcript') and not transcript_result.get('error'):
-                # Direct transcript fetch succeeded
                 transcript_text = transcript_result['transcript']
                 transcript_source = 'youtube-transcript-api'
                 result['transcript_available'] = True
                 result['transcript_language'] = transcript_result.get('language')
                 result['transcript_is_generated'] = transcript_result.get('is_generated', False)
                 logger.info(f"Got transcript via youtube-transcript-api ({len(transcript_text)} chars)")
-            else:
-                # Method 1 failed - try yt-dlp
+
+            if not transcript_text:
+                # Method 1 failed - try direct timedtext endpoint
                 direct_error = transcript_result.get('error', 'Unknown error')
                 errors.append(f"youtube-transcript-api: {direct_error}")
-                logger.info(f"Direct transcript fetch failed ({direct_error}), trying yt-dlp...")
+                logger.info(f"Method 1 failed ({direct_error}), trying direct timedtext...")
+
+                timedtext_result = fetch_youtube_transcript_direct_timedtext(video_id)
+                if timedtext_result.get('transcript') and not timedtext_result.get('error'):
+                    transcript_text = timedtext_result['transcript']
+                    transcript_source = 'direct-timedtext'
+                    result['transcript_available'] = True
+                    result['transcript_language'] = timedtext_result.get('language')
+                    result['transcript_is_generated'] = False
+                    logger.info(f"Got transcript via direct timedtext ({len(transcript_text)} chars)")
+
+            if not transcript_text:
+                # Method 2 failed - try Invidious instances
+                timedtext_error = timedtext_result.get('error', 'Unknown error') if 'timedtext_result' in dir() else 'Skipped'
+                errors.append(f"direct-timedtext: {timedtext_error}")
+                logger.info(f"Method 2 failed ({timedtext_error}), trying Invidious...")
+
+                invidious_result = fetch_youtube_transcript_via_invidious(video_id)
+                if invidious_result.get('transcript') and not invidious_result.get('error'):
+                    transcript_text = invidious_result['transcript']
+                    transcript_source = 'invidious'
+                    result['transcript_available'] = True
+                    result['transcript_language'] = invidious_result.get('language')
+                    result['transcript_is_generated'] = False
+                    logger.info(f"Got transcript via Invidious ({len(transcript_text)} chars)")
+
+            if not transcript_text:
+                # Method 3 failed - try yt-dlp
+                invidious_error = invidious_result.get('error', 'Unknown error') if 'invidious_result' in dir() else 'Skipped'
+                errors.append(f"invidious: {invidious_error}")
+                logger.info(f"Method 3 failed ({invidious_error}), trying yt-dlp...")
 
                 ytdlp_result = fetch_youtube_transcript_via_ytdlp(url)
-
                 if ytdlp_result.get('transcript') and not ytdlp_result.get('error'):
                     transcript_text = ytdlp_result['transcript']
                     transcript_source = 'yt-dlp'
@@ -1067,41 +1360,41 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
                     result['transcript_language'] = ytdlp_result.get('language')
                     result['transcript_is_generated'] = False
                     logger.info(f"Got transcript via yt-dlp ({len(transcript_text)} chars)")
+
+            if not transcript_text:
+                # Method 4 failed - try YouTube Data API
+                ytdlp_error = ytdlp_result.get('error', 'Unknown error') if 'ytdlp_result' in dir() else 'Skipped'
+                errors.append(f"yt-dlp: {ytdlp_error}")
+                logger.info(f"Method 4 failed ({ytdlp_error}), trying YouTube Data API...")
+
+                yt_api_result = fetch_youtube_transcript_via_youtube_api(video_id)
+                if yt_api_result.get('transcript') and not yt_api_result.get('error'):
+                    transcript_text = yt_api_result['transcript']
+                    transcript_source = 'youtube-data-api'
+                    result['transcript_available'] = True
+                    result['transcript_language'] = yt_api_result.get('language')
+                    result['transcript_is_generated'] = False
+                    logger.info(f"Got transcript via YouTube Data API ({len(transcript_text)} chars)")
+
+            if not transcript_text:
+                # Method 5 failed - try Gemini fallback
+                yt_api_error = yt_api_result.get('error', 'Unknown error') if 'yt_api_result' in dir() else 'Skipped'
+                errors.append(f"YouTube Data API: {yt_api_error}")
+                logger.info(f"Method 5 failed ({yt_api_error}), trying Gemini fallback...")
+
+                gemini_result = fetch_youtube_transcript_via_gemini(url)
+                if gemini_result.get('transcript') and not gemini_result.get('error'):
+                    transcript_text = gemini_result['transcript']
+                    transcript_source = 'gemini'
+                    result['transcript_available'] = True
+                    result['transcript_is_generated'] = True  # Gemini extracts from audio
+                    logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
                 else:
-                    # Method 2 failed - try YouTube Data API
-                    ytdlp_error = ytdlp_result.get('error', 'Unknown error')
-                    errors.append(f"yt-dlp: {ytdlp_error}")
-                    logger.info(f"yt-dlp failed ({ytdlp_error}), trying YouTube Data API...")
-
-                    yt_api_result = fetch_youtube_transcript_via_youtube_api(video_id)
-
-                    if yt_api_result.get('transcript') and not yt_api_result.get('error'):
-                        transcript_text = yt_api_result['transcript']
-                        transcript_source = 'youtube-data-api'
-                        result['transcript_available'] = True
-                        result['transcript_language'] = yt_api_result.get('language')
-                        result['transcript_is_generated'] = False
-                        logger.info(f"Got transcript via YouTube Data API ({len(transcript_text)} chars)")
-                    else:
-                        # Method 3 failed - try Gemini fallback
-                        yt_api_error = yt_api_result.get('error', 'Unknown error')
-                        errors.append(f"YouTube Data API: {yt_api_error}")
-                        logger.info(f"YouTube Data API failed ({yt_api_error}), trying Gemini fallback...")
-
-                        gemini_result = fetch_youtube_transcript_via_gemini(url)
-
-                        if gemini_result.get('transcript') and not gemini_result.get('error'):
-                            transcript_text = gemini_result['transcript']
-                            transcript_source = 'gemini'
-                            result['transcript_available'] = True
-                            result['transcript_is_generated'] = True  # Gemini extracts from audio
-                            logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
-                        else:
-                            # All methods failed
-                            gemini_error = gemini_result.get('error', 'Unknown error')
-                            errors.append(f"Gemini: {gemini_error}")
-                            logger.warning(f"All transcript methods failed: {'; '.join(errors)}")
-                            result['transcript_error'] = '; '.join(errors)
+                    # All methods failed
+                    gemini_error = gemini_result.get('error', 'Unknown error')
+                    errors.append(f"Gemini: {gemini_error}")
+                    logger.warning(f"All transcript methods failed: {'; '.join(errors)}")
+                    result['transcript_error'] = '; '.join(errors)
 
             if transcript_text:
                 # We got a transcript - use it as the main text content
