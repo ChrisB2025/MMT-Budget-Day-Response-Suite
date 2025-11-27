@@ -37,3 +37,6 @@ pytz==2023.3
 requests==2.31.0
 beautifulsoup4==4.12.2
 youtube-transcript-api==0.6.2
+
+# Google Gemini API (for YouTube video analysis fallback)
+google-generativeai==0.8.3
