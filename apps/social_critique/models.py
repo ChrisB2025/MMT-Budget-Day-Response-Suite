@@ -53,6 +53,9 @@ class SocialMediaCritique(models.Model):
     source_thumbnail_url = models.URLField(max_length=2048, blank=True)
     source_publish_date = models.DateTimeField(null=True, blank=True)
 
+    # Manual transcript (for YouTube when automatic extraction fails)
+    manual_transcript = models.TextField(blank=True, help_text='User-provided transcript for YouTube videos')
+
     # Processing
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
     error_message = models.TextField(blank=True, help_text='Error details if failed')

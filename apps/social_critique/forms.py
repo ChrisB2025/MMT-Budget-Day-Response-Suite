@@ -9,7 +9,7 @@ class SocialCritiqueSubmitForm(forms.ModelForm):
 
     class Meta:
         model = SocialMediaCritique
-        fields = ['url']
+        fields = ['url', 'manual_transcript']
         widgets = {
             'url': forms.URLInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg',
@@ -17,12 +17,19 @@ class SocialCritiqueSubmitForm(forms.ModelForm):
                 'autocomplete': 'off',
                 'autofocus': True,
             }),
+            'manual_transcript': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm',
+                'placeholder': 'Paste the transcript here...',
+                'rows': 8,
+            }),
         }
         labels = {
             'url': 'Social Media URL',
+            'manual_transcript': 'YouTube Transcript (Optional)',
         }
         help_texts = {
             'url': 'Enter the full URL of a social media post, video, or article you want critiqued from an MMT perspective.',
+            'manual_transcript': 'If automatic transcript extraction fails, you can paste the transcript manually.',
         }
 
     def clean_url(self):
