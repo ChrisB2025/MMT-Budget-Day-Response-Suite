@@ -485,6 +485,225 @@ def fetch_youtube_transcript_via_youtube_api(video_id: str) -> Dict[str, Any]:
     return result
 
 
+def fetch_youtube_transcript_via_ytdlp(video_url: str) -> Dict[str, Any]:
+    """
+    Fetch YouTube video transcript using yt-dlp.
+
+    yt-dlp is a robust YouTube downloader that can extract subtitles
+    without downloading the video. It's actively maintained and works
+    around most YouTube restrictions.
+
+    Args:
+        video_url: The full YouTube video URL
+
+    Returns:
+        Dictionary containing:
+            - transcript: Extracted transcript text
+            - language: Language code of the transcript
+            - error: Error message if fetch failed
+    """
+    import tempfile
+    import os
+
+    result = {
+        'transcript': '',
+        'language': None,
+        'error': None,
+    }
+
+    try:
+        import yt_dlp
+
+        # Create a temporary directory for subtitle files
+        with tempfile.TemporaryDirectory() as temp_dir:
+            subtitle_file = os.path.join(temp_dir, 'subtitle')
+
+            ydl_opts = {
+                'writesubtitles': True,
+                'writeautomaticsub': True,
+                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU'],
+                'subtitlesformat': 'vtt/srt/best',
+                'skip_download': True,
+                'outtmpl': subtitle_file,
+                'quiet': True,
+                'no_warnings': True,
+                'extract_flat': False,
+            }
+
+            logger.info(f"Fetching transcript via yt-dlp for: {video_url}")
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                # Extract info to get subtitle URLs
+                info = ydl.extract_info(video_url, download=False)
+
+                if not info:
+                    result['error'] = 'Could not extract video info'
+                    return result
+
+                # Check for available subtitles
+                subtitles = info.get('subtitles', {})
+                auto_subs = info.get('automatic_captions', {})
+
+                # Prefer manual subtitles over auto-generated
+                selected_subs = None
+                selected_lang = None
+
+                # Try English variants first
+                for lang in ['en', 'en-US', 'en-GB', 'en-AU']:
+                    if lang in subtitles:
+                        selected_subs = subtitles[lang]
+                        selected_lang = lang
+                        logger.info(f"Found manual subtitles in {lang}")
+                        break
+                    elif lang in auto_subs:
+                        selected_subs = auto_subs[lang]
+                        selected_lang = lang
+                        logger.info(f"Found auto-generated subtitles in {lang}")
+                        break
+
+                # If no English, try any available
+                if not selected_subs:
+                    if subtitles:
+                        selected_lang = list(subtitles.keys())[0]
+                        selected_subs = subtitles[selected_lang]
+                        logger.info(f"Using manual subtitles in {selected_lang}")
+                    elif auto_subs:
+                        selected_lang = list(auto_subs.keys())[0]
+                        selected_subs = auto_subs[selected_lang]
+                        logger.info(f"Using auto-generated subtitles in {selected_lang}")
+
+                if not selected_subs:
+                    result['error'] = 'No subtitles available for this video'
+                    logger.warning(f"No subtitles found for video: {video_url}")
+                    return result
+
+                result['language'] = selected_lang
+
+                # Get the subtitle URL (prefer vtt or srv3 format for easier parsing)
+                subtitle_url = None
+                for fmt in selected_subs:
+                    ext = fmt.get('ext', '')
+                    if ext in ['vtt', 'srv3', 'json3', 'ttml']:
+                        subtitle_url = fmt.get('url')
+                        break
+                if not subtitle_url and selected_subs:
+                    subtitle_url = selected_subs[0].get('url')
+
+                if not subtitle_url:
+                    result['error'] = 'Could not get subtitle URL'
+                    return result
+
+                # Fetch the subtitle content
+                import requests
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                }
+                response = requests.get(subtitle_url, headers=headers, timeout=30)
+
+                if response.status_code != 200:
+                    result['error'] = f'Failed to fetch subtitle file (HTTP {response.status_code})'
+                    return result
+
+                subtitle_content = response.text
+
+                # Parse the subtitle content to extract text
+                transcript_text = _parse_subtitle_content(subtitle_content)
+
+                if transcript_text:
+                    result['transcript'] = transcript_text
+                    logger.info(f"Successfully fetched transcript via yt-dlp ({len(transcript_text)} chars)")
+                else:
+                    result['error'] = 'Could not parse subtitle content'
+
+    except ImportError:
+        result['error'] = 'yt-dlp not installed. Run: pip install yt-dlp'
+        logger.error("yt-dlp not installed")
+    except Exception as e:
+        error_msg = str(e)
+        if 'Video unavailable' in error_msg:
+            result['error'] = 'Video is unavailable or private'
+        elif 'Private video' in error_msg:
+            result['error'] = 'This is a private video'
+        else:
+            result['error'] = f'yt-dlp error: {error_msg}'
+        logger.error(f"Error fetching transcript via yt-dlp: {e}")
+
+    return result
+
+
+def _parse_subtitle_content(content: str) -> str:
+    """
+    Parse subtitle content (VTT, SRT, or other formats) and extract plain text.
+
+    Args:
+        content: Raw subtitle file content
+
+    Returns:
+        Plain text transcript with normalized whitespace
+    """
+    import re
+
+    lines = content.split('\n')
+    transcript_parts = []
+
+    # Track seen text to avoid duplicates (common in VTT files)
+    seen_texts = set()
+
+    for line in lines:
+        line = line.strip()
+
+        # Skip empty lines
+        if not line:
+            continue
+
+        # Skip VTT header
+        if line.startswith('WEBVTT') or line.startswith('Kind:') or line.startswith('Language:'):
+            continue
+
+        # Skip timestamp lines (various formats)
+        # VTT: 00:00:00.000 --> 00:00:05.000
+        # SRT: 00:00:00,000 --> 00:00:05,000
+        if re.match(r'^\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->', line):
+            continue
+
+        # Skip SRT sequence numbers
+        if re.match(r'^\d+$', line):
+            continue
+
+        # Skip position/alignment tags
+        if re.match(r'^(align:|position:|line:)', line, re.IGNORECASE):
+            continue
+
+        # Skip NOTE sections
+        if line.startswith('NOTE'):
+            continue
+
+        # Remove VTT formatting tags like <c>, </c>, <00:00:00.000>, etc.
+        line = re.sub(r'<[^>]+>', '', line)
+
+        # Remove timestamp tags like <00:00:00.000>
+        line = re.sub(r'<\d{2}:\d{2}:\d{2}\.\d{3}>', '', line)
+
+        # Remove speaker labels if any (e.g., "[Speaker 1]:", "SPEAKER:")
+        line = re.sub(r'^\[?[A-Za-z0-9\s]+\]?:\s*', '', line)
+
+        # Clean up any remaining artifacts
+        line = line.strip()
+
+        # Skip if empty after cleaning or if we've seen this text
+        if not line or line in seen_texts:
+            continue
+
+        seen_texts.add(line)
+        transcript_parts.append(line)
+
+    # Join and normalize whitespace
+    transcript = ' '.join(transcript_parts)
+    transcript = ' '.join(transcript.split())  # Normalize whitespace
+
+    return transcript
+
+
 def extract_twitter_post_id(url: str) -> Optional[str]:
     """Extract Twitter/X post ID from URL"""
     parsed = urlparse(url)
@@ -816,8 +1035,9 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
 
             # Now fetch the transcript - try multiple methods in order:
             # 1. youtube-transcript-api (direct, no API key needed)
-            # 2. YouTube Data API (requires API key)
-            # 3. Gemini AI fallback (requires API key)
+            # 2. yt-dlp (robust, actively maintained)
+            # 3. YouTube Data API (requires API key)
+            # 4. Gemini AI fallback (requires API key)
             logger.info(f"Attempting to fetch transcript for video {video_id}")
             transcript_result = fetch_youtube_transcript(video_id)
             transcript_text = None
@@ -833,40 +1053,55 @@ def fetch_youtube_content(url: str, timeout: int = 30) -> Dict[str, Any]:
                 result['transcript_is_generated'] = transcript_result.get('is_generated', False)
                 logger.info(f"Got transcript via youtube-transcript-api ({len(transcript_text)} chars)")
             else:
-                # Method 1 failed - try YouTube Data API
+                # Method 1 failed - try yt-dlp
                 direct_error = transcript_result.get('error', 'Unknown error')
                 errors.append(f"youtube-transcript-api: {direct_error}")
-                logger.info(f"Direct transcript fetch failed ({direct_error}), trying YouTube Data API...")
+                logger.info(f"Direct transcript fetch failed ({direct_error}), trying yt-dlp...")
 
-                yt_api_result = fetch_youtube_transcript_via_youtube_api(video_id)
+                ytdlp_result = fetch_youtube_transcript_via_ytdlp(url)
 
-                if yt_api_result.get('transcript') and not yt_api_result.get('error'):
-                    transcript_text = yt_api_result['transcript']
-                    transcript_source = 'youtube-data-api'
+                if ytdlp_result.get('transcript') and not ytdlp_result.get('error'):
+                    transcript_text = ytdlp_result['transcript']
+                    transcript_source = 'yt-dlp'
                     result['transcript_available'] = True
-                    result['transcript_language'] = yt_api_result.get('language')
+                    result['transcript_language'] = ytdlp_result.get('language')
                     result['transcript_is_generated'] = False
-                    logger.info(f"Got transcript via YouTube Data API ({len(transcript_text)} chars)")
+                    logger.info(f"Got transcript via yt-dlp ({len(transcript_text)} chars)")
                 else:
-                    # Method 2 failed - try Gemini fallback
-                    yt_api_error = yt_api_result.get('error', 'Unknown error')
-                    errors.append(f"YouTube Data API: {yt_api_error}")
-                    logger.info(f"YouTube Data API failed ({yt_api_error}), trying Gemini fallback...")
+                    # Method 2 failed - try YouTube Data API
+                    ytdlp_error = ytdlp_result.get('error', 'Unknown error')
+                    errors.append(f"yt-dlp: {ytdlp_error}")
+                    logger.info(f"yt-dlp failed ({ytdlp_error}), trying YouTube Data API...")
 
-                    gemini_result = fetch_youtube_transcript_via_gemini(url)
+                    yt_api_result = fetch_youtube_transcript_via_youtube_api(video_id)
 
-                    if gemini_result.get('transcript') and not gemini_result.get('error'):
-                        transcript_text = gemini_result['transcript']
-                        transcript_source = 'gemini'
+                    if yt_api_result.get('transcript') and not yt_api_result.get('error'):
+                        transcript_text = yt_api_result['transcript']
+                        transcript_source = 'youtube-data-api'
                         result['transcript_available'] = True
-                        result['transcript_is_generated'] = True  # Gemini extracts from audio
-                        logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
+                        result['transcript_language'] = yt_api_result.get('language')
+                        result['transcript_is_generated'] = False
+                        logger.info(f"Got transcript via YouTube Data API ({len(transcript_text)} chars)")
                     else:
-                        # All methods failed
-                        gemini_error = gemini_result.get('error', 'Unknown error')
-                        errors.append(f"Gemini: {gemini_error}")
-                        logger.warning(f"All transcript methods failed: {'; '.join(errors)}")
-                        result['transcript_error'] = '; '.join(errors)
+                        # Method 3 failed - try Gemini fallback
+                        yt_api_error = yt_api_result.get('error', 'Unknown error')
+                        errors.append(f"YouTube Data API: {yt_api_error}")
+                        logger.info(f"YouTube Data API failed ({yt_api_error}), trying Gemini fallback...")
+
+                        gemini_result = fetch_youtube_transcript_via_gemini(url)
+
+                        if gemini_result.get('transcript') and not gemini_result.get('error'):
+                            transcript_text = gemini_result['transcript']
+                            transcript_source = 'gemini'
+                            result['transcript_available'] = True
+                            result['transcript_is_generated'] = True  # Gemini extracts from audio
+                            logger.info(f"Got transcript via Gemini ({len(transcript_text)} chars)")
+                        else:
+                            # All methods failed
+                            gemini_error = gemini_result.get('error', 'Unknown error')
+                            errors.append(f"Gemini: {gemini_error}")
+                            logger.warning(f"All transcript methods failed: {'; '.join(errors)}")
+                            result['transcript_error'] = '; '.join(errors)
 
             if transcript_text:
                 # We got a transcript - use it as the main text content
