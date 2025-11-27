@@ -471,10 +471,22 @@ def process_social_critique(critique_id: int) -> Dict[str, Any]:
         critique.platform = content.get('platform', critique.platform)
         critique.source_title = content.get('title', '')[:500]
         critique.source_author = content.get('author', '')[:200]
-        critique.source_text = content.get('text', '')
         critique.source_description = content.get('description', '')
         critique.source_thumbnail_url = content.get('thumbnail_url', '')[:2048]
         critique.source_publish_date = content.get('publish_date')
+
+        # Use manual transcript if provided and automatic fetch failed
+        fetched_text = content.get('text', '')
+        if critique.manual_transcript and critique.platform == 'youtube':
+            # User provided manual transcript - use it
+            if critique.source_description:
+                critique.source_text = f"VIDEO DESCRIPTION:\n{critique.source_description}\n\nTRANSCRIPT (user-provided):\n{critique.manual_transcript}"
+            else:
+                critique.source_text = f"TRANSCRIPT (user-provided):\n{critique.manual_transcript}"
+            logger.info(f"Using manual transcript for critique {critique_id} ({len(critique.manual_transcript)} chars)")
+        else:
+            critique.source_text = fetched_text
+
         critique.status = 'analyzing'
         critique.save()
 

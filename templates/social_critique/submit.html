@@ -81,6 +81,45 @@
                 </div>
             </div>
 
+            <!-- YouTube Manual Transcript Section -->
+            <div id="youtube-transcript-section" class="mb-6 hidden">
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">📺</span>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-amber-800 mb-1">YouTube Transcript (Recommended)</h4>
+                            <p class="text-sm text-amber-700 mb-3">
+                                For best results, paste the video transcript below. Automatic extraction may fail on some servers.
+                            </p>
+
+                            <details class="mb-3">
+                                <summary class="cursor-pointer text-sm text-amber-600 hover:text-amber-800 font-medium">
+                                    How to copy the transcript from YouTube →
+                                </summary>
+                                <div class="mt-2 p-3 bg-white rounded border border-amber-200 text-sm text-gray-700">
+                                    <ol class="list-decimal list-inside space-y-2">
+                                        <li>Open the YouTube video in a new tab</li>
+                                        <li>Click the <strong>"...more"</strong> button below the video description</li>
+                                        <li>Click <strong>"Show transcript"</strong></li>
+                                        <li>In the transcript panel, click the <strong>three dots menu</strong> (⋮)</li>
+                                        <li>Click <strong>"Toggle timestamps"</strong> to hide timestamps (optional but cleaner)</li>
+                                        <li>Select all transcript text (Ctrl+A or Cmd+A in the panel) and copy it</li>
+                                        <li>Paste it in the box below</li>
+                                    </ol>
+                                </div>
+                            </details>
+
+                            <div>
+                                <label for="{{ form.manual_transcript.id_for_label }}" class="block text-sm font-medium text-amber-800 mb-2">
+                                    Paste Transcript Here:
+                                </label>
+                                {{ form.manual_transcript }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex gap-4">
                 <button
                     type="submit"
@@ -157,6 +196,7 @@ const urlInput = document.querySelector('input[name="url"]');
 const previewSection = document.getElementById('url-preview');
 const previewError = document.getElementById('preview-error');
 const previewErrorText = document.getElementById('preview-error-text');
+const youtubeTranscriptSection = document.getElementById('youtube-transcript-section');
 const submitBtn = document.getElementById('submit-btn');
 let previewTimeout = null;
 
@@ -174,6 +214,13 @@ const platformIcons = {
     'other': '🔗'
 };
 
+// Check if URL is a YouTube URL
+function isYouTubeUrl(url) {
+    if (!url) return false;
+    const lowerUrl = url.toLowerCase();
+    return lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be');
+}
+
 urlInput.addEventListener('input', function() {
     clearTimeout(previewTimeout);
     const url = this.value.trim();
@@ -181,7 +228,15 @@ urlInput.addEventListener('input', function() {
     if (!url) {
         previewSection.classList.add('hidden');
         previewError.classList.add('hidden');
+        youtubeTranscriptSection.classList.add('hidden');
         return;
+    }
+
+    // Show/hide YouTube transcript section based on URL
+    if (isYouTubeUrl(url)) {
+        youtubeTranscriptSection.classList.remove('hidden');
+    } else {
+        youtubeTranscriptSection.classList.add('hidden');
     }
 
     previewTimeout = setTimeout(() => {
@@ -214,6 +269,11 @@ async function fetchPreview(url) {
             thumbEl.innerHTML = `<img src="${data.thumbnail_url}" alt="" class="w-full h-full object-cover rounded" onerror="this.parentElement.innerHTML='<span class=\\'text-3xl\\'>${platformIcons[data.platform] || '🔗'}</span>'">`;
         } else {
             thumbEl.innerHTML = `<span class="text-3xl">${platformIcons[data.platform] || '🔗'}</span>`;
+        }
+
+        // Show YouTube transcript section if platform is YouTube
+        if (data.platform === 'youtube') {
+            youtubeTranscriptSection.classList.remove('hidden');
         }
 
     } catch (error) {
