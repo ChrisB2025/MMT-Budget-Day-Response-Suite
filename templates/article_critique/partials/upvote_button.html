@@ -1,0 +1,12 @@
+<button
+    hx-post="{% url 'article_critique:upvote' share_id=submission.share_id %}"
+    hx-swap="outerHTML"
+    class="flex items-center gap-2 px-3 py-1 rounded transition-colors
+        {% if has_upvoted %}bg-indigo-100 text-indigo-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
+    {% if has_upvoted %}
+    <span>✓</span>
+    {% else %}
+    <span>▲</span>
+    {% endif %}
+    <span>{{ upvote_count|default:0 }}</span>
+</button>

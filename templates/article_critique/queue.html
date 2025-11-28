@@ -1,0 +1,102 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Article Queue - MMT Budget Response Suite{% endblock %}
+
+{% block sidebar_content %}
+<div class="w-full">
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Article Critique Queue</h1>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select onchange="applyFilters()" id="status-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="extracting" {% if status_filter == 'extracting' %}selected{% endif %}>Extracting</option>
+                    <option value="analyzing" {% if status_filter == 'analyzing' %}selected{% endif %}>Analyzing</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Publication</label>
+                <select onchange="applyFilters()" id="publication-filter"
+                        class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                    <option value="all" {% if publication_filter == 'all' %}selected{% endif %}>All</option>
+                    {% for value, label in publications %}
+                    <option value="{{ value }}" {% if publication_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Submissions List -->
+        <div class="space-y-4">
+            {% for submission in submissions %}
+            <a href="{% url 'article_critique:detail' share_id=submission.share_id %}"
+               class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                                {{ submission.get_publication_display }}
+                            </span>
+                            <span class="px-2 py-1 rounded text-xs font-medium
+                                {% if submission.status == 'completed' %}bg-green-100 text-green-700
+                                {% elif submission.status == 'extracting' or submission.status == 'analyzing' %}bg-blue-100 text-blue-700
+                                {% elif submission.status == 'failed' %}bg-red-100 text-red-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ submission.get_status_display }}
+                            </span>
+                            {% if submission.is_paywalled %}
+                            <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">🔒</span>
+                            {% endif %}
+                            {% if submission.critique %}
+                            <span class="px-2 py-1 rounded text-xs
+                                {% if submission.critique.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                                {% elif submission.critique.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                                {% elif submission.critique.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                                {% elif submission.critique.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ submission.critique.get_accuracy_rating_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h3 class="font-semibold text-gray-900">{{ submission.title|default:submission.original_url|truncatechars:80 }}</h3>
+                        {% if submission.author %}
+                        <p class="text-sm text-gray-500">by {{ submission.author }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-gray-400">{{ submission.created_at|timesince }} ago</span>
+                        {% if submission.view_count %}
+                        <div class="text-xs text-gray-400">{{ submission.view_count }} views</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="text-center py-8">
+                <div class="text-4xl mb-2">📰</div>
+                <p class="text-gray-500">No articles match your filters.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function applyFilters() {
+    const status = document.getElementById('status-filter').value;
+    const publication = document.getElementById('publication-filter').value;
+    let url = '{% url "article_critique:queue" %}?';
+    if (status !== 'all') url += `status=${status}&`;
+    if (publication !== 'all') url += `publication=${publication}&`;
+    window.location.href = url;
+}
+</script>
+{% endblock sidebar_content %}

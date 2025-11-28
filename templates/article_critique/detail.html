@@ -1,0 +1,442 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}{{ submission.title|default:"Article Critique" }} - MMT Budget Response Suite{% endblock %}
+
+{% block extra_head %}
+<style>
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spinner {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .pulse {
+        animation: pulse 2s ease-in-out infinite;
+    }
+    .copy-btn:active {
+        transform: scale(0.95);
+    }
+</style>
+
+{% if submission.status == 'extracting' or submission.status == 'analyzing' or submission.status == 'generating' or submission.status == 'submitted' %}
+<meta http-equiv="refresh" content="3">
+{% endif %}
+{% endblock %}
+
+{% block sidebar_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Article Info Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-start gap-4">
+            <div class="w-20 h-20 bg-gradient-to-r from-indigo-100 to-purple-100 rounded flex-shrink-0 flex items-center justify-center">
+                <span class="text-4xl">📰</span>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded font-medium">
+                        {{ submission.get_publication_display }}
+                    </span>
+                    <span class="px-3 py-1 rounded font-medium
+                        {% if submission.status == 'completed' %}bg-green-100 text-green-700
+                        {% elif submission.status == 'extracting' or submission.status == 'analyzing' or submission.status == 'generating' %}bg-blue-100 text-blue-700
+                        {% elif submission.status == 'failed' %}bg-red-100 text-red-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {{ submission.get_status_display }}
+                    </span>
+                    {% if submission.is_paywalled %}
+                    <span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">
+                        🔒 Paywalled
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    {{ submission.title|default:"Analyzing article..." }}
+                </h1>
+
+                {% if submission.author %}
+                <p class="text-gray-600 mb-2">By {{ submission.author }}</p>
+                {% endif %}
+
+                <p class="text-sm text-gray-500">
+                    Submitted {{ submission.created_at|timesince }} ago
+                    {% if submission.view_count %} · {{ submission.view_count }} views{% endif %}
+                </p>
+
+                {% if submission.original_url %}
+                <a href="{{ submission.original_url }}" target="_blank" rel="noopener"
+                   class="inline-block mt-3 text-indigo-600 hover:text-indigo-700 text-sm">
+                    View Original Article →
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if submission.status == 'completed' and submission.critique %}
+    <!-- Critique Response -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">MMT Analysis</h2>
+            <span class="px-4 py-2 rounded-lg font-bold text-lg
+                {% if submission.critique.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                {% elif submission.critique.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                {% elif submission.critique.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                {% elif submission.critique.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                {{ submission.critique.get_accuracy_rating_display }}
+            </span>
+        </div>
+
+        <!-- Summary -->
+        <div class="mb-6 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+            <h3 class="font-bold text-indigo-900 mb-2">Summary</h3>
+            <p class="text-gray-700">{{ submission.critique.summary }}</p>
+        </div>
+
+        <!-- Key Claims -->
+        {% if submission.critique.key_claims %}
+        <div class="mb-6">
+            <h3 class="font-bold text-gray-900 mb-3">Key Claims Identified</h3>
+            <ul class="space-y-2">
+                {% for claim in submission.critique.key_claims %}
+                <li class="flex items-start gap-2 p-3 bg-gray-50 rounded">
+                    <span class="text-indigo-500 font-bold">•</span>
+                    <span class="text-gray-700">{{ claim }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Factual Errors -->
+        {% if submission.critique.factual_errors %}
+        <div class="mb-6">
+            <h3 class="font-bold text-red-700 mb-3">Factual Errors</h3>
+            <div class="space-y-4">
+                {% for error in submission.critique.factual_errors %}
+                <div class="p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                    <div class="font-medium text-red-800 mb-2">Claim: "{{ error.claim }}"</div>
+                    <div class="text-red-700 mb-2"><strong>Problem:</strong> {{ error.problem }}</div>
+                    <div class="text-green-700"><strong>Correction:</strong> {{ error.correction }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Framing Issues -->
+        {% if submission.critique.framing_issues %}
+        <div class="mb-6">
+            <h3 class="font-bold text-orange-700 mb-3">Framing Issues</h3>
+            <div class="space-y-4">
+                {% for issue in submission.critique.framing_issues %}
+                <div class="p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg">
+                    <div class="font-medium text-orange-800 mb-2">{{ issue.issue }}</div>
+                    <div class="text-orange-700 mb-2"><strong>Problematic:</strong> "{{ issue.problematic_framing }}"</div>
+                    <div class="text-green-700"><strong>Better framing:</strong> "{{ issue.better_framing }}"</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MMT Analysis -->
+        {% if submission.critique.mmt_analysis %}
+        <div class="mb-6 border-l-4 border-purple-400 pl-4">
+            <h3 class="font-bold text-purple-700 mb-2">MMT Perspective</h3>
+            <div class="text-gray-700">{{ submission.critique.mmt_analysis|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Missing Context -->
+        {% if submission.critique.missing_context %}
+        <div class="mb-6 border-l-4 border-yellow-400 pl-4">
+            <h3 class="font-bold text-yellow-700 mb-2">Missing Context</h3>
+            <div class="text-gray-700">{{ submission.critique.missing_context|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Recommended Corrections -->
+        {% if submission.critique.recommended_corrections %}
+        <div class="mb-6 border-l-4 border-green-400 pl-4">
+            <h3 class="font-bold text-green-700 mb-2">Recommended Corrections</h3>
+            <div class="text-gray-700">{{ submission.critique.recommended_corrections|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Rebuttal -->
+        {% if submission.critique.quick_rebuttal %}
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 class="font-bold text-blue-900 mb-2">Quick Rebuttal</h3>
+            <p class="text-gray-700">{{ submission.critique.quick_rebuttal }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Citations -->
+        {% if submission.critique.citations %}
+        <div class="border-t pt-4">
+            <h3 class="font-bold text-gray-900 mb-2">Citations</h3>
+            <ul class="space-y-1 text-sm">
+                {% for citation in submission.critique.citations %}
+                <li>
+                    <a href="{{ citation.url }}" target="_blank" rel="noopener"
+                       class="text-indigo-600 hover:text-indigo-700">
+                        {{ citation.title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Confidence Score -->
+        <div class="mt-6 text-sm text-gray-500">
+            Analysis confidence: {{ submission.critique.confidence_score|floatformat:0|default:"50" }}%
+        </div>
+    </div>
+
+    <!-- Quick Responses Section -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6" x-data="{ activeTab: 'tweet' }">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Share Your Response</h2>
+
+        <!-- Share URL -->
+        <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Shareable Link</label>
+            <div class="flex gap-2">
+                <input type="text" value="{{ share_url }}" readonly id="share-url-input"
+                       class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm">
+                <button onclick="copyShareUrl()" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 copy-btn">
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <!-- Response Type Tabs -->
+        <div class="flex gap-2 mb-6 border-b">
+            <button @click="activeTab = 'tweet'"
+                    :class="activeTab === 'tweet' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'"
+                    class="px-4 py-2 font-medium transition-colors">
+                Tweet
+            </button>
+            <button @click="activeTab = 'thread'"
+                    :class="activeTab === 'thread' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'"
+                    class="px-4 py-2 font-medium transition-colors">
+                Thread
+            </button>
+            <button @click="activeTab = 'letter'"
+                    :class="activeTab === 'letter' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'"
+                    class="px-4 py-2 font-medium transition-colors">
+                Letter to Editor
+            </button>
+        </div>
+
+        <!-- Tweet Tab -->
+        <div x-show="activeTab === 'tweet'" class="space-y-4">
+            {% for response in quick_responses %}
+            {% if response.response_type == 'tweet' %}
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-500">Tweet ({{ response.char_count }} chars)</span>
+                </div>
+                <p class="text-gray-700 whitespace-pre-wrap mb-3">{{ response.content }}</p>
+                <div class="flex gap-2">
+                    <button onclick="copyResponse('tweet')"
+                            class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 copy-btn">
+                        Copy
+                    </button>
+                    <a href="{% url 'article_critique:share_link' share_id=submission.share_id platform='twitter' %}"
+                       target="_blank"
+                       class="px-3 py-1 bg-blue-400 text-white rounded text-sm hover:bg-blue-500">
+                        Share on Twitter/X
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Thread Tab -->
+        <div x-show="activeTab === 'thread'" class="space-y-4">
+            {% for response in quick_responses %}
+            {% if response.response_type == 'thread' and response.thread_parts %}
+            <div class="mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm text-gray-500">{{ response.thread_parts|length }} posts</span>
+                </div>
+                <div class="space-y-4 pl-4 border-l-2 border-gray-200">
+                    {% for part in response.thread_parts %}
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="text-sm text-gray-500 mb-1">{{ forloop.counter }}/{{ response.thread_parts|length }}</div>
+                        <p class="text-gray-700 whitespace-pre-wrap">{{ part }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button onclick="copyResponse('thread')"
+                        class="mt-3 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 copy-btn">
+                    Copy Entire Thread
+                </button>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Letter Tab -->
+        <div x-show="activeTab === 'letter'" class="space-y-4">
+            {% for response in quick_responses %}
+            {% if response.response_type == 'letter' %}
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-500">Letter to Editor ({{ response.char_count }} chars)</span>
+                </div>
+                <div class="text-gray-700 whitespace-pre-wrap mb-3 font-serif">{{ response.content }}</div>
+                <button onclick="copyResponse('letter')"
+                        class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 copy-btn">
+                    Copy Letter
+                </button>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Quick Share Buttons -->
+        <div class="mt-6 pt-6 border-t">
+            <h3 class="font-medium text-gray-900 mb-3">Quick Share</h3>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}" target="_blank"
+                   class="px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-500 hover:text-white">
+                    Twitter/X
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}" target="_blank"
+                   class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 hover:text-white">
+                    Facebook
+                </a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}" target="_blank"
+                   class="px-4 py-2 bg-blue-800 text-white rounded hover:bg-blue-900 hover:text-white">
+                    LinkedIn
+                </a>
+                <a href="https://www.reddit.com/submit?url={{ share_url|urlencode }}" target="_blank"
+                   class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 hover:text-white">
+                    Reddit
+                </a>
+            </div>
+        </div>
+
+        <!-- Regenerate Responses -->
+        {% if user.is_authenticated and submission.user == user or user.is_staff %}
+        <div class="mt-6 pt-6 border-t">
+            <form method="post" action="{% url 'article_critique:regenerate' share_id=submission.share_id %}">
+                {% csrf_token %}
+                <button type="submit" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                    Regenerate Responses
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    {% elif submission.status == 'failed' %}
+    <!-- Error State -->
+    <div class="bg-red-50 border-2 border-red-200 rounded-lg p-8 text-center">
+        <div class="text-6xl mb-4">❌</div>
+        <h3 class="text-2xl font-bold text-red-900 mb-2">Processing Failed</h3>
+        <p class="text-red-700 mb-4">{{ submission.error_message|default:"An error occurred while processing this article." }}</p>
+        {% if submission.is_paywalled %}
+        <p class="text-sm text-red-600 mb-4">
+            This article appears to be paywalled. Try <a href="{% url 'article_critique:submit_text' %}" class="underline">pasting the text manually</a>.
+        </p>
+        {% endif %}
+        <a href="{% url 'article_critique:submit' %}" class="inline-block px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Try Another Article
+        </a>
+    </div>
+
+    {% else %}
+    <!-- Processing State -->
+    <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-8 text-center pulse">
+        <div class="text-6xl mb-4 spinner">🔄</div>
+        <h3 class="text-2xl font-bold text-blue-900 mb-2">
+            {% if submission.status == 'extracting' %}
+            Extracting Article Content...
+            {% elif submission.status == 'analyzing' %}
+            Generating MMT Critique...
+            {% elif submission.status == 'generating' %}
+            Creating Quick Responses...
+            {% else %}
+            Queued for Processing...
+            {% endif %}
+        </h3>
+        <p class="text-blue-700 mb-4">
+            {% if submission.status == 'extracting' %}
+            Fetching the article content. If paywalled, we're trying archive services.
+            {% elif submission.status == 'analyzing' %}
+            Claude is analyzing the article and identifying economic claims. This typically takes 30-60 seconds.
+            {% elif submission.status == 'generating' %}
+            Creating tweet, thread, and letter templates. Almost done!
+            {% else %}
+            Your article is in the queue.
+            {% endif %}
+        </p>
+        <p class="text-sm text-blue-600">Page will auto-refresh every 3 seconds.</p>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="mt-6 flex gap-4">
+        <a href="{% url 'article_critique:home' %}" class="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+            ← Back
+        </a>
+        <a href="{% url 'article_critique:submit' %}" class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            Critique Another Article
+        </a>
+        {% if user.is_authenticated and submission.user == user %}
+        <button onclick="if(confirm('Delete this critique?')) { location.href='{% url 'article_critique:delete' share_id=submission.share_id %}'; }"
+                class="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700">
+            Delete
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyShareUrl() {
+    const input = document.getElementById('share-url-input');
+    input.select();
+    document.execCommand('copy');
+    showToast('Share URL copied!');
+}
+
+function copyResponse(responseType) {
+    fetch(`{% url 'article_critique:copy_response' share_id=submission.share_id response_type='RESPONSE_TYPE' %}`.replace('RESPONSE_TYPE', responseType))
+        .then(r => r.json())
+        .then(data => {
+            if (data.type === 'thread') {
+                const text = data.parts.join('\n\n---\n\n');
+                navigator.clipboard.writeText(text);
+            } else {
+                navigator.clipboard.writeText(data.content);
+            }
+            showToast('Copied to clipboard!');
+        })
+        .catch(err => {
+            showToast('Failed to copy', 'error');
+        });
+}
+
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `px-4 py-2 rounded shadow-lg ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+</script>
+{% endblock sidebar_content %}

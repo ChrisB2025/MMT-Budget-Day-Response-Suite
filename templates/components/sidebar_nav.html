@@ -134,6 +134,40 @@ Usage: {% include 'components/sidebar_nav.html' with section='factcheck' %}
                 </li>
             </ul>
 
+            {% elif section == 'article_critique' %}
+            <h3 class="font-semibold text-small mb-4" style="color: var(--color-text-primary);">Article Critique</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{% url 'article_critique:submit' %}" class="sidebar-link {% if active == 'submit' %}active{% endif %}">
+                        <span class="sidebar-icon">+</span> Submit URL
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'article_critique:submit_text' %}" class="sidebar-link {% if active == 'submit_text' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128196;</span> Paste Text
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'article_critique:queue' %}" class="sidebar-link {% if active == 'queue' %}active{% endif %}">
+                        <span class="sidebar-icon">&#9776;</span> Browse Queue
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'article_critique:my_articles' %}" class="sidebar-link {% if active == 'my_articles' %}active{% endif %}">
+                        <span class="sidebar-icon">&#128100;</span> My Articles
+                    </a>
+                </li>
+                {% endif %}
+                <li class="divider" style="border-top: 1px solid var(--color-border); margin: var(--space-sm) 0;"></li>
+                <li>
+                    <a href="{% url 'article_critique:home' %}" class="sidebar-link {% if active == 'home' %}active{% endif %}">
+                        <span class="sidebar-icon">&#8962;</span> Overview
+                    </a>
+                </li>
+            </ul>
+
             {% endif %}
         </nav>
     </div>

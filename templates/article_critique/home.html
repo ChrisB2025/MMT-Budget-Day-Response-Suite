@@ -1,0 +1,104 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}Article Critique - MMT Budget Response Suite{% endblock %}
+
+{% block sidebar_content %}
+<div class="w-full">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Article Critique</h1>
+        <p class="text-gray-600 mb-6">
+            Get evidence-based MMT analysis of economic journalism. Submit articles from major publications for rigorous fact-checking and framing analysis.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            <a href="{% url 'article_critique:submit' %}"
+               class="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold transition-all duration-200">
+                Submit Article URL
+            </a>
+            <a href="{% url 'article_critique:submit_text' %}"
+               class="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 font-semibold transition-all duration-200">
+                Paste Article Text
+            </a>
+        </div>
+
+        <!-- Supported Publications -->
+        <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">Guardian</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">BBC</span>
+            <span class="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm">Financial Times</span>
+            <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">The Times</span>
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">Telegraph</span>
+            <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">Independent</span>
+            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">+ Many More</span>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <div class="text-3xl font-bold text-indigo-600">{{ stats.total }}</div>
+            <div class="text-sm text-gray-600">Total Critiques</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+            <div class="text-3xl font-bold text-green-600">{{ stats.today }}</div>
+            <div class="text-sm text-gray-600">Today</div>
+        </div>
+    </div>
+
+    <!-- Recent Critiques -->
+    {% if recent_critiques %}
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Recent Critiques</h2>
+        <div class="space-y-4">
+            {% for submission in recent_critiques %}
+            <a href="{% url 'article_critique:detail' share_id=submission.share_id %}"
+               class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                                {{ submission.get_publication_display }}
+                            </span>
+                            {% if submission.critique %}
+                            <span class="px-2 py-1 rounded text-xs font-medium
+                                {% if submission.critique.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                                {% elif submission.critique.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                                {% elif submission.critique.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                                {% elif submission.critique.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ submission.critique.get_accuracy_rating_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h3 class="font-semibold text-gray-900">{{ submission.title|truncatechars:80 }}</h3>
+                        {% if submission.author %}
+                        <p class="text-sm text-gray-500">by {{ submission.author }}</p>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs text-gray-400">{{ submission.created_at|timesince }} ago</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-4 border-t">
+            <a href="{% url 'article_critique:queue' %}" class="text-indigo-600 hover:text-indigo-700 font-medium">
+                View All Critiques →
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <div class="text-6xl mb-4">📰</div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No Critiques Yet</h3>
+        <p class="text-gray-600 mb-4">Be the first to submit an article for MMT analysis!</p>
+        <a href="{% url 'article_critique:submit' %}"
+           class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+            Submit Article
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock sidebar_content %}

@@ -15,6 +15,7 @@ urlpatterns = [
     path('rebuttal/', include('apps.rebuttal.urls')),
     path('complaints/', include('apps.media_complaints.urls')),
     path('critique/', include('apps.social_critique.urls')),
+    path('articles/', include('apps.article_critique.urls')),
 ]
 
 # Serve media files in development
