@@ -1,0 +1,80 @@
+{% extends 'base_with_sidebar.html' %}
+
+{% block title %}My Article Critiques - MMT Budget Response Suite{% endblock %}
+
+{% block sidebar_content %}
+<div class="w-full">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">My Article Critiques</h1>
+            <a href="{% url 'article_critique:submit' %}"
+               class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Submit New Article
+            </a>
+        </div>
+
+        {% if submissions %}
+        <div class="space-y-4">
+            {% for submission in submissions %}
+            <div class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-start justify-between">
+                    <a href="{% url 'article_critique:detail' share_id=submission.share_id %}" class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+                                {{ submission.get_publication_display }}
+                            </span>
+                            <span class="px-2 py-1 rounded text-xs font-medium
+                                {% if submission.status == 'completed' %}bg-green-100 text-green-700
+                                {% elif submission.status == 'extracting' or submission.status == 'analyzing' %}bg-blue-100 text-blue-700
+                                {% elif submission.status == 'failed' %}bg-red-100 text-red-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ submission.get_status_display }}
+                            </span>
+                            {% if submission.critique %}
+                            <span class="px-2 py-1 rounded text-xs
+                                {% if submission.critique.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                                {% elif submission.critique.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                                {% elif submission.critique.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                                {% elif submission.critique.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                                {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ submission.critique.get_accuracy_rating_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h3 class="font-semibold text-gray-900">{{ submission.title|default:submission.original_url|truncatechars:80 }}</h3>
+                        {% if submission.author %}
+                        <p class="text-sm text-gray-500">by {{ submission.author }}</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-400 mt-1">{{ submission.created_at|timesince }} ago · {{ submission.view_count }} views</p>
+                    </a>
+                    <div class="flex gap-2 ml-4">
+                        <a href="{% url 'article_critique:detail' share_id=submission.share_id %}"
+                           class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                            View
+                        </a>
+                        <form method="post" action="{% url 'article_critique:delete' share_id=submission.share_id %}"
+                              onsubmit="return confirm('Delete this critique?');">
+                            {% csrf_token %}
+                            <button type="submit" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">📰</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No Articles Yet</h3>
+            <p class="text-gray-600 mb-6">Submit your first article for MMT analysis!</p>
+            <a href="{% url 'article_critique:submit' %}"
+               class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Submit Article
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock sidebar_content %}

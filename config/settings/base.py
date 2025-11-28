@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'apps.rebuttal',
     'apps.media_complaints',
     'apps.social_critique',
+    'apps.article_critique',
 ]
 
 MIDDLEWARE = [

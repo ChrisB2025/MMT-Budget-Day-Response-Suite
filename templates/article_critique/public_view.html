@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ submission.title|default:"Article Critique" }} - MMT Analysis{% endblock %}
+
+{% block extra_head %}
+<!-- Open Graph / Social Sharing -->
+<meta property="og:title" content="MMT Analysis: {{ submission.title|truncatechars:60 }}">
+<meta property="og:description" content="{{ submission.critique.summary|truncatechars:200 }}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ share_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MMT Analysis: {{ submission.title|truncatechars:60 }}">
+<meta name="twitter:description" content="{{ submission.critique.summary|truncatechars:200 }}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <p class="text-indigo-600 font-medium mb-2">MMT Budget Response Suite</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Article Critique</h1>
+    </div>
+
+    <!-- Article Info Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-start gap-4">
+            <div class="w-16 h-16 bg-gradient-to-r from-indigo-100 to-purple-100 rounded flex-shrink-0 flex items-center justify-center">
+                <span class="text-3xl">📰</span>
+            </div>
+
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded font-medium text-sm">
+                        {{ submission.get_publication_display }}
+                    </span>
+                    {% if submission.critique %}
+                    <span class="px-3 py-1 rounded font-medium text-sm
+                        {% if submission.critique.accuracy_rating == 'accurate' %}bg-green-100 text-green-700
+                        {% elif submission.critique.accuracy_rating == 'mostly_accurate' %}bg-blue-100 text-blue-700
+                        {% elif submission.critique.accuracy_rating == 'mixed' %}bg-yellow-100 text-yellow-700
+                        {% elif submission.critique.accuracy_rating == 'misleading' %}bg-orange-100 text-orange-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ submission.critique.get_accuracy_rating_display }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h2 class="text-xl font-bold text-gray-900 mb-2">{{ submission.title }}</h2>
+
+                {% if submission.author %}
+                <p class="text-gray-600">By {{ submission.author }}</p>
+                {% endif %}
+
+                {% if submission.original_url %}
+                <a href="{{ submission.original_url }}" target="_blank" rel="noopener"
+                   class="inline-block mt-2 text-indigo-600 hover:text-indigo-700 text-sm">
+                    View Original Article →
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if submission.critique %}
+    <!-- Critique Summary -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">MMT Analysis</h2>
+
+        <!-- Summary -->
+        <div class="mb-6 p-4 bg-indigo-50 rounded-lg border-l-4 border-indigo-500">
+            <h3 class="font-bold text-indigo-900 mb-2">Summary</h3>
+            <p class="text-gray-700">{{ submission.critique.summary }}</p>
+        </div>
+
+        <!-- Key Claims -->
+        {% if submission.critique.key_claims %}
+        <div class="mb-6">
+            <h3 class="font-bold text-gray-900 mb-3">Key Claims Identified</h3>
+            <ul class="space-y-2">
+                {% for claim in submission.critique.key_claims %}
+                <li class="flex items-start gap-2 p-2 bg-gray-50 rounded">
+                    <span class="text-indigo-500">•</span>
+                    <span class="text-gray-700">{{ claim }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Factual Errors -->
+        {% if submission.critique.factual_errors %}
+        <div class="mb-6">
+            <h3 class="font-bold text-red-700 mb-3">Factual Errors Identified</h3>
+            <div class="space-y-3">
+                {% for error in submission.critique.factual_errors %}
+                <div class="p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+                    <div class="font-medium text-red-800 mb-1">"{{ error.claim }}"</div>
+                    <div class="text-sm text-red-700"><strong>Problem:</strong> {{ error.problem }}</div>
+                    <div class="text-sm text-green-700 mt-1"><strong>Correction:</strong> {{ error.correction }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Framing Issues -->
+        {% if submission.critique.framing_issues %}
+        <div class="mb-6">
+            <h3 class="font-bold text-orange-700 mb-3">Framing Issues</h3>
+            <div class="space-y-3">
+                {% for issue in submission.critique.framing_issues %}
+                <div class="p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg">
+                    <div class="font-medium text-orange-800 mb-1">{{ issue.issue }}</div>
+                    <div class="text-sm text-orange-700"><strong>Problematic:</strong> "{{ issue.problematic_framing }}"</div>
+                    <div class="text-sm text-green-700 mt-1"><strong>Better:</strong> "{{ issue.better_framing }}"</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MMT Perspective -->
+        {% if submission.critique.mmt_analysis %}
+        <div class="mb-6 border-l-4 border-purple-400 pl-4">
+            <h3 class="font-bold text-purple-700 mb-2">MMT Perspective</h3>
+            <div class="text-gray-700">{{ submission.critique.mmt_analysis|linebreaks }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Rebuttal -->
+        {% if submission.critique.quick_rebuttal %}
+        <div class="p-4 bg-blue-50 rounded-lg">
+            <h3 class="font-bold text-blue-900 mb-2">In Brief</h3>
+            <p class="text-gray-700">{{ submission.critique.quick_rebuttal }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Share Section -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h3 class="font-bold text-gray-900 mb-4">Share This Analysis</h3>
+        <div class="flex flex-wrap gap-3">
+            <a href="https://twitter.com/intent/tweet?url={{ share_url|urlencode }}&text={{ submission.critique.summary|truncatechars:100|urlencode }}"
+               target="_blank"
+               class="px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-500">
+                Twitter/X
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}"
+               target="_blank"
+               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Facebook
+            </a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}"
+               target="_blank"
+               class="px-4 py-2 bg-blue-800 text-white rounded hover:bg-blue-900">
+                LinkedIn
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CTA -->
+    <div class="bg-indigo-50 rounded-lg p-6 text-center">
+        <h3 class="text-xl font-bold text-indigo-900 mb-2">Want to critique more articles?</h3>
+        <p class="text-indigo-700 mb-4">Submit any news article for evidence-based MMT analysis.</p>
+        <a href="{% url 'article_critique:home' %}"
+           class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-semibold">
+            Try Article Critique
+        </a>
+    </div>
+</div>
+{% endblock %}
