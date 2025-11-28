@@ -232,7 +232,9 @@ def extract_metadata_from_soup(soup) -> Dict[str, Any]:
     if date_meta:
         try:
             from dateutil import parser as date_parser
-            metadata['publication_date'] = date_parser.parse(date_meta.get('content', ''))
+            parsed_date = date_parser.parse(date_meta.get('content', ''))
+            # Convert to ISO string for JSON serialization
+            metadata['publication_date'] = parsed_date.isoformat()
         except Exception:
             pass
 
