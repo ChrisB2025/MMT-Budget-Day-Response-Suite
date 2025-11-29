@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}League Table - Misinformation Offenders - MMT Campaign Suite{% endblock %}
+
+{% block extra_head %}
+<style>
+    .sortable-header {
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .sortable-header:hover {
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+    .sort-indicator {
+        display: inline-block;
+        margin-left: 0.25rem;
+        opacity: 0.5;
+    }
+    .sort-indicator.active {
+        opacity: 1;
+        color: var(--color-primary);
+    }
+    .league-row:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+    .handle-cell {
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+    .bio-tooltip {
+        max-width: 300px;
+    }
+    .follower-count {
+        font-variant-numeric: tabular-nums;
+    }
+    .score-badge {
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text-primary);">League Table</h1>
+    <p class="text-lg" style="color: var(--color-text-secondary);">
+        Track repeat offenders spreading economic misinformation. Ranked by weighted score combining critique count, follower reach, and recency.
+    </p>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow p-4 mb-8">
+    {% if platforms %}
+    <div class="flex items-center gap-4 flex-wrap">
+        <span class="font-medium text-gray-700">Platform:</span>
+        <a href="{% url 'core:league_table' %}?sort={{ sort_by }}&order={{ order }}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if not selected_platform %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            All Platforms
+        </a>
+        {% for platform_code, platform_name in platforms %}
+        <a href="{% url 'core:league_table' %}?platform={{ platform_code }}&sort={{ sort_by }}&order={{ order }}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if selected_platform == platform_code %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            {{ platform_name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Stats Summary -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+        <div class="text-2xl font-bold text-indigo-600">{{ total_count }}</div>
+        <div class="text-sm text-gray-500">Unique Offenders</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+        <div class="text-2xl font-bold text-purple-600">
+            {% if league_data %}{{ league_data.0.critique_count }}{% else %}0{% endif %}
+        </div>
+        <div class="text-sm text-gray-500">Most Critiqued Count</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 text-center">
+        <div class="text-2xl font-bold text-amber-600">
+            {% if league_data %}{{ league_data.0.weighted_score }}{% else %}0{% endif %}
+        </div>
+        <div class="text-sm text-gray-500">Highest Score</div>
+    </div>
+</div>
+
+<!-- League Table -->
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    {% if league_data %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rank
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Handle
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Platform
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header"
+                        onclick="sortTable('critique_count')">
+                        Critiques
+                        <span class="sort-indicator {% if sort_by == 'critique_count' %}active{% endif %}">
+                            {% if sort_by == 'critique_count' %}
+                                {% if order == 'desc' %}&#9660;{% else %}&#9650;{% endif %}
+                            {% else %}&#9660;{% endif %}
+                        </span>
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header"
+                        onclick="sortTable('follower_count')">
+                        Followers
+                        <span class="sort-indicator {% if sort_by == 'follower_count' %}active{% endif %}">
+                            {% if sort_by == 'follower_count' %}
+                                {% if order == 'desc' %}&#9660;{% else %}&#9650;{% endif %}
+                            {% else %}&#9660;{% endif %}
+                        </span>
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header"
+                        onclick="sortTable('latest_critique')">
+                        Last Critiqued
+                        <span class="sort-indicator {% if sort_by == 'latest_critique' %}active{% endif %}">
+                            {% if sort_by == 'latest_critique' %}
+                                {% if order == 'desc' %}&#9660;{% else %}&#9650;{% endif %}
+                            {% else %}&#9660;{% endif %}
+                        </span>
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header"
+                        onclick="sortTable('weighted_score')">
+                        Score
+                        <span class="sort-indicator {% if sort_by == 'weighted_score' %}active{% endif %}">
+                            {% if sort_by == 'weighted_score' %}
+                                {% if order == 'desc' %}&#9660;{% else %}&#9650;{% endif %}
+                            {% else %}&#9660;{% endif %}
+                        </span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for entry in league_data %}
+                <tr class="league-row">
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="{% if forloop.counter <= 3 %}font-bold text-lg{% endif %}
+                                     {% if forloop.counter == 1 %}text-amber-500{% elif forloop.counter == 2 %}text-gray-400{% elif forloop.counter == 3 %}text-amber-700{% else %}text-gray-500{% endif %}">
+                            {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4">
+                        <div class="handle-cell">
+                            {% if entry.latest_critique_id %}
+                            <a href="{% url 'social_critique:detail' share_id=entry.latest_critique_id %}"
+                               class="hover:underline" title="View latest critique">
+                                {{ entry.handle }}
+                            </a>
+                            {% else %}
+                                {{ entry.handle }}
+                            {% endif %}
+                        </div>
+                        {% if entry.bio %}
+                        <div class="text-xs text-gray-500 truncate max-w-xs" title="{{ entry.bio }}">
+                            {{ entry.bio|truncatechars:60 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 rounded text-xs font-medium
+                            {% if entry.platform == 'twitter' %}bg-blue-100 text-blue-800
+                            {% elif entry.platform == 'bluesky' %}bg-sky-100 text-sky-800
+                            {% elif entry.platform == 'youtube' %}bg-red-100 text-red-800
+                            {% elif entry.platform == 'facebook' %}bg-indigo-100 text-indigo-800
+                            {% elif entry.platform == 'linkedin' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ entry.platform_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        <span class="font-semibold text-indigo-600">{{ entry.critique_count }}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm follower-count">
+                        {% if entry.follower_count %}
+                            {{ entry.follower_count|intcomma }}
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ entry.latest_critique|timesince }} ago
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="score-badge">{{ entry.weighted_score }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-8 text-center">
+        <div class="text-5xl mb-4">📊</div>
+        <h3 class="text-lg font-semibold mb-2" style="color: var(--color-text-primary);">No Data Yet</h3>
+        <p class="text-gray-500 mb-4">
+            The league table will populate as critiques are submitted with author handle information.
+        </p>
+        <a href="{% url 'core:home' %}" class="btn-primary">
+            Submit a Critique
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Scoring Explanation -->
+<div class="mt-8 bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-semibold mb-4" style="color: var(--color-text-primary);">How Scoring Works</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div>
+            <h4 class="font-medium text-gray-700 mb-1">Critique Count</h4>
+            <p class="text-gray-500">10 points per critique submitted against this account.</p>
+        </div>
+        <div>
+            <h4 class="font-medium text-gray-700 mb-1">Follower Reach</h4>
+            <p class="text-gray-500">Logarithmic scoring based on follower count - larger audiences mean wider misinformation spread.</p>
+        </div>
+        <div>
+            <h4 class="font-medium text-gray-700 mb-1">Recency Bonus</h4>
+            <p class="text-gray-500">Up to 30 bonus points for accounts critiqued within the last month.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function sortTable(column) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort') || 'weighted_score';
+    const currentOrder = urlParams.get('order') || 'desc';
+
+    let newOrder = 'desc';
+    if (currentSort === column && currentOrder === 'desc') {
+        newOrder = 'asc';
+    }
+
+    urlParams.set('sort', column);
+    urlParams.set('order', newOrder);
+
+    window.location.search = urlParams.toString();
+}
+</script>
+{% endblock %}

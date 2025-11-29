@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Fun - Learn MMT Through Games - MMT Campaign Suite{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text-primary);">Fun</h1>
+    <p class="text-lg" style="color: var(--color-text-secondary);">
+        Learn MMT through interactive games and activities.
+    </p>
+</div>
+
+<!-- Games Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <!-- Keystroke Kingdom -->
+    <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
+       class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-8 text-white hover:shadow-lg transition group">
+        <div class="flex items-start gap-4">
+            <div class="text-5xl">👑</div>
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold mb-3 flex items-center gap-2">
+                    Keystroke Kingdom
+                    <svg class="w-5 h-5 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </h2>
+                <p class="opacity-90 mb-4">
+                    Learn MMT through play! An interactive strategy game where you rule a kingdom
+                    using MMT-style policy decisions. See how government spending, taxation, and
+                    job guarantees affect your economy.
+                </p>
+                <ul class="text-sm opacity-80 space-y-1">
+                    <li>Manage your kingdom's budget and economy</li>
+                    <li>Make fiscal policy decisions</li>
+                    <li>Learn about currency sovereignty</li>
+                    <li>Understand the Job Guarantee</li>
+                </ul>
+            </div>
+        </div>
+    </a>
+
+    <!-- Myth Bingo -->
+    <a href="{% url 'bingo:home' %}"
+       class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-8 text-white hover:shadow-lg transition group">
+        <div class="flex items-start gap-4">
+            <div class="text-5xl">🎯</div>
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold mb-3 flex items-center gap-2">
+                    Myth Bingo
+                    <svg class="w-5 h-5 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </h2>
+                <p class="opacity-90 mb-4">
+                    Turn economic myth-spotting into a game! Generate a 5x5 bingo card filled with
+                    common economic myths. Perfect for budget days, PMQs, news broadcasts, or
+                    any time politicians are speaking.
+                </p>
+                <ul class="text-sm opacity-80 space-y-1">
+                    <li>Randomly generated bingo cards</li>
+                    <li>Track myths as you spot them</li>
+                    <li>Share your completed cards</li>
+                    <li>Great for watch parties</li>
+                </ul>
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Coming Soon Section -->
+<div class="bg-gray-50 rounded-xl p-8 text-center">
+    <h3 class="text-xl font-semibold mb-4" style="color: var(--color-text-primary);">More Games Coming Soon</h3>
+    <p style="color: var(--color-text-secondary);">
+        We're working on more interactive ways to learn about Modern Monetary Theory.
+        Have ideas? Join our Discord community to share your suggestions!
+    </p>
+    <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener"
+       class="inline-flex items-center gap-2 mt-4 text-indigo-600 hover:text-indigo-700 font-medium">
+        Join Discord Community
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+    </a>
+</div>
+{% endblock %}

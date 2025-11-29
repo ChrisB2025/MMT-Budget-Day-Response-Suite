@@ -5,6 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import Count, Avg, Sum
 from django.http import HttpResponse
+from django.utils import timezone
 from apps.bingo.models import BingoCard, BingoPhrase
 from apps.factcheck.models import FactCheckRequest, FactCheckResponse
 from apps.rebuttal.models import Rebuttal
@@ -193,6 +194,134 @@ def about(request):
 def help_page(request):
     """Help page"""
     return render(request, 'core/help.html')
+
+
+def fun_page(request):
+    """Fun page - games and interactive content"""
+    return render(request, 'core/fun.html')
+
+
+def league_table(request):
+    """League table showing social media users who have been critiqued, ranked by various metrics"""
+    from apps.social_critique.models import SocialMediaCritique
+    from django.db.models import Count, Max, Avg, F, Value, FloatField
+    from django.db.models.functions import Coalesce
+
+    # Get sort parameter (default to weighted_score)
+    sort_by = request.GET.get('sort', 'weighted_score')
+    order = request.GET.get('order', 'desc')
+    platform_filter = request.GET.get('platform', '')
+
+    # Valid sort options
+    valid_sorts = ['critique_count', 'follower_count', 'latest_critique', 'weighted_score']
+    if sort_by not in valid_sorts:
+        sort_by = 'weighted_score'
+
+    # Build the queryset - aggregate by source_author_handle
+    # Filter to only include critiques with author handles
+    queryset = SocialMediaCritique.objects.filter(
+        status='completed'
+    ).exclude(
+        source_author_handle=''
+    ).exclude(
+        source_author_handle__isnull=True
+    )
+
+    # Apply platform filter if specified
+    if platform_filter:
+        queryset = queryset.filter(platform=platform_filter)
+
+    # Aggregate by handle
+    league_data = queryset.values(
+        'source_author_handle',
+    ).annotate(
+        critique_count=Count('id'),
+        follower_count=Max('source_author_follower_count'),  # Use latest known follower count
+        latest_critique=Max('created_at'),
+        # Get the bio and platform from the latest critique
+    ).filter(critique_count__gte=1)
+
+    # Calculate weighted score for each entry
+    # Formula: (critique_count * 10) + (log10(follower_count + 1) * 5) + recency_bonus
+    # This prioritizes repeat offenders with large audiences
+    import math
+    from datetime import timedelta
+
+    league_list = []
+    for entry in league_data:
+        follower_count = entry['follower_count'] or 0
+        critique_count = entry['critique_count'] or 0
+        latest_critique = entry['latest_critique']
+
+        # Calculate weighted score
+        # Base score from critique count (10 points each)
+        critique_score = critique_count * 10
+
+        # Follower influence (logarithmic scale to prevent huge accounts from dominating)
+        follower_score = math.log10(follower_count + 1) * 5 if follower_count > 0 else 0
+
+        # Recency bonus (more points for recent critiques)
+        days_since = (timezone.now() - latest_critique).days if latest_critique else 365
+        recency_score = max(0, 30 - days_since)  # Up to 30 bonus points for very recent
+
+        weighted_score = critique_score + follower_score + recency_score
+
+        # Get additional info from the most recent critique for this handle
+        latest = SocialMediaCritique.objects.filter(
+            source_author_handle=entry['source_author_handle'],
+            status='completed'
+        ).order_by('-created_at').first()
+
+        league_list.append({
+            'handle': entry['source_author_handle'],
+            'bio': latest.source_author_bio if latest else '',
+            'platform': latest.platform if latest else '',
+            'platform_display': latest.get_platform_display() if latest else '',
+            'critique_count': critique_count,
+            'follower_count': follower_count,
+            'latest_critique': latest_critique,
+            'weighted_score': round(weighted_score, 1),
+            'latest_critique_id': latest.share_id if latest else None,
+        })
+
+    # Sort the list
+    reverse_order = order == 'desc'
+    if sort_by == 'latest_critique':
+        league_list.sort(key=lambda x: x['latest_critique'] or timezone.now(), reverse=reverse_order)
+    elif sort_by == 'follower_count':
+        league_list.sort(key=lambda x: x['follower_count'] or 0, reverse=reverse_order)
+    elif sort_by == 'critique_count':
+        league_list.sort(key=lambda x: x['critique_count'], reverse=reverse_order)
+    else:  # weighted_score
+        league_list.sort(key=lambda x: x['weighted_score'], reverse=reverse_order)
+
+    # Get available platforms for filter
+    available_platforms = SocialMediaCritique.objects.filter(
+        status='completed'
+    ).exclude(
+        source_author_handle=''
+    ).values_list('platform', flat=True).distinct()
+
+    platform_choices = [
+        ('twitter', 'X/Twitter'),
+        ('bluesky', 'Bluesky'),
+        ('youtube', 'YouTube'),
+        ('reddit', 'Reddit'),
+        ('linkedin', 'LinkedIn'),
+        ('facebook', 'Facebook'),
+        ('mastodon', 'Mastodon'),
+        ('other', 'Other'),
+    ]
+    platforms = [(p, name) for p, name in platform_choices if p in available_platforms]
+
+    return render(request, 'core/league_table.html', {
+        'league_data': league_list[:100],  # Limit to top 100
+        'sort_by': sort_by,
+        'order': order,
+        'platforms': platforms,
+        'selected_platform': platform_filter,
+        'total_count': len(league_list),
+    })
 
 
 # Redirect for retired fact-check public route

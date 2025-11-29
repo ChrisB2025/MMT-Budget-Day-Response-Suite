@@ -10,6 +10,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('about/', views.about, name='about'),
     path('help/', views.help_page, name='help'),
+    path('fun/', views.fun_page, name='fun'),
+    path('league-table/', views.league_table, name='league_table'),
 
     # Admin tools
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),

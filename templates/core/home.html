@@ -84,6 +84,8 @@
 
 <!-- Campaign Tools Section -->
 <section class="mb-12">
+    {% if user.is_authenticated %}
+    <!-- Campaign Tools for logged-in users -->
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold" style="color: var(--color-text-primary);">Campaign Tools</h2>
         <p class="text-sm" style="color: var(--color-text-tertiary);">
@@ -94,7 +96,7 @@
         </p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         <!-- Social Media Target Panel -->
         <div class="tool-card" id="social-target">
             <div class="flex items-center gap-3 mb-4">
@@ -104,7 +106,7 @@
             <p class="tool-description">
                 Paste a link to an X/Twitter post, Bluesky post, YouTube video, or similar to get an MMT critique and shareable replies.
             </p>
-            <form action="{% url 'social_critique:submit' %}" method="post" class="space-y-4">
+            <form action="{% url 'social_critique:submit' %}" method="post" class="space-y-4 flex-1 flex flex-col">
                 {% csrf_token %}
                 <div>
                     <label for="social-url" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">URL</label>
@@ -132,9 +134,11 @@
                         <option value="other">Other</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-primary w-full">
-                    Analyse Post
-                </button>
+                <div class="mt-auto pt-4">
+                    <button type="submit" class="btn-primary w-full">
+                        Analyse Post
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -147,7 +151,7 @@
             <p class="tool-description">
                 Submit news articles or opinion pieces for MMT critique and talking points. We'll extract the content and generate a comprehensive analysis.
             </p>
-            <form action="{% url 'article_critique:submit' %}" method="post" class="space-y-4">
+            <form action="{% url 'article_critique:submit' %}" method="post" class="space-y-4 flex-1 flex flex-col">
                 {% csrf_token %}
                 <div>
                     <label for="article-url" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Article URL</label>
@@ -161,15 +165,17 @@
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                            placeholder="Why is this article problematic?">
                 </div>
-                <button type="submit" class="btn-primary w-full">
-                    Critique Article
-                </button>
+                <div class="mt-auto pt-4">
+                    <button type="submit" class="btn-primary w-full">
+                        Critique Article
+                    </button>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'article_critique:submit_text' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
+                            Have paywalled content? Paste text directly
+                        </a>
+                    </div>
+                </div>
             </form>
-            <div class="mt-3 text-center">
-                <a href="{% url 'article_critique:submit_text' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
-                    Have paywalled content? Paste text directly
-                </a>
-            </div>
         </div>
 
         <!-- Complaint/Response Panel -->
@@ -181,7 +187,7 @@
             <p class="tool-description">
                 Draft a complaint, letter to the editor, or response email regarding an outlet, journalist, or organisation spreading economic misinformation.
             </p>
-            <form action="{% url 'media_complaints:quick_submit' %}" method="post" class="space-y-4">
+            <form action="{% url 'media_complaints:quick_submit' %}" method="post" class="space-y-4 flex-1 flex flex-col">
                 {% csrf_token %}
                 <div>
                     <label for="outlet-name" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Target Outlet</label>
@@ -195,17 +201,40 @@
                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               placeholder="Describe the misinformation or issue..."></textarea>
                 </div>
-                <button type="submit" class="btn-primary w-full">
-                    Generate Complaint
-                </button>
+                <div class="mt-auto pt-4">
+                    <button type="submit" class="btn-primary w-full">
+                        Generate Complaint
+                    </button>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'media_complaints:submit' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
+                            Need more options? Use the full form
+                        </a>
+                    </div>
+                </div>
             </form>
-            <div class="mt-3 text-center">
-                <a href="{% url 'media_complaints:submit' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
-                    Need more options? Use the full form
-                </a>
-            </div>
         </div>
     </div>
+    {% else %}
+    <!-- Call to action for non-authenticated users -->
+    <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+        <h2 class="text-2xl font-bold mb-4" style="color: var(--color-text-primary);">Join the Campaign</h2>
+        <p class="text-lg mb-6 max-w-2xl mx-auto" style="color: var(--color-text-secondary);">
+            Register or log in to access our powerful campaign tools for challenging economic misinformation.
+            Generate MMT critiques, shareable replies, and complaint letters.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'users:register' %}" class="btn-primary px-8 py-3 text-lg">
+                Register Now
+            </a>
+            <a href="{% url 'users:login' %}" class="btn-secondary px-8 py-3 text-lg">
+                Log In
+            </a>
+        </div>
+        <p class="mt-6 text-sm" style="color: var(--color-text-tertiary);">
+            Already have a shared critique link? Those remain publicly accessible.
+        </p>
+    </div>
+    {% endif %}
 </section>
 
 <!-- Recent Activity & Quick Links -->
@@ -286,51 +315,4 @@
     </div>
 </section>
 
-<!-- Fun Section - Learn & Play -->
-<section class="mb-12">
-    <h2 class="text-2xl font-bold mb-6" style="color: var(--color-text-primary);">Fun</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Keystroke Kingdom -->
-        <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
-           class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 text-white hover:shadow-lg transition group">
-            <div class="flex items-start gap-4">
-                <div class="text-4xl">👑</div>
-                <div class="flex-1">
-                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2">
-                        Keystroke Kingdom
-                        <svg class="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                        </svg>
-                    </h3>
-                    <p class="opacity-90 text-sm">
-                        Learn MMT through play! An interactive strategy game where you rule a kingdom
-                        using MMT-style policy decisions. See how government spending, taxation, and
-                        job guarantees affect your economy.
-                    </p>
-                </div>
-            </div>
-        </a>
-
-        <!-- Myth Bingo -->
-        <a href="{% url 'bingo:home' %}"
-           class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 text-white hover:shadow-lg transition group">
-            <div class="flex items-start gap-4">
-                <div class="text-4xl">🎯</div>
-                <div class="flex-1">
-                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2">
-                        Myth Bingo
-                        <svg class="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                        </svg>
-                    </h3>
-                    <p class="opacity-90 text-sm">
-                        Turn economic myth-spotting into a game! Generate a 5x5 bingo card filled with
-                        common economic myths. Perfect for budget days, PMQs, news broadcasts, or
-                        any time politicians are speaking.
-                    </p>
-                </div>
-            </div>
-        </a>
-    </div>
-</section>
 {% endblock %}

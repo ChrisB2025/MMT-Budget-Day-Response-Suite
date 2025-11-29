@@ -81,6 +81,31 @@ class SocialMediaCritique(models.Model):
         help_text='Optional user-provided context about the content'
     )
 
+    # Original poster details (cached to avoid re-fetching)
+    source_author_handle = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='Social media handle of the original poster (e.g., @username)'
+    )
+    source_author_bio = models.TextField(
+        blank=True,
+        help_text='Bio/description of the original poster'
+    )
+    source_author_follower_count = models.IntegerField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='Follower count of the original poster'
+    )
+
+    # Theme tagging for filtering and analysis
+    theme_tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of theme tags (e.g., household_myth, bond_market, inflation, etc.)'
+    )
+
     class Meta:
         db_table = 'social_media_critiques'
         verbose_name = 'Social Media Critique'

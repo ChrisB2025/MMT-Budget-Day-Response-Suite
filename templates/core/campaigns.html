@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Campaigns Dashboard - MMT Campaign Suite{% endblock %}
 
@@ -73,6 +74,86 @@
 </div>
 
 <!-- Campaign Items -->
+{% if selected_platform %}
+<!-- Enhanced Platform-Filtered View -->
+<div class="bg-white rounded-lg shadow">
+    <div class="border-b p-4">
+        <h2 class="text-lg font-semibold flex items-center gap-2">
+            <span class="text-2xl">📱</span>
+            {{ selected_platform|title }} Critiques
+            <span class="text-sm font-normal text-gray-500">({{ social_critiques|length }} results)</span>
+        </h2>
+    </div>
+    <div class="divide-y">
+        {% if social_critiques %}
+        {% for critique in social_critiques %}
+        <a href="{% url 'social_critique:detail' share_id=critique.share_id %}"
+           class="block p-4 hover:bg-indigo-50 transition">
+            <div class="flex justify-between items-start mb-2">
+                <div class="font-medium text-gray-900">
+                    {{ critique.source_title|default:critique.url|truncatechars:80 }}
+                </div>
+                <span class="text-xs text-gray-400 whitespace-nowrap ml-2">
+                    {{ critique.created_at|date:"d M Y, H:i" }}
+                </span>
+            </div>
+
+            <!-- Original Poster Details -->
+            {% if critique.source_author_handle or critique.source_author %}
+            <div class="flex items-start gap-3 mb-2 p-2 bg-gray-50 rounded">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-indigo-600">
+                            {{ critique.source_author_handle|default:critique.source_author }}
+                        </span>
+                        {% if critique.source_author_follower_count %}
+                        <span class="text-xs text-gray-500">
+                            {{ critique.source_author_follower_count|intcomma }} followers
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if critique.source_author_bio %}
+                    <div class="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {{ critique.source_author_bio|truncatechars:120 }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tags and Meta -->
+            <div class="flex items-center gap-2 flex-wrap text-xs">
+                <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                    {{ critique.get_platform_display }}
+                </span>
+                {% if critique.campaign_tag %}
+                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                    {{ critique.campaign_tag }}
+                </span>
+                {% endif %}
+                {% if critique.theme_tags %}
+                {% for tag in critique.theme_tags %}
+                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700">
+                    {{ tag|title }}
+                </span>
+                {% endfor %}
+                {% endif %}
+                <span class="text-gray-400">{{ critique.created_at|timesince }} ago</span>
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <p class="text-gray-500 text-center py-8">No critiques found for this platform.</p>
+        {% endif %}
+    </div>
+    <div class="border-t p-4">
+        <a href="{% url 'core:home' %}#social-target" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+            Submit a Social Media Target
+        </a>
+    </div>
+</div>
+{% else %}
+<!-- Default Three-Column View -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Social Media Critiques -->
     <div class="bg-white rounded-lg shadow">
@@ -91,7 +172,7 @@
                     <div class="font-medium text-gray-900 truncate">
                         {{ critique.source_title|default:critique.url|truncatechars:50 }}
                     </div>
-                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
                         <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
                             {{ critique.get_platform_display }}
                         </span>
@@ -102,6 +183,11 @@
                         </span>
                         {% endif %}
                     </div>
+                    {% if critique.source_author_handle %}
+                    <div class="text-xs text-gray-400 mt-1">
+                        by {{ critique.source_author_handle }}
+                    </div>
+                    {% endif %}
                 </a>
                 {% endfor %}
             </div>
@@ -203,6 +289,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Discord CTA -->
 <div class="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 text-white text-center">
