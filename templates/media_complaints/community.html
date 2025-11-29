@@ -1,77 +1,162 @@
 {% extends 'base.html' %}
 
-{% block title %}Community Complaints - MMT Budget Response Suite{% endblock %}
+{% block title %}Community Complaints - MMT Campaign Suite{% endblock %}
+
+{% block extra_head %}
+<style>
+    .complaint-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .complaint-card:hover {
+        border-color: var(--color-primary);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .status-draft { background: #f3f4f6; color: #4b5563; }
+    .status-generated { background: #dbeafe; color: #1d4ed8; }
+    .status-sent { background: #d1fae5; color: #047857; }
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.15s;
+    }
+    .filter-btn.active {
+        background: var(--color-primary);
+        color: white;
+    }
+    .filter-btn:not(.active) {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+    .filter-btn:not(.active):hover {
+        background: #e5e7eb;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-8">Community Complaints</h1>
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text-primary);">Community Complaints</h1>
+        <p class="text-lg" style="color: var(--color-text-secondary);">
+            View complaints filed by the MMT community against media outlets for economic misinformation.
+            Learn from others' submissions and see what's being challenged.
+        </p>
+    </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <form method="get" class="flex flex-wrap gap-4 items-end">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg">
-                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
-                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
-                    <option value="generated" {% if status_filter == 'generated' %}selected{% endif %}>Generated</option>
-                    <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Sent</option>
-                </select>
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-8">
+        <form method="get" class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-700">Status:</span>
+                <div class="flex gap-1">
+                    <button type="submit" name="status" value="all" class="filter-btn {% if status_filter == 'all' %}active{% endif %}">
+                        All
+                    </button>
+                    <button type="submit" name="status" value="draft" class="filter-btn {% if status_filter == 'draft' %}active{% endif %}">
+                        Draft
+                    </button>
+                    <button type="submit" name="status" value="generated" class="filter-btn {% if status_filter == 'generated' %}active{% endif %}">
+                        Generated
+                    </button>
+                    <button type="submit" name="status" value="sent" class="filter-btn {% if status_filter == 'sent' %}active{% endif %}">
+                        Sent
+                    </button>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Outlet</label>
-                <select name="outlet" class="px-4 py-2 border border-gray-300 rounded-lg">
+
+            {% if outlets %}
+            <div class="flex items-center gap-2 ml-auto">
+                <label for="outlet" class="text-sm font-medium text-gray-700">Outlet:</label>
+                <select name="outlet" id="outlet" onchange="this.form.submit()"
+                        class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="all" {% if outlet_filter == 'all' %}selected{% endif %}>All Outlets</option>
                     {% for outlet in outlets %}
                     <option value="{{ outlet.id }}" {% if outlet_filter == outlet.id|stringformat:"s" %}selected{% endif %}>
-                        {{ outlet.name }}
+                        {{ outlet.name }} ({{ outlet.complaint_count }})
                     </option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
-                Filter
-            </button>
+            {% endif %}
         </form>
     </div>
 
-    <!-- Complaints -->
+    <!-- Complaints Grid -->
     {% if complaints %}
-    <div class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {% for complaint in complaints %}
-        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
-            <div class="flex items-start justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
-                            {{ complaint.outlet.name }}
-                        </span>
-                        <span class="text-xs text-gray-500">{{ complaint.incident_date|date:"j M Y" }}</span>
+        <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="complaint-card block">
+            <div class="flex items-start justify-between gap-4 mb-3">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="px-2 py-1 bg-red-50 text-red-700 text-xs font-medium rounded">
+                        {{ complaint.outlet.name }}
+                    </span>
+                    <span class="status-badge status-{{ complaint.status }}">
                         {% if complaint.status == 'sent' %}
-                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-                            ✓ Sent
-                        </span>
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
                         {% endif %}
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">{{ complaint.programme_name }}</h3>
-                    <p class="text-sm text-gray-600 line-clamp-2 mb-2">{{ complaint.claim_description|truncatewords:25 }}</p>
-                    <div class="flex items-center gap-3 text-xs text-gray-500">
-                        <span>By {{ complaint.user.display_name }}</span>
-                        <span>•</span>
-                        <span>Severity: {{ complaint.severity }}/5</span>
-                    </div>
+                        {{ complaint.get_status_display }}
+                    </span>
                 </div>
-                <a href="{% url 'media_complaints:view_complaint' complaint.id %}" class="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">
-                    View
-                </a>
+                <span class="text-xs text-gray-400 whitespace-nowrap">{{ complaint.incident_date|date:"j M Y" }}</span>
             </div>
-        </div>
+
+            <h3 class="font-semibold text-gray-900 mb-2 line-clamp-1">{{ complaint.programme_name }}</h3>
+            <p class="text-sm text-gray-600 line-clamp-2 mb-3">{{ complaint.claim_description|truncatewords:30 }}</p>
+
+            <div class="flex items-center justify-between text-xs text-gray-500">
+                <span>By {{ complaint.user.display_name }}</span>
+                <div class="flex items-center gap-3">
+                    <span>Severity: {{ complaint.severity }}/5</span>
+                    <span>{{ complaint.created_at|timesince }} ago</span>
+                </div>
+            </div>
+        </a>
         {% endfor %}
     </div>
     {% else %}
-    <div class="bg-white rounded-lg shadow p-12 text-center">
-        <p class="text-gray-500">No complaints found matching your filters.</p>
+    <div class="bg-white rounded-xl shadow-sm p-12 text-center mb-8">
+        <div class="text-4xl mb-4">📝</div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Complaints Found</h3>
+        <p class="text-gray-500 mb-6">No complaints match your current filters.</p>
+        <a href="{% url 'media_complaints:submit' %}" class="btn-primary">
+            File a Complaint
+        </a>
     </div>
     {% endif %}
+
+    <!-- CTA Section -->
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white text-center">
+        <h3 class="text-xl font-bold mb-2">Have an issue to report?</h3>
+        <p class="mb-4 opacity-90">
+            Help hold media accountable by filing a complaint about economic misinformation.
+        </p>
+        <a href="{% url 'media_complaints:submit' %}"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition">
+            File a New Complaint
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+        </a>
+    </div>
 </div>
 {% endblock %}

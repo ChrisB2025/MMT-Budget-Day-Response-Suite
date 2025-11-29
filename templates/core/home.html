@@ -10,6 +10,9 @@
         padding: 1.5rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
     .tool-card:hover {
         transform: translateY(-2px);
@@ -20,6 +23,17 @@
         font-size: 1.25rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
+    }
+    .tool-card form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .tool-card form .space-y-4 {
+        flex: 1;
+    }
+    .tool-card form button[type="submit"] {
+        margin-top: auto;
     }
     .tool-description {
         color: var(--color-text-secondary);
@@ -52,15 +66,15 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-professional mb-12">
-    <div class="text-center">
+<section class="mb-12">
+    <div class="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-2xl p-8 md:p-12 text-center">
         <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--color-text-primary);">
             MMT Campaign Suite
         </h1>
-        <p class="text-xl md:text-2xl mb-6" style="color: var(--color-text-secondary);">
+        <p class="text-xl md:text-2xl mb-6 max-w-4xl mx-auto" style="color: var(--color-text-secondary);">
             {{ MMT_SITE_TAGLINE }}
         </p>
-        <p class="max-w-3xl mx-auto" style="color: var(--color-text-secondary);">
+        <p class="max-w-3xl mx-auto text-base" style="color: var(--color-text-tertiary);">
             A year-round platform for Modern Monetary Theory activists to challenge economic misinformation in media.
             Submit social media posts, news articles, or file complaints to generate evidence-based MMT rebuttals
             and shareable content for your campaigns.
@@ -255,28 +269,10 @@
             </div>
         </div>
 
-        <!-- Learn & Train -->
-        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-text-primary);">Learn & Train</h3>
-            <p class="text-sm text-gray-600 mb-4">
-                Practice MMT concepts with Keystroke Kingdom - an interactive strategy game where you experiment with MMT-style policy decisions.
-            </p>
-            <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener" class="btn-secondary inline-flex items-center gap-2">
-                Play Keystroke Kingdom
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                </svg>
-            </a>
-        </div>
-
         <!-- Quick Actions -->
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold mb-4" style="color: var(--color-text-primary);">Quick Actions</h3>
             <div class="grid grid-cols-2 gap-3">
-                <a href="{% url 'bingo:home' %}" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
-                    <span class="text-2xl">🎯</span>
-                    <span class="font-medium">Myth Bingo</span>
-                </a>
                 <a href="{% url 'core:campaigns' %}" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
                     <span class="text-2xl">📊</span>
                     <span class="font-medium">Campaigns</span>
@@ -285,12 +281,56 @@
                     <span class="text-2xl">👥</span>
                     <span class="font-medium">Community</span>
                 </a>
-                <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
-                    <span class="text-2xl">💬</span>
-                    <span class="font-medium">Discord</span>
-                </a>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- Fun Section - Learn & Play -->
+<section class="mb-12">
+    <h2 class="text-2xl font-bold mb-6" style="color: var(--color-text-primary);">Fun</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Keystroke Kingdom -->
+        <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
+           class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 text-white hover:shadow-lg transition group">
+            <div class="flex items-start gap-4">
+                <div class="text-4xl">👑</div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2">
+                        Keystroke Kingdom
+                        <svg class="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </h3>
+                    <p class="opacity-90 text-sm">
+                        Learn MMT through play! An interactive strategy game where you rule a kingdom
+                        using MMT-style policy decisions. See how government spending, taxation, and
+                        job guarantees affect your economy.
+                    </p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Myth Bingo -->
+        <a href="{% url 'bingo:home' %}"
+           class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 text-white hover:shadow-lg transition group">
+            <div class="flex items-start gap-4">
+                <div class="text-4xl">🎯</div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold mb-2 flex items-center gap-2">
+                        Myth Bingo
+                        <svg class="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </h3>
+                    <p class="opacity-90 text-sm">
+                        Turn economic myth-spotting into a game! Generate a 5x5 bingo card filled with
+                        common economic myths. Perfect for budget days, PMQs, news broadcasts, or
+                        any time politicians are speaking.
+                    </p>
+                </div>
+            </div>
+        </a>
     </div>
 </section>
 {% endblock %}

@@ -46,8 +46,9 @@ def campaigns(request):
     from apps.article_critique.models import ArticleSubmission
     from apps.media_complaints.models import Complaint
 
-    # Get campaign tag filter
+    # Get filters
     campaign_tag = request.GET.get('campaign', '')
+    platform_filter = request.GET.get('platform', '')
 
     # Get all unique campaign tags
     social_tags = SocialMediaCritique.objects.exclude(
@@ -63,6 +64,24 @@ def campaigns(request):
     ).values_list('campaign_tag', flat=True).distinct()
 
     all_tags = sorted(set(list(social_tags) + list(article_tags) + list(complaint_tags)))
+
+    # Get available platforms from social critiques
+    available_platforms = SocialMediaCritique.objects.filter(
+        status='completed'
+    ).values_list('platform', flat=True).distinct()
+
+    # Platform display mapping
+    platform_choices = [
+        ('twitter', 'X/Twitter'),
+        ('bluesky', 'Bluesky'),
+        ('youtube', 'YouTube'),
+        ('reddit', 'Reddit'),
+        ('linkedin', 'LinkedIn'),
+        ('facebook', 'Facebook'),
+        ('mastodon', 'Mastodon'),
+        ('other', 'Other'),
+    ]
+    platforms = [(p, name) for p, name in platform_choices if p in available_platforms]
 
     # Build querysets
     social_critiques = SocialMediaCritique.objects.filter(
@@ -80,6 +99,10 @@ def campaigns(request):
         social_critiques = social_critiques.filter(campaign_tag=campaign_tag)
         article_critiques = article_critiques.filter(campaign_tag=campaign_tag)
         complaints = complaints.filter(campaign_tag=campaign_tag)
+
+    # Apply platform filter if specified (only affects social critiques display)
+    if platform_filter:
+        social_critiques = social_critiques.filter(platform=platform_filter)
 
     # Limit results
     social_critiques = social_critiques[:20]
@@ -99,6 +122,8 @@ def campaigns(request):
         'complaints': complaints,
         'campaign_tags': all_tags,
         'selected_tag': campaign_tag,
+        'platforms': platforms,
+        'selected_platform': platform_filter,
         'stats': stats,
     })
 

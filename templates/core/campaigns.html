@@ -27,26 +27,50 @@
     </div>
 </div>
 
-<!-- Campaign Filter -->
-{% if campaign_tags %}
-<div class="bg-white rounded-lg shadow p-4 mb-8">
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow p-4 mb-8 space-y-4">
+    <!-- Platform Filter -->
+    {% if platforms %}
     <div class="flex items-center gap-4 flex-wrap">
-        <span class="font-medium text-gray-700">Filter by Campaign:</span>
-        <a href="{% url 'core:campaigns' %}"
+        <span class="font-medium text-gray-700">Platform:</span>
+        <a href="{% url 'core:campaigns' %}{% if selected_tag %}?campaign={{ selected_tag|urlencode }}{% endif %}"
            class="px-3 py-1 rounded-full text-sm transition
-                  {% if not selected_tag %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                  {% if not selected_platform %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            All Platforms
+        </a>
+        {% for platform_code, platform_name in platforms %}
+        <a href="{% url 'core:campaigns' %}?platform={{ platform_code }}{% if selected_tag %}&campaign={{ selected_tag|urlencode }}{% endif %}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if selected_platform == platform_code %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            {{ platform_name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Campaign Tag Filter -->
+    {% if campaign_tags %}
+    <div class="flex items-center gap-4 flex-wrap {% if platforms %}pt-4 border-t{% endif %}">
+        <span class="font-medium text-gray-700">Campaign:</span>
+        <a href="{% url 'core:campaigns' %}{% if selected_platform %}?platform={{ selected_platform }}{% endif %}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if not selected_tag %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
             All Campaigns
         </a>
         {% for tag in campaign_tags %}
-        <a href="{% url 'core:campaigns' %}?campaign={{ tag|urlencode }}"
+        <a href="{% url 'core:campaigns' %}?campaign={{ tag|urlencode }}{% if selected_platform %}&platform={{ selected_platform }}{% endif %}"
            class="px-3 py-1 rounded-full text-sm transition
-                  {% if selected_tag == tag %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                  {% if selected_tag == tag %}bg-purple-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
             {{ tag }}
         </a>
         {% endfor %}
     </div>
+    {% endif %}
+
+    {% if not platforms and not campaign_tags %}
+    <p class="text-gray-500 text-sm">No filters available yet. Submit some critiques to enable filtering.</p>
+    {% endif %}
 </div>
-{% endif %}
 
 <!-- Campaign Items -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

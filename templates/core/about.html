@@ -2,109 +2,244 @@
 
 {% block title %}About - MMT Campaign Suite{% endblock %}
 
-{% block content %}
-<div class="max-w-4xl mx-auto">
-    <h1 class="text-4xl font-bold text-gray-900 mb-8">About MMT Campaign Suite</h1>
+{% block extra_head %}
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+    }
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+    .feature-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin-bottom: 0.5rem;
+    }
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-text-primary);
+        margin-bottom: 1.5rem;
+    }
+    .myth-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #fef2f2;
+        color: #991b1b;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        margin: 0.25rem;
+    }
+</style>
+{% endblock %}
 
-    <div class="prose prose-lg max-w-none">
-        <p class="lead">
-            The MMT Campaign Suite is a year-round platform for tracking economic myths, crowdsourcing fact-checks,
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Hero Section -->
+    <div class="about-hero text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--color-text-primary);">
+            About MMT Campaign Suite
+        </h1>
+        <p class="text-xl max-w-3xl mx-auto" style="color: var(--color-text-secondary);">
+            A year-round platform for tracking economic myths, crowdsourcing fact-checks,
             holding media accountable, and generating shareable MMT rebuttals for activists.
         </p>
-
-        <h2>Why This Platform?</h2>
-        <p>
-            Economic myths are repeated daily across media: "taxpayer money," "maxed out credit card,"
-            "balancing the books," "government spending causes inflation." This platform provides tools to
-            challenge these narratives with evidence-based Modern Monetary Theory analysis:
-        </p>
-        <ul>
-            <li>Target social media posts spreading economic misinformation</li>
-            <li>Critique news articles with comprehensive MMT analysis</li>
-            <li>Generate complaint letters to media outlets</li>
-            <li>Create shareable responses for X/Twitter, Bluesky, and Reddit</li>
-            <li>Track and coordinate campaigns with other activists</li>
-        </ul>
-
-        <h2>Campaign Tools</h2>
-
-        <h3>Social Media Target</h3>
-        <p>
-            Submit links to social media posts on X/Twitter, YouTube, Bluesky, Reddit, and more.
-            Get AI-powered MMT critique and ready-to-post replies with the #mmt hashtag.
-        </p>
-
-        <h3>Article Target</h3>
-        <p>
-            Submit news articles and opinion pieces for comprehensive MMT analysis. Each critique includes:
-        </p>
-        <ul>
-            <li>Summary and key claims identified</li>
-            <li>Factual errors and framing issues</li>
-            <li>Missing context from MMT perspective</li>
-            <li>Quick responses for social media and letters to the editor</li>
-        </ul>
-
-        <h3>Complaint Generator</h3>
-        <p>
-            Draft complaints to media outlets about economic misinformation. Generate professional
-            letters with multiple rhetorical strategies to avoid form-letter detection.
-        </p>
-
-        <h3>Campaigns Dashboard</h3>
-        <p>
-            View all active campaigns, filter by campaign tags, and coordinate with other activists
-            on targeted responses.
-        </p>
-
-        <h2>Myth Bingo</h2>
-        <p>
-            Generate a 5x5 bingo card with common economic myths. Perfect for budget days, PMQs,
-            or any political event. Track which myths you hear and compete with others!
-        </p>
     </div>
 
-    <!-- Join the Community -->
-    <div class="mt-12 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Join the Community</h2>
-        <p class="text-gray-700 mb-6">
-            Activists can coordinate campaigns, share targets, and workshop responses in the
-            MMT Campaign Suite Discord workspace. Connect with other MMT advocates, get help
-            with tricky cases, and turn individual responses into larger campaigns.
-        </p>
-        <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">
-            Join Discord Community
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-        </a>
-    </div>
+    <!-- Why This Platform -->
+    <section class="mb-12">
+        <h2 class="section-title">Why This Platform?</h2>
+        <div class="bg-white rounded-xl shadow-sm p-6 md:p-8">
+            <p class="text-lg mb-6" style="color: var(--color-text-secondary);">
+                Economic myths are repeated daily across media. This platform provides tools to
+                challenge these narratives with evidence-based Modern Monetary Theory analysis.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <span class="myth-tag">"taxpayer money"</span>
+                <span class="myth-tag">"maxed out credit card"</span>
+                <span class="myth-tag">"balancing the books"</span>
+                <span class="myth-tag">"government spending causes inflation"</span>
+                <span class="myth-tag">"we can't afford it"</span>
+                <span class="myth-tag">"printing money"</span>
+            </div>
+            <p style="color: var(--color-text-tertiary);">
+                These phrases frame economic debates in ways that misrepresent how modern monetary systems work.
+                MMT Campaign Suite helps activists identify, critique, and respond to these myths with accurate information.
+            </p>
+        </div>
+    </section>
 
-    <!-- Learn & Train -->
-    <div class="mt-8 bg-white rounded-lg shadow p-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Learn & Train</h2>
-        <p class="text-gray-700 mb-6">
-            New to MMT or want to sharpen your understanding? Try Keystroke Kingdom - an interactive
-            strategy game where you experiment with MMT-style policy decisions and see the results
-            play out in a simulated economy.
-        </p>
-        <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition">
-            Play Keystroke Kingdom
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-        </a>
-    </div>
+    <!-- Campaign Tools -->
+    <section class="mb-12">
+        <h2 class="section-title">Campaign Tools</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Social Media Target -->
+            <div class="feature-card">
+                <div class="feature-icon bg-indigo-100">
+                    <span>📱</span>
+                </div>
+                <h3>Social Media Target</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    Submit links to social media posts on X/Twitter, YouTube, Bluesky, Reddit, and more.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>AI-powered MMT critique</li>
+                    <li>Ready-to-post replies</li>
+                    <li>Platform-specific formatting</li>
+                    <li>#mmt hashtag included</li>
+                </ul>
+            </div>
 
-    <div class="mt-12 prose prose-lg max-w-none">
-        <h2>Technology</h2>
-        <p>
-            Built with Django 5, HTMX, Alpine.js, and Tailwind CSS. Powered by Claude AI (Sonnet 4.5)
-            for intelligent analysis and content generation. All generated social media content
-            includes the #mmt hashtag by default.
-        </p>
-    </div>
+            <!-- Article Target -->
+            <div class="feature-card">
+                <div class="feature-icon bg-purple-100">
+                    <span>📰</span>
+                </div>
+                <h3>Article Target</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    Submit news articles and opinion pieces for comprehensive MMT analysis.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>Summary and key claims</li>
+                    <li>Factual errors identified</li>
+                    <li>Missing context from MMT</li>
+                    <li>Letters to the editor</li>
+                </ul>
+            </div>
+
+            <!-- Complaint Generator -->
+            <div class="feature-card">
+                <div class="feature-icon bg-green-100">
+                    <span>📝</span>
+                </div>
+                <h3>Complaint Generator</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    Draft complaints to media outlets about economic misinformation.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>Professional letter templates</li>
+                    <li>Multiple rhetorical strategies</li>
+                    <li>Regulator-ready format</li>
+                    <li>Track complaint status</li>
+                </ul>
+            </div>
+
+            <!-- Campaigns Dashboard -->
+            <div class="feature-card">
+                <div class="feature-icon bg-blue-100">
+                    <span>📊</span>
+                </div>
+                <h3>Campaigns Dashboard</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    View all active campaigns and coordinate with other activists.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>Filter by campaign tags</li>
+                    <li>Filter by platform</li>
+                    <li>Track community progress</li>
+                    <li>Share successful responses</li>
+                </ul>
+            </div>
+
+            <!-- Myth Bingo -->
+            <div class="feature-card">
+                <div class="feature-icon bg-amber-100">
+                    <span>🎯</span>
+                </div>
+                <h3>Myth Bingo</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    Generate bingo cards with common economic myths for events.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>5x5 bingo cards</li>
+                    <li>Budget days & PMQs</li>
+                    <li>Shareable results</li>
+                    <li>Community competition</li>
+                </ul>
+            </div>
+
+            <!-- Community -->
+            <div class="feature-card">
+                <div class="feature-icon bg-rose-100">
+                    <span>👥</span>
+                </div>
+                <h3>Community</h3>
+                <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+                    Connect with other MMT activists and coordinate campaigns.
+                </p>
+                <ul class="text-sm space-y-1" style="color: var(--color-text-tertiary);">
+                    <li>Discord workspace</li>
+                    <li>Share targets</li>
+                    <li>Workshop responses</li>
+                    <li>Coordinate actions</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Join & Learn Section -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <!-- Join Discord -->
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 md:p-8 text-white">
+            <h2 class="text-2xl font-bold mb-3">Join the Community</h2>
+            <p class="mb-6 opacity-90">
+                Coordinate campaigns, share targets, and workshop responses with other MMT advocates
+                in the MMT Campaign Suite Discord workspace.
+            </p>
+            <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition">
+                Join Discord
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Learn with Keystroke Kingdom -->
+        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-6 md:p-8 text-white">
+            <h2 class="text-2xl font-bold mb-3">Learn MMT Concepts</h2>
+            <p class="mb-6 opacity-90">
+                New to MMT? Try Keystroke Kingdom - an interactive strategy game where you
+                experiment with MMT-style policy decisions and see the results play out.
+            </p>
+            <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-gray-100 transition">
+                Play Keystroke Kingdom
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Technology -->
+    <section class="mb-12">
+        <div class="bg-slate-50 rounded-xl p-6 md:p-8">
+            <h2 class="text-xl font-bold mb-4" style="color: var(--color-text-primary);">Technology</h2>
+            <p style="color: var(--color-text-secondary);">
+                Built with Django 5, HTMX, Alpine.js, and Tailwind CSS. Powered by Claude AI (Sonnet 4.5)
+                for intelligent analysis and content generation. All generated social media content
+                includes the #mmt hashtag by default for discoverability.
+            </p>
+        </div>
+    </section>
 </div>
 {% endblock %}
