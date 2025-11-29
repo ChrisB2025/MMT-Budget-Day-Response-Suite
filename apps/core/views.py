@@ -543,6 +543,21 @@ def health_check(request):
         status['errors'].append(f'Redis: {str(e)}')
         # Redis error is not critical for basic functionality
 
+    # Check channel layer configuration
+    try:
+        channel_layers = getattr(settings, 'CHANNEL_LAYERS', {})
+        default_layer = channel_layers.get('default', {})
+        backend = default_layer.get('BACKEND', 'unknown')
+        if 'InMemoryChannelLayer' in backend:
+            status['checks']['channel_layer'] = 'in_memory (fallback)'
+        elif 'RedisChannelLayer' in backend:
+            status['checks']['channel_layer'] = 'redis'
+        else:
+            status['checks']['channel_layer'] = backend
+    except Exception as e:
+        status['checks']['channel_layer'] = 'error'
+        status['errors'].append(f'Channel layer: {str(e)}')
+
     # Environment check
     status['checks']['env'] = {
         'debug': settings.DEBUG,

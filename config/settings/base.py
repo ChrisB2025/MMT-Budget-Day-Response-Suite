@@ -147,14 +147,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Channels configuration
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [REDIS_URL],
-        },
-    },
-}
+# Check if Redis is available before configuring channel layers
+def get_channel_layers():
+    """
+    Returns channel layer configuration with Redis if available,
+    otherwise falls back to InMemoryChannelLayer.
+    """
+    try:
+        import redis
+        r = redis.from_url(REDIS_URL)
+        r.ping()
+        return {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    'hosts': [REDIS_URL],
+                },
+            },
+        }
+    except Exception:
+        # Fallback to in-memory channel layer when Redis is unavailable
+        return {
+            'default': {
+                'BACKEND': 'channels.layers.InMemoryChannelLayer',
+            },
+        }
+
+CHANNEL_LAYERS = get_channel_layers()
 
 # Celery configuration
 # Use REDIS_URL as default to simplify Railway configuration - only one variable to update
