@@ -65,7 +65,8 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
+{% if not user.is_authenticated %}
+<!-- Hero Section - Only shown to logged-out users -->
 <section class="mb-12">
     <div class="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-2xl p-8 md:p-12 text-center">
         <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--color-text-primary);">
@@ -81,6 +82,7 @@
         </p>
     </div>
 </section>
+{% endif %}
 
 <!-- Campaign Tools Section -->
 <section class="mb-12">
@@ -237,7 +239,8 @@
     {% endif %}
 </section>
 
-<!-- Recent Activity & Quick Links -->
+{% if user.is_authenticated %}
+<!-- Recent Activity & Quick Links - Only shown to logged-in users -->
 <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
     <!-- Recent Critiques -->
     <div class="bg-white rounded-lg shadow p-6">
@@ -314,5 +317,6 @@
         </div>
     </div>
 </section>
+{% endif %}
 
 {% endblock %}

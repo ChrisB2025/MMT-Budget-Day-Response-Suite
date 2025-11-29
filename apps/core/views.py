@@ -217,23 +217,23 @@ def league_table(request):
     if sort_by not in valid_sorts:
         sort_by = 'weighted_score'
 
-    # Build the queryset - aggregate by source_author_handle
-    # Filter to only include critiques with author handles
+    # Build the queryset - aggregate by source_author
+    # Filter to only include critiques with author names
     queryset = SocialMediaCritique.objects.filter(
         status='completed'
     ).exclude(
-        source_author_handle=''
+        source_author=''
     ).exclude(
-        source_author_handle__isnull=True
+        source_author__isnull=True
     )
 
     # Apply platform filter if specified
     if platform_filter:
         queryset = queryset.filter(platform=platform_filter)
 
-    # Aggregate by handle
+    # Aggregate by author
     league_data = queryset.values(
-        'source_author_handle',
+        'source_author',
     ).annotate(
         critique_count=Count('id'),
         follower_count=Max('source_author_follower_count'),  # Use latest known follower count
@@ -266,14 +266,14 @@ def league_table(request):
 
         weighted_score = critique_score + follower_score + recency_score
 
-        # Get additional info from the most recent critique for this handle
+        # Get additional info from the most recent critique for this author
         latest = SocialMediaCritique.objects.filter(
-            source_author_handle=entry['source_author_handle'],
+            source_author=entry['source_author'],
             status='completed'
         ).order_by('-created_at').first()
 
         league_list.append({
-            'handle': entry['source_author_handle'],
+            'handle': entry['source_author'],
             'bio': latest.source_author_bio if latest else '',
             'platform': latest.platform if latest else '',
             'platform_display': latest.get_platform_display() if latest else '',
@@ -299,7 +299,7 @@ def league_table(request):
     available_platforms = SocialMediaCritique.objects.filter(
         status='completed'
     ).exclude(
-        source_author_handle=''
+        source_author=''
     ).values_list('platform', flat=True).distinct()
 
     platform_choices = [

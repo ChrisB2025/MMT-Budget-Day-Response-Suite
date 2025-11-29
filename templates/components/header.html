@@ -10,7 +10,6 @@
 
                 <!-- Desktop Navigation Links -->
                 <div class="hidden md:flex nav-professional">
-                    <a href="{% url 'core:home' %}">Home</a>
                     <a href="{% url 'core:campaigns' %}">Campaigns</a>
                     <a href="{% url 'core:league_table' %}">League Table</a>
                     <a href="{% url 'core:fun' %}">Fun</a>
@@ -62,7 +61,6 @@
         <div x-show="mobileMenuOpen" x-transition class="md:hidden pb-4 border-t" style="border-color: var(--color-border);">
             <div class="flex flex-col space-y-1 pt-4">
                 <!-- Main Navigation -->
-                <a href="{% url 'core:home' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Home</a>
                 <a href="{% url 'core:campaigns' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Campaigns</a>
                 <a href="{% url 'core:league_table' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">League Table</a>
                 <a href="{% url 'core:fun' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Fun</a>
