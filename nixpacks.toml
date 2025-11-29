@@ -13,5 +13,9 @@ cmds = [
     "chmod +x scripts/startup.sh"
 ]
 
+# Explicitly disable release/deploy phase to prevent auto-migrations
+[phases.release]
+cmds = []
+
 [start]
 cmd = "bash scripts/startup.sh"
