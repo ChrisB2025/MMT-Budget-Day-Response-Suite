@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Keep for existing migrations
+    'django.contrib.humanize',  # For template filters like intcomma, timesince
 
     # Django-allauth (keep installed for existing migrations, but not used)
     'allauth',
