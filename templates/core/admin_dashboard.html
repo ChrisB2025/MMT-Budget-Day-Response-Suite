@@ -81,12 +81,12 @@
     <!-- Data Management -->
     <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            🗄️ Data Management
+            Data Management
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a href="{% url 'core:reset_test_data' %}" class="block p-4 border-2 border-orange-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="text-3xl">🔄</div>
+                    <div class="text-3xl">Reset</div>
                     <div>
                         <div class="font-bold text-gray-900">Reset Test Data</div>
                         <div class="text-sm text-gray-600">Clear bingo cards and reset leaderboard for v1 launch</div>
@@ -96,20 +96,30 @@
 
             <a href="{% url 'core:delete_test_submissions' %}" class="block p-4 border-2 border-red-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="text-3xl">🗑️</div>
+                    <div class="text-3xl">Delete</div>
                     <div>
                         <div class="font-bold text-gray-900">Delete Test Submissions</div>
-                        <div class="text-sm text-gray-600">Clean up test fact-check submissions from the database</div>
+                        <div class="text-sm text-gray-600">Clean up test fact-check submissions</div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'core:delete_critiques' %}" class="block p-4 border-2 border-red-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="text-3xl">Delete</div>
+                    <div>
+                        <div class="font-bold text-gray-900">Delete Critiques</div>
+                        <div class="text-sm text-gray-600">Delete social media and article critiques</div>
                     </div>
                 </div>
             </a>
 
             <a href="/admin/" class="block p-4 border-2 border-gray-200 rounded-lg hover:border-gray-500 hover:bg-gray-50 transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="text-3xl">⚡</div>
+                    <div class="text-3xl">Admin</div>
                     <div>
                         <div class="font-bold text-gray-900">Django Admin Panel</div>
-                        <div class="text-sm text-gray-600">Full access to all models and admin functions</div>
+                        <div class="text-sm text-gray-600">Full access to all models and functions</div>
                     </div>
                 </div>
             </a>

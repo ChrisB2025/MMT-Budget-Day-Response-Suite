@@ -404,6 +404,46 @@ def delete_test_submissions(request):
     })
 
 
+@staff_member_required
+def delete_critiques(request):
+    """
+    Delete social media critiques and article critiques.
+    Staff-only view for cleaning up test data.
+    """
+    from apps.social_critique.models import SocialMediaCritique
+    from apps.article_critique.models import ArticleSubmission
+
+    if request.method == 'POST':
+        # Get IDs to delete
+        social_ids = request.POST.getlist('social_ids')
+        article_ids = request.POST.getlist('article_ids')
+
+        deleted_social = 0
+        deleted_articles = 0
+
+        if social_ids:
+            deleted_social = SocialMediaCritique.objects.filter(id__in=social_ids).delete()[0]
+
+        if article_ids:
+            deleted_articles = ArticleSubmission.objects.filter(id__in=article_ids).delete()[0]
+
+        if deleted_social or deleted_articles:
+            messages.success(request, f'Successfully deleted {deleted_social} social critique(s) and {deleted_articles} article critique(s)')
+        else:
+            messages.warning(request, 'No critiques selected for deletion')
+
+        return redirect('core:delete_critiques')
+
+    # GET request - show all critiques
+    social_critiques = SocialMediaCritique.objects.select_related('user').order_by('-created_at')
+    article_critiques = ArticleSubmission.objects.select_related('user').order_by('-created_at')
+
+    return render(request, 'core/delete_critiques.html', {
+        'social_critiques': social_critiques,
+        'article_critiques': article_critiques,
+    })
+
+
 
 
 @staff_member_required

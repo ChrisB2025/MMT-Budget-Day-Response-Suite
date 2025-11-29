@@ -17,6 +17,7 @@ urlpatterns = [
     # Admin tools
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('delete-test-submissions/', views.delete_test_submissions, name='delete_test_submissions'),
+    path('delete-critiques/', views.delete_critiques, name='delete_critiques'),
     path('reset-test-data/', views.reset_test_data, name='reset_test_data'),
     path('grant-superuser/', views.grant_superuser_access, name='grant_superuser'),
 ]

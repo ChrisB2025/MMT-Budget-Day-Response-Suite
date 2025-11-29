@@ -10,17 +10,21 @@
 
                 <!-- Desktop Navigation Links -->
                 <div class="hidden md:flex nav-professional">
+                    {% if user.is_authenticated %}
                     <a href="{% url 'core:campaigns' %}">Campaigns</a>
                     <a href="{% url 'core:league_table' %}">League Table</a>
                     <a href="{% url 'core:fun' %}">Fun</a>
+                    {% endif %}
                     <a href="{% url 'core:about' %}">About</a>
                     <a href="{% url 'core:help' %}">Help</a>
+                    {% if user.is_authenticated %}
                     <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener" class="flex items-center gap-1">
                         Discord
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                         </svg>
                     </a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -61,17 +65,21 @@
         <div x-show="mobileMenuOpen" x-transition class="md:hidden pb-4 border-t" style="border-color: var(--color-border);">
             <div class="flex flex-col space-y-1 pt-4">
                 <!-- Main Navigation -->
+                {% if user.is_authenticated %}
                 <a href="{% url 'core:campaigns' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Campaigns</a>
                 <a href="{% url 'core:league_table' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">League Table</a>
                 <a href="{% url 'core:fun' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Fun</a>
+                {% endif %}
                 <a href="{% url 'core:about' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">About</a>
                 <a href="{% url 'core:help' %}" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation" style="color: var(--color-text-secondary);">Help</a>
+                {% if user.is_authenticated %}
                 <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener" class="px-3 py-2 rounded-md hover:bg-gray-50 transition touch-manipulation flex items-center gap-1" style="color: var(--color-text-secondary);">
                     Discord
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                     </svg>
                 </a>
+                {% endif %}
 
                 <!-- Divider -->
                 <div class="divider"></div>
