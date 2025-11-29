@@ -481,3 +481,79 @@ def grant_superuser_access(request):
         'user': request.user,
         'is_superuser': request.user.is_superuser,
     })
+
+
+def health_check(request):
+    """
+    Health check endpoint for deployment diagnostics.
+    Returns JSON with system status and any errors.
+    """
+    import json
+    from django.db import connection
+    from django.conf import settings
+
+    status = {
+        'status': 'ok',
+        'checks': {},
+        'errors': []
+    }
+
+    # Check database connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        status['checks']['database'] = 'connected'
+    except Exception as e:
+        status['checks']['database'] = 'error'
+        status['errors'].append(f'Database: {str(e)}')
+        status['status'] = 'error'
+
+    # Check if tables exist
+    try:
+        from apps.social_critique.models import SocialMediaCritique
+        from apps.article_critique.models import ArticleSubmission
+        from apps.media_complaints.models import Complaint, MediaOutlet
+        from apps.bingo.models import BingoPhrase
+
+        table_checks = {
+            'social_critiques': SocialMediaCritique.objects.count(),
+            'article_submissions': ArticleSubmission.objects.count(),
+            'complaints': Complaint.objects.count(),
+            'media_outlets': MediaOutlet.objects.count(),
+            'bingo_phrases': BingoPhrase.objects.count(),
+        }
+        status['checks']['tables'] = table_checks
+    except Exception as e:
+        status['checks']['tables'] = 'error'
+        status['errors'].append(f'Tables: {str(e)}')
+        status['status'] = 'error'
+
+    # Check Redis connection
+    try:
+        import redis
+        redis_url = getattr(settings, 'REDIS_URL', None)
+        if redis_url:
+            r = redis.from_url(redis_url)
+            r.ping()
+            status['checks']['redis'] = 'connected'
+        else:
+            status['checks']['redis'] = 'not configured'
+    except Exception as e:
+        status['checks']['redis'] = 'error'
+        status['errors'].append(f'Redis: {str(e)}')
+        # Redis error is not critical for basic functionality
+
+    # Environment check
+    status['checks']['env'] = {
+        'debug': settings.DEBUG,
+        'allowed_hosts': settings.ALLOWED_HOSTS,
+        'database_configured': bool(settings.DATABASES.get('default', {}).get('NAME')),
+        'anthropic_key_set': bool(getattr(settings, 'ANTHROPIC_API_KEY', '')),
+    }
+
+    response_status = 200 if status['status'] == 'ok' else 500
+    return HttpResponse(
+        json.dumps(status, indent=2, default=str),
+        content_type='application/json',
+        status=response_status
+    )

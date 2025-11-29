@@ -9,8 +9,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-    "python manage.py collectstatic --noinput"
+    "python manage.py collectstatic --noinput",
+    "chmod +x scripts/startup.sh"
 ]
 
 [start]
-cmd = "python manage.py migrate && python manage.py seed_media_outlets && python manage.py load_budget_phrases && daphne -b 0.0.0.0 -p $PORT config.asgi:application"
+cmd = "bash scripts/startup.sh"
