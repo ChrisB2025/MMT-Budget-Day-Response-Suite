@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Campaigns Dashboard - MMT Campaign Suite{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2" style="color: var(--color-text-primary);">Campaigns Dashboard</h1>
+    <p class="text-lg" style="color: var(--color-text-secondary);">
+        Track and coordinate MMT campaigns against economic misinformation.
+    </p>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+        <div class="text-3xl font-bold text-indigo-600">{{ stats.total_social }}</div>
+        <div class="text-sm text-gray-500">Social Media Critiques</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+        <div class="text-3xl font-bold text-purple-600">{{ stats.total_articles }}</div>
+        <div class="text-sm text-gray-500">Article Critiques</div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+        <div class="text-3xl font-bold text-green-600">{{ stats.total_complaints }}</div>
+        <div class="text-sm text-gray-500">Complaints Filed</div>
+    </div>
+</div>
+
+<!-- Campaign Filter -->
+{% if campaign_tags %}
+<div class="bg-white rounded-lg shadow p-4 mb-8">
+    <div class="flex items-center gap-4 flex-wrap">
+        <span class="font-medium text-gray-700">Filter by Campaign:</span>
+        <a href="{% url 'core:campaigns' %}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if not selected_tag %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            All Campaigns
+        </a>
+        {% for tag in campaign_tags %}
+        <a href="{% url 'core:campaigns' %}?campaign={{ tag|urlencode }}"
+           class="px-3 py-1 rounded-full text-sm transition
+                  {% if selected_tag == tag %}bg-indigo-600 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            {{ tag }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Campaign Items -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Social Media Critiques -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b p-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <span class="text-2xl">📱</span>
+                Social Media Targets
+            </h2>
+        </div>
+        <div class="p-4 max-h-96 overflow-y-auto">
+            {% if social_critiques %}
+            <div class="space-y-4">
+                {% for critique in social_critiques %}
+                <a href="{% url 'social_critique:detail' share_id=critique.share_id %}"
+                   class="block p-3 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50 transition">
+                    <div class="font-medium text-gray-900 truncate">
+                        {{ critique.source_title|default:critique.url|truncatechars:50 }}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                            {{ critique.get_platform_display }}
+                        </span>
+                        <span>{{ critique.created_at|timesince }} ago</span>
+                        {% if critique.campaign_tag %}
+                        <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                            {{ critique.campaign_tag }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No social media critiques yet.</p>
+            {% endif %}
+        </div>
+        <div class="border-t p-4">
+            <a href="{% url 'core:home' %}#social-target" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                Submit a Social Media Target
+            </a>
+        </div>
+    </div>
+
+    <!-- Article Critiques -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b p-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <span class="text-2xl">📰</span>
+                Article Targets
+            </h2>
+        </div>
+        <div class="p-4 max-h-96 overflow-y-auto">
+            {% if article_critiques %}
+            <div class="space-y-4">
+                {% for article in article_critiques %}
+                <a href="{% url 'article_critique:detail' share_id=article.share_id %}"
+                   class="block p-3 rounded-lg border border-gray-100 hover:border-purple-200 hover:bg-purple-50 transition">
+                    <div class="font-medium text-gray-900 truncate">
+                        {{ article.title|default:article.original_url|truncatechars:50 }}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-700">
+                            {{ article.get_publication_display }}
+                        </span>
+                        <span>{{ article.created_at|timesince }} ago</span>
+                        {% if article.campaign_tag %}
+                        <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                            {{ article.campaign_tag }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No article critiques yet.</p>
+            {% endif %}
+        </div>
+        <div class="border-t p-4">
+            <a href="{% url 'core:home' %}#article-target" class="text-purple-600 hover:text-purple-700 text-sm font-medium">
+                Submit an Article Target
+            </a>
+        </div>
+    </div>
+
+    <!-- Complaints -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="border-b p-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <span class="text-2xl">📝</span>
+                Active Complaints
+            </h2>
+        </div>
+        <div class="p-4 max-h-96 overflow-y-auto">
+            {% if complaints %}
+            <div class="space-y-4">
+                {% for complaint in complaints %}
+                <a href="{% url 'media_complaints:view_complaint' complaint_id=complaint.id %}"
+                   class="block p-3 rounded-lg border border-gray-100 hover:border-green-200 hover:bg-green-50 transition">
+                    <div class="font-medium text-gray-900 truncate">
+                        {{ complaint.outlet.name }}: {{ complaint.programme_name|truncatechars:30 }}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        <span class="px-2 py-0.5 rounded
+                            {% if complaint.status == 'sent' %}bg-green-100 text-green-700
+                            {% elif complaint.status == 'generated' %}bg-blue-100 text-blue-700
+                            {% else %}bg-gray-100 text-gray-700{% endif %}">
+                            {{ complaint.get_status_display }}
+                        </span>
+                        <span>{{ complaint.created_at|timesince }} ago</span>
+                        {% if complaint.campaign_tag %}
+                        <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                            {{ complaint.campaign_tag }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-8">No complaints filed yet.</p>
+            {% endif %}
+        </div>
+        <div class="border-t p-4">
+            <a href="{% url 'core:home' %}#complaint" class="text-green-600 hover:text-green-700 text-sm font-medium">
+                File a Complaint
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Discord CTA -->
+<div class="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 text-white text-center">
+    <h3 class="text-xl font-bold mb-2">Coordinate Your Campaign</h3>
+    <p class="mb-4 opacity-90">
+        Join the MMT Campaign Suite Discord to collaborate with other activists, share targets, and workshop responses.
+    </p>
+    <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener"
+       class="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-gray-100 transition">
+        Join Discord Community
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+    </a>
+</div>
+{% endblock %}

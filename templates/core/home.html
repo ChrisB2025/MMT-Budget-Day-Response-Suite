@@ -1,404 +1,296 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<!-- Compact Hero Section with Integrated Countdown -->
-<div class="hero-professional" style="padding: var(--space-md) 0 var(--space-lg) 0;">
-    <div class="container-professional">
-        <div class="hero-grid">
-            <!-- Left: Content -->
-            <div class="hero-content">
-                <h1 class="hero-title-compact">
-                    MMT Budget Day Response Suite
-                </h1>
-                <p class="hero-subtitle-compact">
-                    Track budget myths in real-time, crowdsource fact-checks, hold media accountable, and generate MMT rebuttals.
-                </p>
-                <div class="hero-buttons">
-                    <a href="{% url 'factcheck:submit' %}" class="btn-primary btn-sm">Submit Fact-Check</a>
-                    <a href="{% url 'rebuttal:latest' %}" class="btn-secondary btn-sm">View Rebuttal</a>
-                </div>
-            </div>
+{% block title %}MMT Campaign Suite - Track Economic Myths and Generate MMT Rebuttals{% endblock %}
 
-            <!-- Right: Compact Countdown -->
-            <div class="hero-countdown">
-                <div class="countdown-box-compact">
-                    <div class="countdown-header">
-                        <span class="countdown-label">Autumn Statement</span>
-                        <span class="countdown-date-inline">26 Nov 2025 · 12:30 PM</span>
-                    </div>
-                    <div class="countdown-timer-container">
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="countdown-days">--</span>
-                            <span class="countdown-unit-label">Days</span>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="countdown-hours">--</span>
-                            <span class="countdown-unit-label">Hrs</span>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="countdown-minutes">--</span>
-                            <span class="countdown-unit-label">Min</span>
-                        </div>
-                        <div class="countdown-separator">:</div>
-                        <div class="countdown-unit">
-                            <span class="countdown-value" id="countdown-seconds">--</span>
-                            <span class="countdown-unit-label">Sec</span>
-                        </div>
-                    </div>
-                    <div id="countdown-status" class="countdown-status"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Feature Cards - Compact -->
-<div style="padding: var(--space-md) 0 var(--space-lg) 0;">
-    <div class="container-professional">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <!-- Bingo -->
-            <a href="{% url 'bingo:home' %}" class="feature-card-compact">
-                <span class="feature-icon-small">🎯</span>
-                <span class="feature-title-small">Budget Bingo</span>
-            </a>
-
-            <!-- Fact-Check -->
-            <a href="{% url 'factcheck:submit' %}" class="feature-card-compact">
-                <span class="feature-icon-small">✓</span>
-                <span class="feature-title-small">Fact-Check</span>
-            </a>
-
-            <!-- Rebuttal -->
-            <a href="{% url 'rebuttal:latest' %}" class="feature-card-compact">
-                <span class="feature-icon-small">📄</span>
-                <span class="feature-title-small">Rebuttal</span>
-            </a>
-
-            <!-- Media Complaints -->
-            <a href="{% url 'media_complaints:home' %}" class="feature-card-compact">
-                <span class="feature-icon-small">📢</span>
-                <span class="feature-title-small">Complaints</span>
-            </a>
-
-            <!-- Social Critique -->
-            <a href="{% url 'social_critique:home' %}" class="feature-card-compact">
-                <span class="feature-icon-small">💬</span>
-                <span class="feature-title-small">Social Critique</span>
-            </a>
-
-            <!-- Stats -->
-            <a href="{% url 'factcheck:stats' %}" class="feature-card-compact">
-                <span class="feature-icon-small">📊</span>
-                <span class="feature-title-small">Statistics</span>
-            </a>
-
-            <!-- Leaderboard -->
-            <a href="{% url 'factcheck:leaderboard' %}" class="feature-card-compact">
-                <span class="feature-icon-small">🏆</span>
-                <span class="feature-title-small">Leaderboard</span>
-            </a>
-
-            <!-- Live Feed -->
-            <a href="{% url 'factcheck:live_feed' %}" class="feature-card-compact">
-                <span class="feature-icon-small">📡</span>
-                <span class="feature-title-small">Live Feed</span>
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Stats Section -->
-<div style="background: var(--color-surface); padding: var(--space-xl) 0 var(--space-2xl) 0;">
-    <div class="container-professional">
-        <h2 class="section-title">Live Statistics</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="stat-card">
-                <span class="stat-number">{{ total_bingo_cards }}</span>
-                <span class="stat-label">Bingo Cards Generated</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number">{{ total_factchecks }}</span>
-                <span class="stat-label">Claims Fact-Checked</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-number">{{ total_complaints|default:"0" }}</span>
-                <span class="stat-label">Complaints Filed</span>
-            </div>
-        </div>
-    </div>
-</div>
-
+{% block extra_head %}
 <style>
-/* Hero Grid Layout - Compact */
-.hero-grid {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: var(--space-xl);
-    align-items: center;
-}
-
-.hero-content {
-    text-align: left;
-}
-
-.hero-title-compact {
-    font-size: var(--font-size-3xl);
-    font-weight: 700;
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-sm);
-    line-height: 1.2;
-}
-
-.hero-subtitle-compact {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-md);
-    max-width: 450px;
-    line-height: 1.5;
-}
-
-.hero-buttons {
-    display: flex;
-    gap: var(--space-sm);
-    flex-wrap: wrap;
-}
-
-/* Compact Countdown Box */
-.hero-countdown {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.countdown-box-compact {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-md);
-    text-align: center;
-    box-shadow: var(--shadow-md);
-}
-
-.countdown-header {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: var(--space-sm);
-}
-
-.countdown-label {
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    color: var(--color-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.countdown-date-inline {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.countdown-timer-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 2px;
-}
-
-.countdown-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 42px;
-}
-
-.countdown-value {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--color-text-primary);
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-}
-
-.countdown-unit-label {
-    font-size: 10px;
-    color: var(--color-text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-top: 2px;
-}
-
-.countdown-separator {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    color: var(--color-text-tertiary);
-    line-height: 1;
-}
-
-.countdown-status {
-    margin-top: var(--space-xs);
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-success);
-}
-
-.countdown-status.live {
-    color: var(--color-error);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-}
-
-/* Compact Feature Cards */
-.feature-card-compact {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-sm) var(--space-md);
-    text-decoration: none;
-    transition: all 0.15s ease;
-}
-
-.feature-card-compact:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
-    text-decoration: none;
-}
-
-.feature-icon-small {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.feature-title-small {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-/* Section Title */
-.section-title {
-    text-align: center;
-    font-size: var(--font-size-xl);
-    color: var(--color-text-primary);
-    margin-bottom: var(--space-lg);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .hero-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
+    .tool-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
-
-    .hero-content {
-        text-align: center;
+    .tool-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
-
-    .hero-title-compact {
-        font-size: var(--font-size-2xl);
+    .tool-card h3 {
+        color: var(--color-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
-
-    .hero-subtitle-compact {
-        margin-left: auto;
-        margin-right: auto;
+    .tool-description {
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
     }
-
-    .hero-buttons {
-        justify-content: center;
+    .platform-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
     }
-
-    .hero-countdown {
-        justify-content: center;
+    .recent-item {
+        border-left: 3px solid var(--color-primary);
+        padding-left: 1rem;
+        margin-bottom: 0.75rem;
     }
-
-    .countdown-box-compact {
-        width: 100%;
-        max-width: 280px;
+    .recent-item-title {
+        font-weight: 500;
+        color: var(--color-text-primary);
     }
-}
-
-@media (max-width: 480px) {
-    .countdown-unit {
-        min-width: 36px;
+    .recent-item-meta {
+        font-size: 0.75rem;
+        color: var(--color-text-tertiary);
     }
-
-    .countdown-value {
-        font-size: var(--font-size-xl);
-    }
-
-    .countdown-separator {
-        font-size: var(--font-size-lg);
-    }
-
-    .feature-card-compact {
-        padding: var(--space-xs) var(--space-sm);
-    }
-
-    .feature-title-small {
-        font-size: var(--font-size-xs);
-    }
-}
 </style>
+{% endblock %}
 
-<script>
-function updateCountdown() {
-    // Budget Date: November 26, 2025, 12:30 PM UK time
-    const budgetDate = new Date('2025-11-26T12:30:00+00:00');
-    const now = new Date();
-    const diff = budgetDate - now;
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-professional mb-12">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4" style="color: var(--color-text-primary);">
+            MMT Campaign Suite
+        </h1>
+        <p class="text-xl md:text-2xl mb-6" style="color: var(--color-text-secondary);">
+            {{ MMT_SITE_TAGLINE }}
+        </p>
+        <p class="max-w-3xl mx-auto" style="color: var(--color-text-secondary);">
+            A year-round platform for Modern Monetary Theory activists to challenge economic misinformation in media.
+            Submit social media posts, news articles, or file complaints to generate evidence-based MMT rebuttals
+            and shareable content for your campaigns.
+        </p>
+    </div>
+</section>
 
-    const daysEl = document.getElementById('countdown-days');
-    const hoursEl = document.getElementById('countdown-hours');
-    const minutesEl = document.getElementById('countdown-minutes');
-    const secondsEl = document.getElementById('countdown-seconds');
-    const statusEl = document.getElementById('countdown-status');
+<!-- Campaign Tools Section -->
+<section class="mb-12">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold" style="color: var(--color-text-primary);">Campaign Tools</h2>
+        <p class="text-sm" style="color: var(--color-text-tertiary);">
+            Want help turning this into a bigger campaign?
+            <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-700">
+                Join our Discord
+            </a>
+        </p>
+    </div>
 
-    if (diff <= 0) {
-        // Budget is happening or has passed
-        daysEl.textContent = '00';
-        hoursEl.textContent = '00';
-        minutesEl.textContent = '00';
-        secondsEl.textContent = '00';
-        statusEl.textContent = '🔴 LIVE NOW';
-        statusEl.classList.add('live');
-        return;
-    }
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Social Media Target Panel -->
+        <div class="tool-card" id="social-target">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">📱</span>
+                <h3>Social Media Target</h3>
+            </div>
+            <p class="tool-description">
+                Paste a link to an X/Twitter post, Bluesky post, YouTube video, or similar to get an MMT critique and shareable replies.
+            </p>
+            <form action="{% url 'social_critique:submit' %}" method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="social-url" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">URL</label>
+                    <input type="url" name="url" id="social-url" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="https://twitter.com/... or youtube.com/...">
+                </div>
+                <div>
+                    <label for="social-context" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Context (optional)</label>
+                    <input type="text" name="user_context" id="social-context"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="Brief description of what to focus on...">
+                </div>
+                <div>
+                    <label for="social-platform" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Platform (optional)</label>
+                    <select name="platform" id="social-platform" class="platform-select w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Auto-detect</option>
+                        <option value="twitter">X/Twitter</option>
+                        <option value="bluesky">Bluesky</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="reddit">Reddit</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="mastodon">Mastodon</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary w-full">
+                    Analyse Post
+                </button>
+            </form>
+        </div>
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        <!-- Article Target Panel -->
+        <div class="tool-card" id="article-target">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">📰</span>
+                <h3>Article Target</h3>
+            </div>
+            <p class="tool-description">
+                Submit news articles or opinion pieces for MMT critique and talking points. We'll extract the content and generate a comprehensive analysis.
+            </p>
+            <form action="{% url 'article_critique:submit' %}" method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="article-url" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Article URL</label>
+                    <input type="url" name="url" id="article-url" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="https://www.theguardian.com/...">
+                </div>
+                <div>
+                    <label for="article-context" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Context (optional)</label>
+                    <input type="text" name="user_context" id="article-context"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="Why is this article problematic?">
+                </div>
+                <button type="submit" class="btn-primary w-full">
+                    Critique Article
+                </button>
+            </form>
+            <div class="mt-3 text-center">
+                <a href="{% url 'article_critique:submit_text' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
+                    Have paywalled content? Paste text directly
+                </a>
+            </div>
+        </div>
 
-    // Pad with zeros
-    daysEl.textContent = String(days).padStart(2, '0');
-    hoursEl.textContent = String(hours).padStart(2, '0');
-    minutesEl.textContent = String(minutes).padStart(2, '0');
-    secondsEl.textContent = String(seconds).padStart(2, '0');
+        <!-- Complaint/Response Panel -->
+        <div class="tool-card" id="complaint">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-3xl">📝</span>
+                <h3>Complaint or Response</h3>
+            </div>
+            <p class="tool-description">
+                Draft a complaint, letter to the editor, or response email regarding an outlet, journalist, or organisation spreading economic misinformation.
+            </p>
+            <form action="{% url 'media_complaints:quick_submit' %}" method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="outlet-name" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Target Outlet</label>
+                    <input type="text" name="outlet_name" id="outlet-name" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                           placeholder="BBC, Guardian, etc.">
+                </div>
+                <div>
+                    <label for="issue-description" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">Issue Description</label>
+                    <textarea name="claim_description" id="issue-description" rows="3" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              placeholder="Describe the misinformation or issue..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary w-full">
+                    Generate Complaint
+                </button>
+            </form>
+            <div class="mt-3 text-center">
+                <a href="{% url 'media_complaints:submit' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
+                    Need more options? Use the full form
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 
-    // Update status based on time remaining
-    if (days === 0 && hours < 1) {
-        statusEl.textContent = 'Starting Soon!';
-        statusEl.style.color = 'var(--color-warning)';
-    } else if (days === 0) {
-        statusEl.textContent = 'Today!';
-        statusEl.style.color = 'var(--color-success)';
-    } else {
-        statusEl.textContent = '';
-    }
-}
+<!-- Recent Activity & Quick Links -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+    <!-- Recent Critiques -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold" style="color: var(--color-text-primary);">Recent Critiques</h3>
+            <a href="{% url 'core:campaigns' %}" class="text-sm text-indigo-600 hover:text-indigo-700">View All</a>
+        </div>
 
-// Update countdown immediately and then every second
-updateCountdown();
-setInterval(updateCountdown, 1000);
-</script>
+        {% if recent_social_critiques %}
+        <div class="space-y-3">
+            {% for critique in recent_social_critiques %}
+            <a href="{% url 'social_critique:detail' share_id=critique.share_id %}" class="block recent-item hover:bg-gray-50 rounded -ml-4 pl-4 py-2 transition">
+                <div class="recent-item-title">{{ critique.source_title|default:critique.url|truncatechars:60 }}</div>
+                <div class="recent-item-meta">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">{{ critique.get_platform_display }}</span>
+                    {{ critique.created_at|timesince }} ago
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">No critiques yet. Be the first to submit one!</p>
+        {% endif %}
+
+        {% if recent_article_critiques %}
+        <div class="mt-4 pt-4 border-t space-y-3">
+            {% for article in recent_article_critiques %}
+            <a href="{% url 'article_critique:detail' share_id=article.share_id %}" class="block recent-item hover:bg-gray-50 rounded -ml-4 pl-4 py-2 transition">
+                <div class="recent-item-title">{{ article.title|default:article.original_url|truncatechars:60 }}</div>
+                <div class="recent-item-meta">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">{{ article.get_publication_display }}</span>
+                    {{ article.created_at|timesince }} ago
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Live Stats & Quick Links -->
+    <div class="space-y-6">
+        <!-- Live Statistics -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4" style="color: var(--color-text-primary);">Community Stats</h3>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-3xl font-bold text-indigo-600">{{ stats.total_critiques|default:0 }}</div>
+                    <div class="text-sm text-gray-500">Critiques</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-purple-600">{{ stats.total_articles|default:0 }}</div>
+                    <div class="text-sm text-gray-500">Articles</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-green-600">{{ stats.total_complaints|default:0 }}</div>
+                    <div class="text-sm text-gray-500">Complaints</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learn & Train -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-2" style="color: var(--color-text-primary);">Learn & Train</h3>
+            <p class="text-sm text-gray-600 mb-4">
+                Practice MMT concepts with Keystroke Kingdom - an interactive strategy game where you experiment with MMT-style policy decisions.
+            </p>
+            <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener" class="btn-secondary inline-flex items-center gap-2">
+                Play Keystroke Kingdom
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4" style="color: var(--color-text-primary);">Quick Actions</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <a href="{% url 'bingo:home' %}" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">🎯</span>
+                    <span class="font-medium">Myth Bingo</span>
+                </a>
+                <a href="{% url 'core:campaigns' %}" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">📊</span>
+                    <span class="font-medium">Campaigns</span>
+                </a>
+                <a href="{% url 'media_complaints:community' %}" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">👥</span>
+                    <span class="font-medium">Community</span>
+                </a>
+                <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener" class="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition">
+                    <span class="text-2xl">💬</span>
+                    <span class="font-medium">Discord</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

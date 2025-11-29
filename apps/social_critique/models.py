@@ -67,6 +67,20 @@ class SocialMediaCritique(models.Model):
     # View tracking
     view_count = models.IntegerField(default=0)
 
+    # Campaign tagging for filtering
+    campaign_tag = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='Optional campaign tag for grouping related critiques'
+    )
+
+    # User context for submissions
+    user_context = models.TextField(
+        blank=True,
+        help_text='Optional user-provided context about the content'
+    )
+
     class Meta:
         db_table = 'social_media_critiques'
         verbose_name = 'Social Media Critique'
@@ -139,6 +153,27 @@ class CritiqueResponse(models.Model):
         help_text='List of citations {title, url}'
     )
 
+    # Conversation spec for structured campaign content (per spec 8.1)
+    conversation_spec = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Structured conversation spec: {context_summary, key_points, tone, steps}'
+    )
+
+    # Bluesky thread structure (per spec 8.2)
+    bluesky_thread = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Bluesky thread posts: [{role, text}, ...]'
+    )
+
+    # Reddit conversation structure (per spec 8.3)
+    reddit_conversation = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Reddit structure: {main_post, supportive_reply, curious_sceptic_reply, hostile_monetarist_reply, summary_reply}'
+    )
+
     generated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -154,9 +189,18 @@ class ShareableReply(models.Model):
     """Pre-generated reply content for social media sharing"""
 
     REPLY_TYPE_CHOICES = [
-        ('short', 'Short Reply'),      # Single post within char limits
-        ('thread', 'Thread'),          # Multi-post thread
-        ('summary', 'Summary Card'),   # Brief summary for sharing
+        ('short', 'Short Reply'),              # Single post within char limits
+        ('thread', 'Thread'),                  # Multi-post thread
+        ('summary', 'Summary Card'),           # Brief summary for sharing
+        ('x_reply', 'X/Twitter Reply'),        # Optimized for X/Twitter
+        ('bluesky_post', 'Bluesky Post'),      # Single Bluesky post
+        ('bluesky_thread', 'Bluesky Thread'),  # Bluesky thread with conversation structure
+        ('reddit_main', 'Reddit Main Post'),   # Reddit main comment/post
+        ('reddit_supportive', 'Reddit Supportive Reply'),
+        ('reddit_sceptic', 'Reddit Sceptic Reply'),
+        ('reddit_hostile', 'Reddit Hostile Reply'),
+        ('reddit_summary', 'Reddit Summary Reply'),
+        ('generic_comment', 'Generic Comment'),  # For article sites, Facebook, etc.
     ]
 
     critique = models.ForeignKey(

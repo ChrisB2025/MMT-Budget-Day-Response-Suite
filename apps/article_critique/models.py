@@ -92,6 +92,20 @@ class ArticleSubmission(models.Model):
     # View tracking
     view_count = models.IntegerField(default=0)
 
+    # Campaign tagging for filtering
+    campaign_tag = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='Optional campaign tag for grouping related articles'
+    )
+
+    # User context for submissions
+    user_context = models.TextField(
+        blank=True,
+        help_text='Optional user-provided context about the article'
+    )
+
     class Meta:
         db_table = 'article_submissions'
         verbose_name = 'Article Submission'
@@ -207,6 +221,15 @@ class QuickResponse(models.Model):
         ('thread', 'Thread'),
         ('letter', 'Letter to Editor'),
         ('comment', 'Article Comment'),
+        ('x_reply', 'X/Twitter Reply'),
+        ('bluesky_post', 'Bluesky Post'),
+        ('bluesky_thread', 'Bluesky Thread'),
+        ('reddit_main', 'Reddit Main Post'),
+        ('reddit_supportive', 'Reddit Supportive Reply'),
+        ('reddit_sceptic', 'Reddit Sceptic Reply'),
+        ('reddit_hostile', 'Reddit Hostile Reply'),
+        ('reddit_summary', 'Reddit Summary Reply'),
+        ('generic_comment', 'Generic Comment'),
     ]
 
     article = models.ForeignKey(

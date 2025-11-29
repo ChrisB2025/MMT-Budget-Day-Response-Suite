@@ -1,62 +1,109 @@
 {% extends 'base.html' %}
 
-{% block title %}About - MMT Budget Response Suite{% endblock %}
+{% block title %}About - MMT Campaign Suite{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <h1 class="text-4xl font-bold text-gray-900 mb-8">About MMT Budget Response Suite</h1>
+    <h1 class="text-4xl font-bold text-gray-900 mb-8">About MMT Campaign Suite</h1>
 
     <div class="prose prose-lg max-w-none">
         <p class="lead">
-            The MMT Budget Response Suite is a real-time platform for tracking, fact-checking, and rebutting
-            budget myths from a Modern Monetary Theory perspective.
+            The MMT Campaign Suite is a year-round platform for tracking economic myths, crowdsourcing fact-checks,
+            holding media accountable, and generating shareable MMT rebuttals for activists.
         </p>
 
         <h2>Why This Platform?</h2>
         <p>
-            Every budget day, the same economic myths are repeated: "taxpayer money," "maxed out credit card,"
-            "balancing the books." This platform provides tools to:
+            Economic myths are repeated daily across media: "taxpayer money," "maxed out credit card,"
+            "balancing the books," "government spending causes inflation." This platform provides tools to
+            challenge these narratives with evidence-based Modern Monetary Theory analysis:
         </p>
         <ul>
-            <li>Track these myths in real-time with Budget Bingo</li>
-            <li>Crowdsource and AI-verify fact-checks with MMT analysis</li>
-            <li>Generate comprehensive rebuttals for activists, MPs, and media</li>
+            <li>Target social media posts spreading economic misinformation</li>
+            <li>Critique news articles with comprehensive MMT analysis</li>
+            <li>Generate complaint letters to media outlets</li>
+            <li>Create shareable responses for X/Twitter, Bluesky, and Reddit</li>
+            <li>Track and coordinate campaigns with other activists</li>
         </ul>
 
-        <h2>How It Works</h2>
-        <h3>Budget Bingo</h3>
+        <h2>Campaign Tools</h2>
+
+        <h3>Social Media Target</h3>
         <p>
-            Generate a 5x5 bingo card with common budget myths. Mark them as you hear them during the
-            Chancellor's speech. Compete with others for fastest completion!
+            Submit links to social media posts on X/Twitter, YouTube, Bluesky, Reddit, and more.
+            Get AI-powered MMT critique and ready-to-post replies with the #mmt hashtag.
         </p>
 
-        <h3>Fact-Check Platform</h3>
+        <h3>Article Target</h3>
         <p>
-            Submit claims you hear during the budget for AI-powered fact-checking. Each response includes:
-        </p>
-        <ul>
-            <li>The Claim: Restated clearly</li>
-            <li>The Problem: Why it's misleading</li>
-            <li>The Reality: What's actually true</li>
-            <li>The Evidence: Citations and data</li>
-            <li>The MMT Perspective: How MMT reframes the issue</li>
-        </ul>
-
-        <h3>Comprehensive Rebuttal</h3>
-        <p>
-            AI-generated comprehensive analysis document including:
+            Submit news articles and opinion pieces for comprehensive MMT analysis. Each critique includes:
         </p>
         <ul>
-            <li>Executive Summary</li>
-            <li>Key Myths Debunked</li>
-            <li>Fiscal Analysis</li>
-            <li>Action Points for activists, MPs, and media</li>
+            <li>Summary and key claims identified</li>
+            <li>Factual errors and framing issues</li>
+            <li>Missing context from MMT perspective</li>
+            <li>Quick responses for social media and letters to the editor</li>
         </ul>
 
+        <h3>Complaint Generator</h3>
+        <p>
+            Draft complaints to media outlets about economic misinformation. Generate professional
+            letters with multiple rhetorical strategies to avoid form-letter detection.
+        </p>
+
+        <h3>Campaigns Dashboard</h3>
+        <p>
+            View all active campaigns, filter by campaign tags, and coordinate with other activists
+            on targeted responses.
+        </p>
+
+        <h2>Myth Bingo</h2>
+        <p>
+            Generate a 5x5 bingo card with common economic myths. Perfect for budget days, PMQs,
+            or any political event. Track which myths you hear and compete with others!
+        </p>
+    </div>
+
+    <!-- Join the Community -->
+    <div class="mt-12 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Join the Community</h2>
+        <p class="text-gray-700 mb-6">
+            Activists can coordinate campaigns, share targets, and workshop responses in the
+            MMT Campaign Suite Discord workspace. Connect with other MMT advocates, get help
+            with tricky cases, and turn individual responses into larger campaigns.
+        </p>
+        <a href="{{ MMT_DISCORD_INVITE_URL }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition">
+            Join Discord Community
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+        </a>
+    </div>
+
+    <!-- Learn & Train -->
+    <div class="mt-8 bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Learn & Train</h2>
+        <p class="text-gray-700 mb-6">
+            New to MMT or want to sharpen your understanding? Try Keystroke Kingdom - an interactive
+            strategy game where you experiment with MMT-style policy decisions and see the results
+            play out in a simulated economy.
+        </p>
+        <a href="{{ KEYSTROKE_KINGDOM_URL }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition">
+            Play Keystroke Kingdom
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="mt-12 prose prose-lg max-w-none">
         <h2>Technology</h2>
         <p>
-            Built with Django, HTMX, and Tailwind CSS. Powered by Claude AI for intelligent fact-checking
-            and rebuttal generation.
+            Built with Django 5, HTMX, Alpine.js, and Tailwind CSS. Powered by Claude AI (Sonnet 4.5)
+            for intelligent analysis and content generation. All generated social media content
+            includes the #mmt hashtag by default.
         </p>
     </div>
 </div>

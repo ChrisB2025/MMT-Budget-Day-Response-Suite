@@ -12,20 +12,104 @@ from .models import UserAction
 
 
 def home(request):
-    """Home page"""
+    """Home page - MMT Campaign Suite main landing"""
+    from apps.social_critique.models import SocialMediaCritique
+    from apps.article_critique.models import ArticleSubmission
+    from apps.media_complaints.models import Complaint
+
+    # Get recent critiques for display
+    recent_social_critiques = SocialMediaCritique.objects.filter(
+        status='completed'
+    ).select_related('user').order_by('-created_at')[:5]
+
+    recent_article_critiques = ArticleSubmission.objects.filter(
+        status='completed'
+    ).select_related('user').order_by('-created_at')[:5]
+
     # Overall stats
-    total_bingo_cards = BingoCard.objects.count()
-    total_factchecks = FactCheckRequest.objects.count()
+    stats = {
+        'total_critiques': SocialMediaCritique.objects.filter(status='completed').count(),
+        'total_articles': ArticleSubmission.objects.filter(status='completed').count(),
+        'total_complaints': Complaint.objects.count(),
+    }
 
     return render(request, 'core/home.html', {
-        'total_bingo_cards': total_bingo_cards,
-        'total_factchecks': total_factchecks,
+        'recent_social_critiques': recent_social_critiques,
+        'recent_article_critiques': recent_article_critiques,
+        'stats': stats,
+    })
+
+
+def campaigns(request):
+    """Campaigns dashboard - shows all recent campaign items"""
+    from apps.social_critique.models import SocialMediaCritique
+    from apps.article_critique.models import ArticleSubmission
+    from apps.media_complaints.models import Complaint
+
+    # Get campaign tag filter
+    campaign_tag = request.GET.get('campaign', '')
+
+    # Get all unique campaign tags
+    social_tags = SocialMediaCritique.objects.exclude(
+        campaign_tag=''
+    ).values_list('campaign_tag', flat=True).distinct()
+
+    article_tags = ArticleSubmission.objects.exclude(
+        campaign_tag=''
+    ).values_list('campaign_tag', flat=True).distinct()
+
+    complaint_tags = Complaint.objects.exclude(
+        campaign_tag=''
+    ).values_list('campaign_tag', flat=True).distinct()
+
+    all_tags = sorted(set(list(social_tags) + list(article_tags) + list(complaint_tags)))
+
+    # Build querysets
+    social_critiques = SocialMediaCritique.objects.filter(
+        status='completed'
+    ).select_related('user').order_by('-created_at')
+
+    article_critiques = ArticleSubmission.objects.filter(
+        status='completed'
+    ).select_related('user').order_by('-created_at')
+
+    complaints = Complaint.objects.select_related('user', 'outlet').order_by('-created_at')
+
+    # Apply campaign tag filter if specified
+    if campaign_tag:
+        social_critiques = social_critiques.filter(campaign_tag=campaign_tag)
+        article_critiques = article_critiques.filter(campaign_tag=campaign_tag)
+        complaints = complaints.filter(campaign_tag=campaign_tag)
+
+    # Limit results
+    social_critiques = social_critiques[:20]
+    article_critiques = article_critiques[:20]
+    complaints = complaints[:20]
+
+    # Stats
+    stats = {
+        'total_social': SocialMediaCritique.objects.filter(status='completed').count(),
+        'total_articles': ArticleSubmission.objects.filter(status='completed').count(),
+        'total_complaints': Complaint.objects.count(),
+    }
+
+    return render(request, 'core/campaigns.html', {
+        'social_critiques': social_critiques,
+        'article_critiques': article_critiques,
+        'complaints': complaints,
+        'campaign_tags': all_tags,
+        'selected_tag': campaign_tag,
+        'stats': stats,
     })
 
 
 @login_required
 def dashboard(request):
     """User dashboard"""
+    from apps.social_critique.models import SocialMediaCritique
+    from apps.article_critique.models import ArticleSubmission
+    from apps.media_complaints.models import Complaint
+
     user = request.user
 
     # User's bingo stats
@@ -43,17 +127,36 @@ def dashboard(request):
         'total_answered': user_factchecks.filter(status__in=['reviewed', 'published']).count(),
     }
 
+    # User's campaign stats
+    campaign_stats = {
+        'social_critiques': SocialMediaCritique.objects.filter(user=user).count(),
+        'article_critiques': ArticleSubmission.objects.filter(user=user).count(),
+        'complaints': Complaint.objects.filter(user=user).count(),
+    }
+
     # Recent actions
     recent_actions = UserAction.objects.filter(user=user)[:10]
 
     # Achievements
     achievements = user.achievements.all()
 
+    # Recent user submissions
+    recent_critiques = SocialMediaCritique.objects.filter(
+        user=user
+    ).order_by('-created_at')[:5]
+
+    recent_articles = ArticleSubmission.objects.filter(
+        user=user
+    ).order_by('-created_at')[:5]
+
     return render(request, 'core/dashboard.html', {
         'bingo_stats': bingo_stats,
         'factcheck_stats': factcheck_stats,
+        'campaign_stats': campaign_stats,
         'recent_actions': recent_actions,
         'achievements': achievements,
+        'recent_critiques': recent_critiques,
+        'recent_articles': recent_articles,
     })
 
 
@@ -67,12 +170,23 @@ def help_page(request):
     return render(request, 'core/help.html')
 
 
+# Redirect for retired fact-check public route
+def factcheck_retired(request):
+    """Redirect old fact-check URLs to home with a message"""
+    messages.info(request, 'The Fact-Check feature has been integrated into our Campaign Tools. Use the homepage to submit content for analysis.')
+    return redirect('core:home')
+
+
 @staff_member_required
 def admin_dashboard(request):
     """
     Comprehensive admin dashboard with links to all diagnostic and management tools.
     Only accessible to staff/admin users.
     """
+    from apps.social_critique.models import SocialMediaCritique
+    from apps.article_critique.models import ArticleSubmission
+    from apps.media_complaints.models import Complaint
+
     # Collect system statistics
     stats = {
         'factcheck': {
@@ -91,6 +205,11 @@ def admin_dashboard(request):
         'rebuttal': {
             'total': Rebuttal.objects.count(),
             'published': Rebuttal.objects.filter(published=True).count(),
+        },
+        'campaigns': {
+            'social_critiques': SocialMediaCritique.objects.count(),
+            'article_critiques': ArticleSubmission.objects.count(),
+            'complaints': Complaint.objects.count(),
         },
         'users': {
             'total': request.user.__class__.objects.count(),
@@ -198,8 +317,8 @@ def grant_superuser_access(request):
         else:
             user.is_superuser = True
             user.save()
-            messages.success(request, f'✅ Successfully granted superuser access! You now have full admin access.')
-            messages.success(request, '🔓 You can now access the Django Admin panel at /admin/')
+            messages.success(request, f'Successfully granted superuser access! You now have full admin access.')
+            messages.success(request, 'You can now access the Django Admin panel at /admin/')
 
         return redirect('core:admin_dashboard')
 

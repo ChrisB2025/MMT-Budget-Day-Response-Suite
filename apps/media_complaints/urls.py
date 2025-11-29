@@ -8,6 +8,7 @@ urlpatterns = [
     # Home and main pages
     path('', views.complaints_home, name='home'),
     path('submit/', views.submit_complaint, name='submit'),
+    path('quick-submit/', views.quick_submit, name='quick_submit'),
     path('my-complaints/', views.my_complaints, name='my_complaints'),
     path('community/', views.community_complaints, name='community'),
     path('stats/', views.complaint_stats, name='stats'),

@@ -129,6 +129,14 @@ class Complaint(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Campaign tagging for filtering
+    campaign_tag = models.CharField(
+        max_length=100,
+        blank=True,
+        db_index=True,
+        help_text='Optional campaign tag for grouping related complaints'
+    )
+
     class Meta:
         db_table = 'media_complaints'
         verbose_name = 'Complaint'

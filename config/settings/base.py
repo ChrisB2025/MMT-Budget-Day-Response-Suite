@@ -81,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.mmt_settings',
             ],
         },
     },
@@ -179,6 +180,23 @@ YOUTUBE_API_KEY = env('YOUTUBE_API_KEY', default='')
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:home'
+
+# =============================================================================
+# MMT Campaign Suite Configuration
+# =============================================================================
+
+# Discord community invite link
+MMT_DISCORD_INVITE_URL = env('MMT_DISCORD_INVITE_URL', default='https://discord.gg/DXn9rxt9bh')
+
+# Keystroke Kingdom educational app URL
+KEYSTROKE_KINGDOM_URL = env('KEYSTROKE_KINGDOM_URL', default='https://keystroke.mmtaction.uk/')
+
+# Site branding
+MMT_SITE_NAME = 'MMT Campaign Suite'
+MMT_SITE_TAGLINE = 'Track economic myths in real time, crowdsource fact checks, hold media accountable, and generate shareable MMT rebuttals.'
+
+# Default hashtag for generated social content
+MMT_DEFAULT_HASHTAG = '#mmt'
 
 # Session configuration
 SESSION_COOKIE_AGE = 86400  # 24 hours

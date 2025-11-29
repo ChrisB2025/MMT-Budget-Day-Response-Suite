@@ -52,6 +52,61 @@ def complaints_home(request):
 
 
 @login_required
+def quick_submit(request):
+    """Quick submit from homepage - simplified complaint form"""
+    if request.method == 'POST':
+        outlet_name = request.POST.get('outlet_name', '').strip()
+        claim_description = request.POST.get('claim_description', '').strip()
+
+        if not outlet_name or not claim_description:
+            messages.error(request, 'Please provide both outlet name and issue description.')
+            return redirect('core:home')
+
+        # Try to find or create outlet
+        outlet = MediaOutlet.objects.filter(name__icontains=outlet_name).first()
+        if not outlet:
+            # Create a generic outlet for now
+            outlet, created = MediaOutlet.objects.get_or_create(
+                name=outlet_name,
+                defaults={
+                    'media_type': 'other',
+                    'contact_email': '',
+                    'is_active': True,
+                }
+            )
+
+        # Create complaint with minimal info
+        complaint = Complaint.objects.create(
+            user=request.user,
+            outlet=outlet,
+            incident_date=timezone.now().date(),
+            programme_name='(submitted via quick form)',
+            claim_description=claim_description,
+            severity=3,
+            preferred_tone='professional',
+            status='draft',
+        )
+
+        messages.success(request, 'Complaint submitted! Generating your letter...')
+
+        # Generate letter
+        try:
+            result = process_complaint_letter(complaint.id)
+            if result['status'] == 'success':
+                messages.success(request, 'Letter generated successfully!')
+            else:
+                messages.warning(request, f'Letter generation had issues: {result.get("message", "Unknown")}')
+        except Exception as e:
+            logger.error(f"Error generating letter for quick complaint {complaint.id}: {e}")
+            messages.warning(request, 'Error generating letter. You can try again from the complaint page.')
+
+        return redirect('media_complaints:view_complaint', complaint_id=complaint.id)
+
+    # GET request - redirect to home
+    return redirect('core:home')
+
+
+@login_required
 def submit_complaint(request):
     """Submit a new complaint"""
     if request.method == 'POST':
