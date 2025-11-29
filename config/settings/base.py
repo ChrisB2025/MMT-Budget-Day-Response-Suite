@@ -156,7 +156,7 @@ def get_channel_layers():
     """
     try:
         import redis
-        r = redis.from_url(REDIS_URL)
+        r = redis.from_url(REDIS_URL, socket_connect_timeout=5, socket_timeout=5)
         r.ping()
         return {
             'default': {
