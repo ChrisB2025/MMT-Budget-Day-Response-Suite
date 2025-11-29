@@ -2,7 +2,7 @@
 set -e
 
 echo "==> Running migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
 
 echo "==> Seeding media outlets..."
 python manage.py seed_media_outlets
